@@ -27,31 +27,31 @@ A premium, high-performance music player app built with **React Native**, **Expo
 
 ## 📱 Screens
 
-| Screen          | Description                                     |
-| --------------- | ----------------------------------------------- |
-| **Home**        | Quick access to suggestions and popular tracks  |
-| **Search**      | Powerful hybrid local/remote search engine      |
-| **Liked Songs** | Your favorite tracks with management tools       |
-| **Playlists**   | Specialized collections for every mood          |
-| **Now Playing** | Full-screen interactive playback & visualizer   |
-| **Profile**     | User statistics and account management          |
-| **FAQs**        | Animated support and feature guide              |
-| **Auth**        | Secure and elegant Login/SignUp workflows       |
+| Screen          | Description                                    |
+| --------------- | ---------------------------------------------- |
+| **Home**        | Quick access to suggestions and popular tracks |
+| **Search**      | Powerful hybrid local/remote search engine     |
+| **Liked Songs** | Your favorite tracks with management tools     |
+| **Playlists**   | Specialized collections for every mood         |
+| **Now Playing** | Full-screen interactive playback & visualizer  |
+| **Profile**     | User statistics and account management         |
+| **FAQs**        | Animated support and feature guide             |
+| **Auth**        | Secure and elegant Login/SignUp workflows      |
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer            | Technology                                                |
-| ---------------- | ----------------------------------------------- |
-| **Language**     | TypeScript (Strict Typing)                      |
-| **Core**         | React Native (Expo SDK)                         |
-| **State**        | Redux Toolkit (Slices for Library, Auth, Player) |
-| **Audio**        | Expo-AV (Singleton Service Pattern)              |
-| **Networking**   | Axios (w/ Interceptors & Retry Logic)            |
-| **Navigation**   | React Navigation (Native Stack + Custom Drawer) |
-| **Layout**       | React Native Safe Area Context                  |
-| **Icons**        | Ionicons (Expo Vector Icons)                    |
+| Layer          | Technology                                       |
+| -------------- | ------------------------------------------------ |
+| **Language**   | TypeScript (Strict Typing)                       |
+| **Core**       | React Native (Expo SDK)                          |
+| **State**      | Redux Toolkit (Slices for Library, Auth, Player) |
+| **Audio**      | Expo-Audio (Singleton Service Pattern)           |
+| **Networking** | Axios (w/ Interceptors & Retry Logic)            |
+| **Navigation** | React Navigation (Native Stack + Custom Drawer)  |
+| **Layout**     | React Native Safe Area Context                   |
+| **Icons**      | Ionicons (Expo Vector Icons)                     |
 
 ---
 
@@ -80,12 +80,14 @@ src/
 ### Installation & Execution
 
 1. **Clone & Enter**:
+
    ```bash
    git clone https://github.com/KarimaMahmoud626/music-player.git
    cd music-player
    ```
 
 2. **Setup Dependencies**:
+
    ```bash
    npm install
    ```
