@@ -1,0 +1,17 @@
+import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "./auth/authSlice";
+import themeReducer from "./theme/themeSlice";
+import playerReducer from "./player/playerSlice";
+import libraryReducer from "./library/librarySlice";
+
+export const store = configureStore({
+  reducer: { 
+    auth: authReducer,
+    theme: themeReducer,
+    player: playerReducer,
+    library: libraryReducer
+  },
+});
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

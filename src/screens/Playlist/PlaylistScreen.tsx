@@ -1,0 +1,251 @@
+import React, { useState } from "react";
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  FlatList, 
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  ScrollView
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { useThemeColor } from "../../hooks/use-theme-color";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../../redux/store/store";
+import { createPlaylist, deletePlaylist } from "../../redux/store/library/librarySlice";
+import { Playlist } from "../../types";
+
+export default function PlaylistScreen() {
+  const navigation = useNavigation<any>();
+  const dispatch = useDispatch();
+  const playlists = useSelector((state: RootState) => state.library.playlists);
+
+  const backgroundColor = useThemeColor({}, "background");
+  const textColor = useThemeColor({}, "text");
+  const cardBg = useThemeColor({}, "surface");
+  const inputBg = useThemeColor({}, "inputBackground");
+  const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
+
+  const [isCreating, setIsCreating] = useState(false);
+  const [newPlaylistName, setNewPlaylistName] = useState("");
+
+  const handleCreate = () => {
+    if (newPlaylistName.trim() === "") return;
+    dispatch(createPlaylist({
+      id: Date.now().toString(),
+      name: newPlaylistName.trim(),
+      tracks: []
+    }));
+    setNewPlaylistName("");
+    setIsCreating(false);
+  };
+
+  const renderItem = ({ item }: { item: Playlist }) => (
+    <View style={[styles.card, { borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
+      <View style={[styles.iconContainer, { backgroundColor: inputBg }]}>
+        <Ionicons name="folder-outline" size={30} color="#B34A30" />
+      </View>
+      <View style={styles.cardInfo}>
+        <Text style={[styles.cardTitle, { color: textColor }]}>{item.name}</Text>
+        <Text style={styles.cardSubtitle}>{item.tracks.length} songs</Text>
+      </View>
+      <TouchableOpacity 
+        style={styles.deleteBtn}
+        onPress={() => dispatch(deletePlaylist(item.id))}
+      >
+        <Ionicons name="trash-outline" size={20} color="#EF4444" />
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.headerButton}>
+          <Ionicons name="menu-outline" size={28} color={textColor} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: textColor }]}>My Playlists</Text>
+        <TouchableOpacity style={styles.headerButton} onPress={() => setIsCreating(!isCreating)}>
+          <Ionicons name={isCreating ? "close" : "add"} size={28} color={textColor} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Creation form */}
+        {isCreating && (
+          <View style={[styles.createForm, { backgroundColor: inputBg }]}>
+            <Text style={[styles.formTitle, { color: textColor }]}>New Playlist</Text>
+            <TextInput
+              style={[styles.input, { color: textColor, borderBottomColor: textColor + '20' }]}
+              placeholder="Give it a name..."
+              placeholderTextColor="#94A3B8"
+              value={newPlaylistName}
+              onChangeText={setNewPlaylistName}
+              autoFocus
+            />
+            <View style={styles.createFormActions}>
+              <TouchableOpacity onPress={handleCreate} style={styles.btnPrimary}>
+                <Text style={{ color: "#FFF", fontWeight: "bold" }}>Create Now</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* List */}
+        {playlists.length === 0 && !isCreating ? (
+          <View style={styles.emptyContainer}>
+            <View style={[styles.emptyIconCircle, { backgroundColor: inputBg }]}>
+              <Ionicons name="musical-notes-outline" size={50} color="#B34A30" />
+            </View>
+            <Text style={[styles.emptyText, { color: textColor }]}>Your music is waiting</Text>
+            <Text style={styles.emptySubtext}>Create specialized playlists for your moods or workout sessions.</Text>
+            <TouchableOpacity style={styles.createFirstBtn} onPress={() => setIsCreating(true)}>
+              <Text style={styles.createFirstText}>Create First Playlist</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.listContainer}>
+            {playlists.map((playlist) => (
+              <React.Fragment key={playlist.id}>
+                {renderItem({ item: playlist })}
+              </React.Fragment>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  headerButton: {
+    padding: 4,
+    width: 40,
+    alignItems: 'center'
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  scrollContent: {
+    paddingBottom: 100,
+  },
+  listContainer: {
+    paddingHorizontal: 20,
+    marginTop: 10,
+  },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    padding: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  iconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  cardInfo: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    color: "#94A3B8",
+  },
+  deleteBtn: {
+    padding: 8,
+  },
+  emptyContainer: {
+    marginTop: 100,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 50,
+  },
+  emptyIconCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  emptyText: {
+    fontSize: 22,
+    fontWeight: "800",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  emptySubtext: {
+    fontSize: 15,
+    color: "#64748B",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 30,
+  },
+  createFirstBtn: {
+    backgroundColor: '#B34A30',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 25,
+  },
+  createFirstText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  createForm: {
+    marginHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 24,
+    padding: 20,
+    borderRadius: 24,
+  },
+  formTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  input: {
+    borderBottomWidth: 1,
+    paddingBottom: 12,
+    marginBottom: 20,
+    fontSize: 16,
+  },
+  createFormActions: {
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  btnPrimary: {
+    backgroundColor: "#B34A30",
+    paddingHorizontal: 30,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+});
+
+
