@@ -102,7 +102,7 @@ src/
 
 1. **Clone & Enter**:
    ```bash
-   git clone https://github.com/KarimaMahmoud626/music-player.git
+   git clone https://github.com/DevEslam1/music-player.git
    cd music-player
    ```
 
