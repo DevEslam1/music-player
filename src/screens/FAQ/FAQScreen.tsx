@@ -40,7 +40,7 @@ const FAQItem = ({ question, answer, textColor }: { question: string, answer: st
       </TouchableOpacity>
       {expanded && (
         <View style={styles.answerContainer}>
-          <Text style={styles.answer}>{answer}</Text>
+          <Text style={[styles.answer, { color: textColor + 'CC' }]}>{answer}</Text>
         </View>
       )}
     </View>
@@ -91,7 +91,7 @@ export default function FAQScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.subtitle}>Frequently Asked Questions</Text>
-        <Text style={styles.description}>
+        <Text style={[styles.description, { color: textColor + '99' }]}>
           Find quick answers to common questions about using GIG Music Player.
         </Text>
 
@@ -107,7 +107,7 @@ export default function FAQScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Still need help?</Text>
+          <Text style={[styles.footerText, { color: textColor + '99' }]}>Still need help?</Text>
           <TouchableOpacity style={styles.contactButton}>
             <Text style={styles.contactButtonText}>Contact Support</Text>
           </TouchableOpacity>

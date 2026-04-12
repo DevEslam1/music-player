@@ -1,5 +1,6 @@
 import { axiosClient } from "./axiosClient";
 import { Track } from "../../types";
+import { mapCustomTrackToModel } from "./api";
 
 // Types for backend responses if different from our models
 interface BackendPlaylist {
@@ -13,7 +14,8 @@ export const LibraryService = {
   // LIKED SONGS
   fetchLikedSongs: async (): Promise<Track[]> => {
     const response = await axiosClient.get("liked/");
-    return response.data;
+    const data = response.data || [];
+    return data.map(mapCustomTrackToModel);
   },
 
   toggleLike: async (trackId: string): Promise<void> => {
@@ -28,7 +30,11 @@ export const LibraryService = {
 
   fetchPlaylistDetail: async (playlistId: string): Promise<any> => {
     const response = await axiosClient.get(`playlists/${playlistId}/`);
-    return response.data;
+    const data = response.data;
+    if (data && Array.isArray(data.tracks)) {
+      data.tracks = data.tracks.map(mapCustomTrackToModel);
+    }
+    return data;
   },
 
   createPlaylist: async (name: string, description?: string): Promise<any> => {
@@ -53,8 +59,14 @@ export const LibraryService = {
     await axiosClient.post(`tracks/${trackId}/play/`);
   },
   
-  fetchHistory: async (): Promise<any[]> => {
+  fetchHistory: async (): Promise<Track[]> => {
     const response = await axiosClient.get("history/");
-    return response.data;
+    const data = response.data || [];
+    // The history endpoint often returns { track: ..., played_at: ... } 
+    // or just the track array depending on the serializer.
+    // Based on standard patterns, we map it accordingly.
+    return data.map((item: any) => 
+      item.track ? mapCustomTrackToModel(item.track) : mapCustomTrackToModel(item)
+    );
   }
 };

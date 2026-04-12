@@ -60,6 +60,34 @@ export const deletePlaylistAction = createAsyncThunk(
   }
 );
 
+export const addTrackToPlaylistAction = createAsyncThunk(
+  "library/addTrackToPlaylist",
+  async ({ playlistId, trackId }: { playlistId: string; trackId: string }, { rejectWithValue, dispatch }) => {
+    try {
+      await LibraryService.addTrackToPlaylist(playlistId, trackId);
+      // Refetch playlists to update track counts
+      dispatch(fetchPlaylists());
+      return { playlistId, trackId };
+    } catch (e: any) {
+      return rejectWithValue(e.message);
+    }
+  }
+);
+
+export const removeTrackFromPlaylistAction = createAsyncThunk(
+  "library/removeTrackFromPlaylist",
+  async ({ playlistId, trackId }: { playlistId: string; trackId: string }, { rejectWithValue, dispatch }) => {
+    try {
+      await LibraryService.removeTrackFromPlaylist(playlistId, trackId);
+      // Refetch playlists to update track counts
+      dispatch(fetchPlaylists());
+      return { playlistId, trackId };
+    } catch (e: any) {
+      return rejectWithValue(e.message);
+    }
+  }
+);
+
 interface LibraryState {
   likedSongs: Track[];
   playlists: any[];
@@ -105,8 +133,16 @@ const librarySlice = createSlice({
       })
       
       // FETCH PLAYLISTS
+      .addCase(fetchPlaylists.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(fetchPlaylists.fulfilled, (state, action) => {
+        state.loading = false;
         state.playlists = action.payload;
+      })
+      .addCase(fetchPlaylists.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       })
       
       // CREATE PLAYLIST

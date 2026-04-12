@@ -4,6 +4,9 @@ import LikedSongsScreen from "../screens/LikedSongs/LikedSongsScreen";
 import PlaylistScreen from "../screens/Playlist/PlaylistScreen";
 import ProfileScreen from "../screens/Profile/ProfileScreen";
 import FAQScreen from "../screens/FAQ/FAQScreen";
+import SettingsScreen from "../screens/Settings/SettingsScreen";
+import ContactScreen from "../screens/Contact/ContactScreen";
+import LanguageScreen from "../screens/Language/LanguageScreen";
 import { useThemeColor } from "../hooks/use-theme-color";
 import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
@@ -15,6 +18,9 @@ export type drawerType = {
   LikedSongs: undefined;
   Profile: undefined;
   FAQ: undefined;
+  Settings: undefined;
+  Contact: undefined;
+  Language: undefined;
 };
 
 export type DrawerItemProps = {
@@ -47,6 +53,9 @@ const DrawerNavigator = ({ lightColor, darkColor }: DrawerItemProps) => {
         <Drawer.Screen name="Playlist" component={PlaylistScreen} />
         <Drawer.Screen name="Profile" component={ProfileScreen} />
         <Drawer.Screen name="FAQ" component={FAQScreen} />
+        <Drawer.Screen name="Settings" component={SettingsScreen} />
+        <Drawer.Screen name="Contact" component={ContactScreen} />
+        <Drawer.Screen name="Language" component={LanguageScreen} />
       </Drawer.Navigator>
     </View>
   );

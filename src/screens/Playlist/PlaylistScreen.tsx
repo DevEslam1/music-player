@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  ScrollView
+  ScrollView,
+  ActivityIndicator
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,7 +22,7 @@ import { Playlist } from "../../types";
 export default function PlaylistScreen() {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
-  const playlists = useSelector((state: RootState) => state.library.playlists);
+  const { playlists, loading } = useSelector((state: RootState) => state.library);
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -45,13 +46,18 @@ export default function PlaylistScreen() {
 
   const renderItem = ({ item }: { item: Playlist }) => (
     <View style={[styles.card, { borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
-      <View style={[styles.iconContainer, { backgroundColor: inputBg }]}>
-        <Ionicons name="folder-outline" size={30} color="#B34A30" />
-      </View>
-      <View style={styles.cardInfo}>
-        <Text style={[styles.cardTitle, { color: textColor }]}>{item.name}</Text>
-        <Text style={styles.cardSubtitle}>{item.tracks.length} songs</Text>
-      </View>
+      <TouchableOpacity 
+        style={styles.cardMain}
+        onPress={() => navigation.navigate("PlaylistDetail", { playlistId: item.id, name: item.name })}
+      >
+        <View style={[styles.iconContainer, { backgroundColor: inputBg }]}>
+          <Ionicons name="folder-outline" size={30} color="#B34A30" />
+        </View>
+        <View style={styles.cardInfo}>
+          <Text style={[styles.cardTitle, { color: textColor }]}>{item.name}</Text>
+          <Text style={styles.cardSubtitle}>{(item as any).track_count ?? item.tracks?.length ?? 0} songs</Text>
+        </View>
+      </TouchableOpacity>
       <TouchableOpacity 
         style={styles.deleteBtn}
         onPress={() => dispatch(deletePlaylistAction(item.id))}
@@ -96,7 +102,11 @@ export default function PlaylistScreen() {
         )}
 
         {/* List */}
-        {playlists.length === 0 && !isCreating ? (
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#B34A30" />
+          </View>
+        ) : playlists.length === 0 && !isCreating ? (
           <View style={styles.emptyContainer}>
             <View style={[styles.emptyIconCircle, { backgroundColor: inputBg }]}>
               <Ionicons name="musical-notes-outline" size={50} color="#B34A30" />
@@ -164,6 +174,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+  },
+  cardMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   cardInfo: {
     flex: 1,
@@ -245,6 +260,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     paddingVertical: 12,
     borderRadius: 20,
+  },
+  loadingContainer: {
+    marginTop: 100,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

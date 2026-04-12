@@ -2,7 +2,7 @@ import { axiosClient, BASE_DOMAIN } from "./axiosClient";
 import { Track } from "../../types";
 
 // Raw response type for typing the axios request to the custom API
-interface CustomApiTrackRaw {
+export interface CustomApiTrackRaw {
   id: number;
   title: string;
   artist: string;
@@ -24,7 +24,7 @@ const ensureAbsoluteUrl = (url: string | null): string => {
   return `${BASE_DOMAIN}${cleanUrl}`;
 };
 
-const mapCustomTrackToModel = (track: CustomApiTrackRaw): Track => ({
+export const mapCustomTrackToModel = (track: CustomApiTrackRaw): Track => ({
   id: String(track.id),
   name: track.title,
   artist: track.artist || "Unknown Artist",

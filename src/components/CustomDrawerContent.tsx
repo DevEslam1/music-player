@@ -79,13 +79,13 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           icon="globe-outline" 
           label="Language" 
           textColor={textColor}
-          onPress={() => {}} 
+          onPress={() => props.navigation.navigate("Language")} 
         />
         <DrawerItem 
           icon="chatbubble-outline" 
           label="Contact us" 
           textColor={textColor}
-          onPress={() => {}} 
+          onPress={() => props.navigation.navigate("Contact")} 
         />
         <DrawerItem 
           icon="bulb-outline" 
@@ -97,7 +97,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           icon="settings-outline" 
           label="Settings" 
           textColor={textColor}
-          onPress={() => {}} 
+          onPress={() => props.navigation.navigate("Settings")} 
         />
       </View>
     </View>

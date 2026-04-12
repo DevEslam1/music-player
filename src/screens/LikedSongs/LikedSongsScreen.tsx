@@ -5,7 +5,8 @@ import {
   StyleSheet, 
   FlatList, 
   Image, 
-  TouchableOpacity 
+  TouchableOpacity,
+  ActivityIndicator
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,7 +22,7 @@ import { Track } from "../../types";
 export default function LikedSongsScreen() {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
-  const likedSongs = useSelector((state: RootState) => state.library.likedSongs);
+  const { likedSongs, loading } = useSelector((state: RootState) => state.library);
   const [isEditMode, setIsEditMode] = React.useState(false);
 
   React.useEffect(() => {
@@ -85,7 +86,11 @@ export default function LikedSongsScreen() {
         </TouchableOpacity>
       </View>
 
-      {likedSongs.length === 0 ? (
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#B34A30" />
+        </View>
+      ) : likedSongs.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconCircle}>
             <Ionicons name="heart-dislike-outline" size={60} color="#64748B" />
@@ -204,5 +209,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#94A3B8",
     textAlign: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

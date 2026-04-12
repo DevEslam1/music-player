@@ -16,8 +16,10 @@ import { useThemeColor } from "../../hooks/use-theme-color";
 import { searchSongs, getRecommendedSongs } from "../../services/api/api";
 import { Track } from "../../types";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
-import { useDispatch } from "react-redux";
 import { setQueue } from "../../redux/store/player/playerSlice";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "../../redux/store/store";
+import { fetchLikedSongs, fetchPlaylists } from "../../redux/store/library/librarySlice";
 
 const TrackCard = ({ track, onPress, textColor }: { track: Track, onPress: () => void, textColor: string }) => (
   <TouchableOpacity style={styles.card} onPress={onPress}>
@@ -40,11 +42,12 @@ const SuggestionItem = ({ track, onPress, textColor }: { track: Track, onPress: 
 
 export default function HomeScreen() {
   const [recommended, setRecommended] = useState<Track[]>([]);
-  const [myPlaylist, setMyPlaylist] = useState<Track[]>([]);
   const [suggestions, setSuggestions] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
+  
+  const { likedSongs } = useSelector((state: RootState) => state.library);
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -53,12 +56,14 @@ export default function HomeScreen() {
     let isMounted = true;
     const fetchHomeData = async () => {
       try {
+        // Sync user library
+        dispatch(fetchLikedSongs());
+        dispatch(fetchPlaylists());
+        
         const topTracks = await getRecommendedSongs();
-        const playlistTracks = await searchSongs("Imagine Dragons");
         const suggestionTracks = await searchSongs("Jazz");
         if (isMounted) {
           setRecommended(topTracks.slice(0, 5));
-          setMyPlaylist(playlistTracks.slice(0, 10));
           setSuggestions(suggestionTracks.slice(0, 6));
           setLoading(false);
         }
@@ -112,21 +117,31 @@ export default function HomeScreen() {
           )}
         />
 
-        <Text style={[styles.sectionTitle, { color: textColor }]}>My Playlist</Text>
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={myPlaylist}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
-          renderItem={({ item }) => (
-            <TrackCard
-              track={item}
-              textColor={textColor}
-              onPress={() => handlePlayTrack(item, myPlaylist)}
-            />
-          )}
-        />
+        <Text style={[styles.sectionTitle, { color: textColor }]}>Favorite Songs</Text>
+        {likedSongs.length > 0 ? (
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={likedSongs}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContainer}
+            renderItem={({ item }) => (
+              <TrackCard
+                track={item}
+                textColor={textColor}
+                onPress={() => handlePlayTrack(item, likedSongs)}
+              />
+            )}
+          />
+        ) : (
+          <TouchableOpacity 
+            style={styles.emptyFavorite}
+            onPress={() => navigation.navigate("Library")}
+          >
+            <Ionicons name="heart-outline" size={24} color="#B34A30" />
+            <Text style={styles.emptyFavoriteText}>Tap ❤️ on a song to see it here</Text>
+          </TouchableOpacity>
+        )}
 
         <View style={styles.suggestionsHeader}>
           <Text style={[styles.sectionTitle, { color: textColor, marginBottom: 0 }]}>Suggestions</Text>
@@ -239,6 +254,25 @@ const styles = StyleSheet.create({
   suggestionArtist: {
     fontSize: 13,
     color: '#94A3B8',
+  },
+  emptyFavorite: {
+    marginHorizontal: 20,
+    marginBottom: 32,
+    padding: 20,
+    borderRadius: 16,
+    backgroundColor: 'rgba(179, 74, 48, 0.05)',
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#B34A30',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  emptyFavoriteText: {
+    fontSize: 14,
+    color: '#94A3B8',
+    fontWeight: '500',
   },
 });
 

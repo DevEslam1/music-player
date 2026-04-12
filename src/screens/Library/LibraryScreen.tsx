@@ -18,14 +18,18 @@ import { Track } from "../../types";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import { useDispatch, useSelector } from "react-redux";
 import { setQueue } from "../../redux/store/player/playerSlice";
-import { RootState } from "../../redux/store/store";
+import { addTrackToPlaylistAction } from "../../redux/store/library/librarySlice";
+import { RootState, AppDispatch } from "../../redux/store/store";
+import PlaylistPicker from "../../components/PlaylistPicker";
 
 export default function LibraryScreen() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isPickerVisible, setIsPickerVisible] = useState(false);
+  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
   const navigation = useNavigation<any>();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const { likedSongs, playlists } = useSelector((state: RootState) => state.library);
   const searchTimeout = React.useRef<NodeJS.Timeout | null>(null);
@@ -94,6 +98,23 @@ export default function LibraryScreen() {
   const handlePlayTrack = async (track: Track) => {
     dispatch(setQueue(results));
     await audioPlayer.loadPlayTrack(track);
+    navigation.navigate("NowPlaying");
+  };
+
+  const handleOpenPicker = (track: Track) => {
+    setSelectedTrack(track);
+    setIsPickerVisible(true);
+  };
+
+  const handleAddToPlaylist = (playlistId: string) => {
+    if (selectedTrack) {
+      dispatch(addTrackToPlaylistAction({ 
+        playlistId, 
+        trackId: selectedTrack.id 
+      }));
+      setIsPickerVisible(false);
+      setSelectedTrack(null);
+    }
   };
 
   const renderItem = ({ item }: { item: Track }) => {
@@ -109,7 +130,14 @@ export default function LibraryScreen() {
             <Text style={styles.cardSubtitle} numberOfLines={1}>{item.artist}</Text>
           </View>
         </View>
-        <Ionicons name="play-circle-outline" size={32} color="#B34A30" />
+        <View style={styles.cardActions}>
+          <TouchableOpacity onPress={() => handleOpenPicker(item)} style={styles.actionBtn}>
+             <Ionicons name="add-circle-outline" size={26} color={textColor} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handlePlayTrack(item)}>
+             <Ionicons name="play-circle-outline" size={32} color="#B34A30" />
+          </TouchableOpacity>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -159,6 +187,12 @@ export default function LibraryScreen() {
           }
         />
       )}
+
+      <PlaylistPicker 
+        isVisible={isPickerVisible}
+        onClose={() => setIsPickerVisible(false)}
+        onSelect={handleAddToPlaylist}
+      />
     </SafeAreaView>
   );
 }
@@ -232,6 +266,13 @@ const styles = StyleSheet.create({
   artistRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  cardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionBtn: {
+    marginRight: 12,
   },
   emptyText: {
     textAlign: "center",

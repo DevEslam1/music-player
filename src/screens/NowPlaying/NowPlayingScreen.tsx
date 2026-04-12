@@ -11,10 +11,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColor } from "../../hooks/use-theme-color";
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../../redux/store/store";
-import { toggleLikeSong } from "../../redux/store/library/librarySlice";
+import { RootState, AppDispatch } from "../../redux/store/store";
+import { toggleLikeSongAction, addTrackToPlaylistAction } from "../../redux/store/library/librarySlice";
 import { toggleShuffle, toggleRepeat } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
+import PlaylistPicker from "../../components/PlaylistPicker";
 import Slider from "@react-native-community/slider";
 import PagerView from "react-native-pager-view";
 import { Image } from "react-native";
@@ -23,9 +24,10 @@ const { width } = Dimensions.get("window");
 
 export default function NowPlayingScreen() {
   const navigation = useNavigation<any>();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const player = useSelector((state: RootState) => state.player);
   const likedSongs = useSelector((state: RootState) => state.library.likedSongs);
+  const [isPickerVisible, setIsPickerVisible] = React.useState(false);
   
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -35,6 +37,12 @@ export default function NowPlayingScreen() {
     : false;
 
   const pagerRef = useRef<PagerView>(null);
+
+  // Calculate initial page index
+  const currentIndex = player.currentTrack && player.queue.length > 0 
+    ? player.queue.findIndex(t => t.id === player.currentTrack?.id) 
+    : 0;
+  const initialPageIndex = currentIndex !== -1 ? currentIndex : 0;
 
   // Sync pager view with current track
   useEffect(() => {
@@ -48,7 +56,14 @@ export default function NowPlayingScreen() {
 
   const onPageSelected = async (e: any) => {
     const newIdx = e.nativeEvent.position;
+    
+    // Safety: ignore the event if the queue is empty or index is invalid
+    if (player.queue.length === 0 || !player.queue[newIdx]) return;
+    
     const track = player.queue[newIdx];
+    
+    // CRITICAL: Only change song if it's DIFFERENT from what is currently playing
+    // This prevents the carousel from "resetting" the song to index 0 on mount
     if (track && track.id !== player.currentTrack?.id) {
       await audioPlayer.loadPlayTrack(track);
     }
@@ -63,6 +78,16 @@ export default function NowPlayingScreen() {
 
   const handleSeek = (value: number) => {
     audioPlayer.seek(value);
+  };
+
+  const handleAddToPlaylist = (playlistId: string) => {
+    if (player.currentTrack) {
+      dispatch(addTrackToPlaylistAction({ 
+        playlistId, 
+        trackId: player.currentTrack.id 
+      }));
+      setIsPickerVisible(false);
+    }
   };
 
   if (!player.currentTrack) return null;
@@ -84,7 +109,7 @@ export default function NowPlayingScreen() {
           <PagerView 
             ref={pagerRef} 
             style={styles.pagerView} 
-            initialPage={0}
+            initialPage={initialPageIndex}
             onPageSelected={onPageSelected}
           >
             {player.queue.map((track, index) => (
@@ -106,9 +131,14 @@ export default function NowPlayingScreen() {
           <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>{player.currentTrack.name}</Text>
           <Text style={styles.artist} numberOfLines={1}>{player.currentTrack.artist}</Text>
         </View>
-        <TouchableOpacity onPress={() => dispatch(toggleLikeSong(player.currentTrack!))}>
-          <Ionicons name={isLiked ? "heart" : "heart-outline"} size={26} color={isLiked ? "#B34A30" : textColor} />
-        </TouchableOpacity>
+        <View style={styles.actionsBox}>
+          <TouchableOpacity onPress={() => setIsPickerVisible(true)} style={styles.actionBtn}>
+             <Ionicons name="add-circle-outline" size={28} color={textColor} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => dispatch(toggleLikeSongAction(player.currentTrack!))}>
+            <Ionicons name={isLiked ? "heart" : "heart-outline"} size={26} color={isLiked ? "#B34A30" : textColor} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Secondary Controls Row */}
@@ -138,7 +168,7 @@ export default function NowPlayingScreen() {
           onSlidingComplete={handleSeek}
           minimumTrackTintColor="#B34A30"
           maximumTrackTintColor="#CBD5E1"
-          thumbTintColor="#0F172A"
+          thumbTintColor="#B34A30"
         />
       </View>
 
@@ -156,6 +186,12 @@ export default function NowPlayingScreen() {
           <Ionicons name="play-skip-forward-outline" size={32} color={textColor} />
         </TouchableOpacity>
       </View>
+
+      <PlaylistPicker 
+        isVisible={isPickerVisible} 
+        onClose={() => setIsPickerVisible(false)}
+        onSelect={handleAddToPlaylist}
+      />
       
     </SafeAreaView>
   );
@@ -200,14 +236,24 @@ const styles = StyleSheet.create({
   },
   infoRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 32,
+    paddingHorizontal: 20,
     marginBottom: 24,
+    position: 'relative',
   },
   textStack: {
-    flex: 1,
-    paddingRight: 16,
+    alignItems: 'center',
+    paddingHorizontal: 54, // Avoid overlap with absolute actions
+  },
+  actionsBox: {
+    position: 'absolute',
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionBtn: {
+    marginRight: 16,
   },
   title: {
     fontSize: 24,
