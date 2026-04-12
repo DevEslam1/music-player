@@ -14,13 +14,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColor } from "../../hooks/use-theme-color";
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../../redux/store/store";
-import { createPlaylist, deletePlaylist } from "../../redux/store/library/librarySlice";
+import { RootState, AppDispatch } from "../../redux/store/store";
+import { fetchPlaylists, createPlaylistAction, deletePlaylistAction } from "../../redux/store/library/librarySlice";
 import { Playlist } from "../../types";
 
 export default function PlaylistScreen() {
   const navigation = useNavigation<any>();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const playlists = useSelector((state: RootState) => state.library.playlists);
 
   const backgroundColor = useThemeColor({}, "background");
@@ -32,13 +32,13 @@ export default function PlaylistScreen() {
   const [isCreating, setIsCreating] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
 
+  React.useEffect(() => {
+    dispatch(fetchPlaylists());
+  }, []);
+
   const handleCreate = () => {
     if (newPlaylistName.trim() === "") return;
-    dispatch(createPlaylist({
-      id: Date.now().toString(),
-      name: newPlaylistName.trim(),
-      tracks: []
-    }));
+    dispatch(createPlaylistAction(newPlaylistName.trim()));
     setNewPlaylistName("");
     setIsCreating(false);
   };
@@ -54,7 +54,7 @@ export default function PlaylistScreen() {
       </View>
       <TouchableOpacity 
         style={styles.deleteBtn}
-        onPress={() => dispatch(deletePlaylist(item.id))}
+        onPress={() => dispatch(deletePlaylistAction(item.id))}
       >
         <Ionicons name="trash-outline" size={20} color="#EF4444" />
       </TouchableOpacity>

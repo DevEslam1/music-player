@@ -12,17 +12,21 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColor } from "../../hooks/use-theme-color";
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../../redux/store/store";
+import { RootState, AppDispatch } from "../../redux/store/store";
 import { setQueue } from "../../redux/store/player/playerSlice";
-import { toggleLikeSong } from "../../redux/store/library/librarySlice";
+import { fetchLikedSongs, toggleLikeSongAction } from "../../redux/store/library/librarySlice";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import { Track } from "../../types";
 
 export default function LikedSongsScreen() {
   const navigation = useNavigation<any>();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const likedSongs = useSelector((state: RootState) => state.library.likedSongs);
   const [isEditMode, setIsEditMode] = React.useState(false);
+
+  React.useEffect(() => {
+    dispatch(fetchLikedSongs());
+  }, []);
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -35,7 +39,7 @@ export default function LikedSongsScreen() {
   };
 
   const handleRemove = (track: Track) => {
-    dispatch(toggleLikeSong(track));
+    dispatch(toggleLikeSongAction(track));
   };
 
   const renderItem = ({ item }: { item: Track }) => (

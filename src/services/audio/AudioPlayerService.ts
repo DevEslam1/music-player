@@ -3,6 +3,7 @@ import { Track } from "../../types";
 import { store } from "../../redux/store/store";
 import { setIsPlaying, setProgress, setCurrentTrack, toggleRepeat } from "../../redux/store/player/playerSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LibraryService } from "../api/libraryService";
 
 // Configure audio mode once at module load
 setAudioModeAsync({
@@ -81,6 +82,9 @@ class AudioPlayerService {
       // 5. Start playback
       this.player.play();
       store.dispatch(setIsPlaying(true));
+
+      // 6. Log play to history (backend)
+      LibraryService.logPlay(track.id).catch(e => console.warn("Failed to log play:", e));
     } catch (e: any) {
       console.error("Audio Load Error Details:", {
         message: e.message,

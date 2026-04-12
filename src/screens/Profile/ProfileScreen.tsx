@@ -10,16 +10,20 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../redux/store/store";
-import { logout } from "../../redux/store/auth/authSlice";
+import { RootState, AppDispatch } from "../../redux/store/store";
+import { logout, fetchProfile } from "../../redux/store/auth/authSlice";
 import { useThemeColor } from "../../hooks/use-theme-color";
 import { useNavigation } from "@react-navigation/native";
 
 export default function ProfileScreen() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<any>();
   const { currentUser } = useSelector((state: RootState) => state.auth);
   const { likedSongs, playlists } = useSelector((state: RootState) => state.library);
+
+  React.useEffect(() => {
+    dispatch(fetchProfile());
+  }, []);
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
