@@ -113,7 +113,7 @@ class AudioPlayerService {
     if (!state.currentTrack || state.queue.length === 0) return;
 
     if (state.repeatMode === 'track') {
-      await this.seek(0);
+      await this.loadPlayTrack(state.currentTrack);
       return;
     }
 

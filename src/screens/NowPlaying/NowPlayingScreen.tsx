@@ -146,10 +146,22 @@ export default function NowPlayingScreen() {
         <Ionicons name="volume-medium-outline" size={24} color={textColor} />
         <View style={styles.rightSecondaryControls}>
           <TouchableOpacity onPress={() => dispatch(toggleRepeat())} style={styles.secondaryBtn}>
-            <Ionicons name="repeat-outline" size={20} color={player.repeatMode !== 'off' ? "#B34A30" : textColor} />
+            <Ionicons 
+              name={player.repeatMode === 'track' ? "repeat" : "repeat-outline"} 
+              size={20} 
+              color={player.repeatMode !== 'off' ? "#B34A30" : textColor} 
+            />
+            {player.repeatMode !== 'off' && (
+              <Text style={styles.modeLabel}>
+                {player.repeatMode === 'track' ? '1' : 'All'}
+              </Text>
+            )}
           </TouchableOpacity>
           <TouchableOpacity onPress={() => dispatch(toggleShuffle())} style={styles.secondaryBtn}>
             <Ionicons name="shuffle-outline" size={20} color={player.isShuffled ? "#B34A30" : textColor} />
+            {player.isShuffled && (
+              <Text style={styles.modeLabel}>On</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -279,6 +291,13 @@ const styles = StyleSheet.create({
   },
   secondaryBtn: {
     marginLeft: 24,
+    alignItems: 'center',
+  },
+  modeLabel: {
+    fontSize: 8,
+    color: '#B34A30',
+    fontWeight: 'bold',
+    marginTop: 2,
   },
   progressContainer: {
     paddingHorizontal: 32,
