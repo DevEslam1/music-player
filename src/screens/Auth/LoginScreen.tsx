@@ -23,6 +23,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const isFormValid = email.trim().length > 0 && password.length >= 8;
+
   const handleLogin = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -113,7 +115,11 @@ export default function LoginScreen() {
         </View>
 
         {/* Submit Button */}
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <TouchableOpacity 
+          style={[styles.button, !isFormValid && styles.buttonDisabled]} 
+          onPress={handleLogin}
+          disabled={!isFormValid}
+        >
           <Text style={styles.buttonText}>Let's Start</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFF" style={{ marginLeft: 8 }} />
         </TouchableOpacity>
@@ -239,6 +245,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
   buttonText: {
     color: "#FFFFFF",

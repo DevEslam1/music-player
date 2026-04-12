@@ -21,6 +21,8 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const isFormValid = name.trim().length > 0 && email.trim().length > 0 && password.length >= 8;
+
   const handleSignUp = async () => {
     if (!name || !email || !password) {
       Alert.alert("Error", "Please fill in all fields.");
@@ -120,9 +122,9 @@ export default function SignUpScreen() {
         </View>
 
         <TouchableOpacity 
-          style={[styles.button, loading && styles.buttonDisabled]} 
+          style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]} 
           onPress={handleSignUp}
-          disabled={loading}
+          disabled={!isFormValid || loading}
         >
           {loading ? (
             <ActivityIndicator color="#FFF" />
