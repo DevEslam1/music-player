@@ -6,13 +6,16 @@ import {
   TouchableOpacity, 
   StyleSheet, 
   KeyboardAvoidingView, 
-  Platform 
+  Platform,
+  Alert
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { MainStack } from "../../navigation/AppNavigator";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch } from "react-redux";
-import { loginStart, loginSuccess } from "../../redux/store/auth/authSlice";
+import { loginStart, loginSuccess, loginFailure } from "../../redux/store/auth/authSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { axiosClient } from "../../services/api/axiosClient";
+import { AuthService } from "../../services/api/authService";
 
 export default function LoginScreen() {
   const navigation = useNavigation<any>();
@@ -20,12 +23,27 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter both email and password.");
+      return;
+    }
+    
     dispatch(loginStart());
-    setTimeout(() => {
-      dispatch(loginSuccess({ email, id: "1" }));
+    try {
+      const data = await AuthService.login({ email, password });
+      const { access, refresh } = data;
+      
+      await AsyncStorage.setItem("access_token", access);
+      await AsyncStorage.setItem("refresh_token", refresh);
+      
+      dispatch(loginSuccess({ email }));
       navigation.navigate("Drawer");
-    }, 500);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || "Login failed. Please check your credentials.";
+      dispatch(loginFailure(errorMessage));
+      Alert.alert("Login Failed", errorMessage);
+    }
   };
 
   return (
@@ -93,6 +111,14 @@ export default function LoginScreen() {
           <Text style={styles.buttonText}>Let's Start</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFF" style={{ marginLeft: 8 }} />
         </TouchableOpacity>
+
+        {/* Sign Up Link */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Don't have an account? </Text>
+          <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
+            <Text style={styles.signUpLink}>Sign Up</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -212,5 +238,20 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 24,
+    alignItems: "center",
+  },
+  footerText: {
+    fontSize: 14,
+    color: "#64748B",
+  },
+  signUpLink: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#B34A30",
   },
 });

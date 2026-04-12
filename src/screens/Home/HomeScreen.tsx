@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  Image, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
   TouchableOpacity,
   ScrollView,
   ActivityIndicator
@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColor } from "../../hooks/use-theme-color";
-import { searchSongs, getRecommendedSongs } from "../../services/api/deezerApi";
+import { searchSongs, getRecommendedSongs } from "../../services/api/api";
 import { Track } from "../../types";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import { useDispatch } from "react-redux";
@@ -95,7 +95,7 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        
+
         <Text style={[styles.sectionTitle, { color: textColor }]}>Recommended for you</Text>
         <FlatList
           horizontal
@@ -104,10 +104,10 @@ export default function HomeScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
           renderItem={({ item }) => (
-            <TrackCard 
-              track={item} 
+            <TrackCard
+              track={item}
               textColor={textColor}
-              onPress={() => handlePlayTrack(item, recommended)} 
+              onPress={() => handlePlayTrack(item, recommended)}
             />
           )}
         />
@@ -120,10 +120,10 @@ export default function HomeScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
           renderItem={({ item }) => (
-            <TrackCard 
-              track={item} 
+            <TrackCard
+              track={item}
               textColor={textColor}
-              onPress={() => handlePlayTrack(item, myPlaylist)} 
+              onPress={() => handlePlayTrack(item, myPlaylist)}
             />
           )}
         />
@@ -136,7 +136,7 @@ export default function HomeScreen() {
         </View>
         <View style={styles.verticalList}>
           {suggestions.map((item) => (
-            <SuggestionItem 
+            <SuggestionItem
               key={item.id}
               track={item}
               textColor={textColor}

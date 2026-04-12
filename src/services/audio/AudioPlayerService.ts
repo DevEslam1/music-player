@@ -2,6 +2,7 @@ import { createAudioPlayer, AudioPlayer, setAudioModeAsync } from "expo-audio";
 import { Track } from "../../types";
 import { store } from "../../redux/store/store";
 import { setIsPlaying, setProgress, setCurrentTrack, toggleRepeat } from "../../redux/store/player/playerSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Configure audio mode once at module load
 setAudioModeAsync({
@@ -44,8 +45,15 @@ class AudioPlayerService {
     try {
       store.dispatch(setCurrentTrack(track));
       
-      // 2. Create new player with the track URL
-      const player = createAudioPlayer(track.previewUrl);
+      // 2. Retrieve token for authenticated playback
+      const token = await AsyncStorage.getItem("access_token");
+      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
+      // 3. Create new player with the track URL and headers
+      const player = createAudioPlayer({
+        uri: track.previewUrl,
+        headers
+      });
 
       // 3. Race condition check
       if (this.currentLoadingTrackId !== track.id) {
@@ -73,8 +81,13 @@ class AudioPlayerService {
       // 5. Start playback
       this.player.play();
       store.dispatch(setIsPlaying(true));
-    } catch (e) {
-      console.error("Audio Load Error:", e);
+    } catch (e: any) {
+      console.error("Audio Load Error Details:", {
+        message: e.message,
+        trackId: track.id,
+        trackUrl: track.previewUrl,
+        error: e
+      });
     }
   }
 

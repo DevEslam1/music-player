@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  Image, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
   TouchableOpacity,
   TextInput,
   ActivityIndicator
@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColor } from "../../hooks/use-theme-color";
-import { searchSongs } from "../../services/api/deezerApi";
+import { searchSongs } from "../../services/api/api";
 import { Track } from "../../types";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,7 +26,7 @@ export default function LibraryScreen() {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
-  
+
   const { likedSongs, playlists } = useSelector((state: RootState) => state.library);
   const searchTimeout = React.useRef<NodeJS.Timeout | null>(null);
   const activeQuery = React.useRef<string>("");
@@ -38,7 +38,7 @@ export default function LibraryScreen() {
 
   useEffect(() => {
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
-    
+
     if (query.trim() === "") {
       setResults([]);
       setLoading(false);
@@ -57,17 +57,17 @@ export default function LibraryScreen() {
 
   const fetchResults = async (searchQuery: string) => {
     activeQuery.current = searchQuery;
-    
+
     // 1. Local Search (The "Algorithm" improvement)
-    const localLiked = likedSongs.filter(s => 
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const localLiked = likedSongs.filter(s =>
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.artist.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     // 2. Remote Search
     try {
       const remoteTracks = await searchSongs(searchQuery);
-      
+
       // 3. Race condition check
       if (activeQuery.current !== searchQuery) return;
 
@@ -98,7 +98,7 @@ export default function LibraryScreen() {
 
   const renderItem = ({ item }: { item: Track }) => {
     const isLiked = likedSongs.some(s => s.id === item.id);
-    
+
     return (
       <TouchableOpacity style={styles.card} onPress={() => handlePlayTrack(item)}>
         <Image source={{ uri: item.image || "https://picsum.photos/200" }} style={styles.cardImage} />
