@@ -13,29 +13,40 @@ A premium, high-performance music player app built with **React Native**, **Expo
 
 ## 🔥 Key Features
 
-- 🔐 **Secure Authentication**: Elegant Login and Sign Up flows powered by JWT (JSON Web Tokens) for secure user sessions.
-- ☁️ **Cloud Sync**: All your Liked Songs and Playlists are synchronized in real-time with the production backend.
-- 🎵 **Hybrid Search Engine**: Instantly find tracks across your local Liked Songs and the entire global catalog.
+- 🔐 **Secure Authentication**: Elegant Login and Sign Up flows powered by JWT (JSON Web Tokens) with front-end validation (email format, 8+ character password) and disabled submit until all fields are complete.
+- ☁️ **Cloud Sync**: All your Liked Songs, Playlists, and History are synchronized in real-time with the production backend.
+- 🎵 **Hybrid Search Engine**: Instantly find tracks across your local Liked Songs and the entire global catalog, with quick "Add to Playlist" from results.
 - 💊 **Floating Pill MiniPlayer**: A premium, safe-area-aware playback bar that stays accessible across all navigation screens.
-- ❤️ **Smart Library**: Manage your favorite songs with backend-synced "Like" toggling.
-- 📋 **Advanced Playlists**: Create, manage, and customize your collections with a soft-border, modern UI and cloud persistence.
-- 🌓 **Sonic Noir Theming**: Full support for Dark and Light modes, including automatic System Status Bar icon synchronization.
-- 🚀 **Performance Optimized**: Robust singleton audio service with loading locks and authenticated streaming.
+- ❤️ **Smart Library**: Manage your favorite songs with backend-synced "Like" toggling. Favorites automatically appear on the Home screen.
+- 📋 **Advanced Playlists**: Create, manage, browse, and delete playlists. View playlist contents, play individual tracks, and remove songs — all with cloud persistence.
+- 🔁 **Playback Controls**: Repeat One (single track loop), Repeat All (queue loop), and Shuffle modes with clear visual indicators.
+- 🎵 **Background Audio**: Music continues playing when the app is minimized or the screen is locked (iOS & Android).
+- 🌓 **Sonic Noir Theming**: Full Dark and Light mode support with automatic System Status Bar icon synchronization.
+- ⚙️ **Settings Hub**: Centralized settings for theme, language, terms of service, and support navigation.
+- 🌍 **Multi-Language Ready**: Language selector with English active and Arabic (Coming Soon).
+- 📞 **Contact & Support**: Dedicated Contact Us page with direct links to authors' GitHub profiles and email support.
 - 📊 **User Insights**: A personalized Profile dashboard tracking your library growth and real account activity.
+- 🚀 **Performance Optimized**: Robust singleton audio service with loading locks and authenticated streaming.
 
 ---
 
 ## 📱 Screens
 
-| Screen          | Description                                    |
-| --------------- | ---------------------------------------------- |
-| **Home**        | Quick access to suggestions and popular tracks |
-| **Search**      | Powerful hybrid search engine                  |
-| **Liked Songs** | Your favorite tracks with cloud sync           |
-| **Playlists**   | Specialized collections with full CRUD         |
-| **Now Playing** | Full-screen interactive playback & visualizer  |
-| **Profile**     | Real user statistics and account management    |
-| **Auth**        | Secure and elegant Login/SignUp workflows      |
+| Screen              | Description                                              |
+| ------------------- | -------------------------------------------------------- |
+| **Home**            | Recommendations, favorite songs, and suggestions         |
+| **Search**          | Powerful hybrid search with quick add-to-playlist        |
+| **Liked Songs**     | Your favorite tracks with cloud sync & loading indicator |
+| **Playlists**       | Specialized collections with full CRUD operations        |
+| **Playlist Detail** | Browse, play, and remove songs within a playlist         |
+| **Now Playing**     | Full-screen playback with repeat, shuffle & add controls |
+| **Profile**         | Real user statistics and account management              |
+| **Settings**        | Theme toggle, language, terms of service, and about info |
+| **Contact Us**      | Developer profiles and support email                     |
+| **Language**        | Language selection (English / Arabic coming soon)        |
+| **Terms**           | Application terms of service                             |
+| **FAQ**             | Common questions with expandable answers                 |
+| **Auth**            | Validated Login & SignUp with disabled-until-ready forms  |
 
 ---
 
@@ -46,7 +57,7 @@ A premium, high-performance music player app built with **React Native**, **Expo
 | **Language**   | TypeScript (Strict Typing)                             |
 | **Core**       | React Native (Expo SDK)                                |
 | **State**      | Redux Toolkit (Async Thunks for Backend Sync)          |
-| **Audio**      | Expo-Audio (Authenticated Singleton Service)           |
+| **Audio**      | Expo-Audio (Background Playback + Authenticated URLs)  |
 | **Networking** | Axios (w/ JWT Interceptors & Retry Logic)              |
 | **Navigation** | React Navigation (Native Stack + Custom Drawer)        |
 | **Storage**    | AsyncStorage (Safe Token & Local State Persistence)    |
@@ -57,13 +68,25 @@ A premium, high-performance music player app built with **React Native**, **Expo
 
 ```
 src/
-├── components/          # Reusable UI (Floating MiniPlayer, Custom Drawer, ThemedText)
+├── components/          # Reusable UI (MiniPlayer, PlaylistPicker, Custom Drawer)
 ├── constants/           # Centralized Theme tokens and Layout metrics
 ├── hooks/               # useThemeColor, useSafeAreaInsets
 ├── navigation/          # Multilayered Stack and Drawer structure
 ├── redux/               # Global state with synced Async Thunks
 ├── services/            # Audio Service, Auth & Library API Services
-└── screens/             # Feature-specific modules (Home, Search, Profile, etc.)
+└── screens/
+    ├── Auth/            # Login & SignUp with validation
+    ├── Home/            # Recommendations & Favorites
+    ├── Library/         # Hybrid Search with add-to-playlist
+    ├── LikedSongs/      # Cloud-synced favorites
+    ├── Playlist/        # Playlist list & detail views
+    ├── NowPlaying/      # Full player with repeat/shuffle
+    ├── Profile/         # User dashboard
+    ├── Settings/        # App configuration
+    ├── Contact/         # Developer info & support
+    ├── Language/        # Language selection
+    ├── Legal/           # Terms of service
+    └── FAQ/             # Frequently asked questions
 ```
 
 ---
@@ -91,6 +114,13 @@ src/
 3. **Launch Project**:
    ```bash
    npx expo start -c
+   ```
+
+4. **Background Audio (Optional)**:
+   To test background playback on a real device, create a development build:
+   ```bash
+   npx expo prebuild
+   npx expo run:ios    # or run:android
    ```
 
 ---
