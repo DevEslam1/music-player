@@ -7,21 +7,21 @@
   <img src="https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge" alt="Status: Production Ready" />
 </p>
 
-A premium, high-performance music player app built with **React Native**, **Expo**, and **TypeScript**. GIG Music Player offers a seamless blend of local music management and global discovery via the Deezer API, all wrapped in a stunning, theme-aware "Sonic Noir" aesthetic.
+A premium, high-performance music player app built with **React Native**, **Expo**, and **TypeScript**. GIG Music Player offers a seamless blend of cloud-synced music management and global discovery via a custom **Railway Production Backend**, all wrapped in a stunning, theme-aware "Sonic Noir" aesthetic.
 
 ---
 
 ## 🔥 Key Features
 
-- 🎵 **Hybrid Search Engine**: Instantly find tracks across your local Liked Songs, custom Playlists, and the entire Deezer global catalog.
+- 🔐 **Secure Authentication**: Elegant Login and Sign Up flows powered by JWT (JSON Web Tokens) for secure user sessions.
+- ☁️ **Cloud Sync**: All your Liked Songs and Playlists are synchronized in real-time with the production backend.
+- 🎵 **Hybrid Search Engine**: Instantly find tracks across your local Liked Songs and the entire global catalog.
 - 💊 **Floating Pill MiniPlayer**: A premium, safe-area-aware playback bar that stays accessible across all navigation screens.
-- ❤️ **Smart Library**: Manage your favorite songs with a functional "Edit Mode" for quick management.
-- 📋 **Advanced Playlists**: Create, manage, and customize your own collections with a soft-border, modern UI.
+- ❤️ **Smart Library**: Manage your favorite songs with backend-synced "Like" toggling.
+- 📋 **Advanced Playlists**: Create, manage, and customize your collections with a soft-border, modern UI and cloud persistence.
 - 🌓 **Sonic Noir Theming**: Full support for Dark and Light modes, including automatic System Status Bar icon synchronization.
-- 🛡️ **Network Resilience**: Automatic 3-second retry logic for API calls ensures a smooth experience even on spotty connections.
-- 🚀 **Performance Optimized**: Robust singleton audio service with loading locks to prevent race conditions and double-playback glitches.
-- 📊 **User Insights**: A personalized Profile dashboard tracking your library growth and activity.
-- 💡 **Interactive FAQs**: Animated accordion-style help section to guide you through all features.
+- 🚀 **Performance Optimized**: Robust singleton audio service with loading locks and authenticated streaming.
+- 📊 **User Insights**: A personalized Profile dashboard tracking your library growth and real account activity.
 
 ---
 
@@ -30,28 +30,26 @@ A premium, high-performance music player app built with **React Native**, **Expo
 | Screen          | Description                                    |
 | --------------- | ---------------------------------------------- |
 | **Home**        | Quick access to suggestions and popular tracks |
-| **Search**      | Powerful hybrid local/remote search engine     |
-| **Liked Songs** | Your favorite tracks with management tools     |
-| **Playlists**   | Specialized collections for every mood         |
+| **Search**      | Powerful hybrid search engine                  |
+| **Liked Songs** | Your favorite tracks with cloud sync           |
+| **Playlists**   | Specialized collections with full CRUD         |
 | **Now Playing** | Full-screen interactive playback & visualizer  |
-| **Profile**     | User statistics and account management         |
-| **FAQs**        | Animated support and feature guide             |
+| **Profile**     | Real user statistics and account management    |
 | **Auth**        | Secure and elegant Login/SignUp workflows      |
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer          | Technology                                       |
-| -------------- | ------------------------------------------------ |
-| **Language**   | TypeScript (Strict Typing)                       |
-| **Core**       | React Native (Expo SDK)                          |
-| **State**      | Redux Toolkit (Slices for Library, Auth, Player) |
-| **Audio**      | Expo-Audio (Singleton Service Pattern)           |
-| **Networking** | Axios (w/ Interceptors & Retry Logic)            |
-| **Navigation** | React Navigation (Native Stack + Custom Drawer)  |
-| **Layout**     | React Native Safe Area Context                   |
-| **Icons**      | Ionicons (Expo Vector Icons)                     |
+| Layer          | Technology                                             |
+| -------------- | ------------------------------------------------------ |
+| **Language**   | TypeScript (Strict Typing)                             |
+| **Core**       | React Native (Expo SDK)                                |
+| **State**      | Redux Toolkit (Async Thunks for Backend Sync)          |
+| **Audio**      | Expo-Audio (Authenticated Singleton Service)           |
+| **Networking** | Axios (w/ JWT Interceptors & Retry Logic)              |
+| **Navigation** | React Navigation (Native Stack + Custom Drawer)        |
+| **Storage**    | AsyncStorage (Safe Token & Local State Persistence)    |
 
 ---
 
@@ -63,8 +61,8 @@ src/
 ├── constants/           # Centralized Theme tokens and Layout metrics
 ├── hooks/               # useThemeColor, useSafeAreaInsets
 ├── navigation/          # Multilayered Stack and Drawer structure
-├── redux/               # Global state with persistent slices
-├── services/            # Audio Service (AudioPlayerService), API (axiosClient)
+├── redux/               # Global state with synced Async Thunks
+├── services/            # Audio Service, Auth & Library API Services
 └── screens/             # Feature-specific modules (Home, Search, Profile, etc.)
 ```
 
@@ -80,14 +78,12 @@ src/
 ### Installation & Execution
 
 1. **Clone & Enter**:
-
    ```bash
    git clone https://github.com/KarimaMahmoud626/music-player.git
    cd music-player
    ```
 
 2. **Setup Dependencies**:
-
    ```bash
    npm install
    ```
