@@ -12,7 +12,6 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { AuthService } from "../../services/api/authService";
-import { ActivityIndicator } from "react-native";
 import { validateEmail, validatePassword } from "../../utils/validation";
 import { CustomTextInput } from "../../components/auth/CustomTextInput";
 import { CustomButton } from "../../components/CustomButton";
