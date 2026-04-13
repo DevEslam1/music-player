@@ -1,18 +1,21 @@
 import React, { useState } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  KeyboardAvoidingView, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
   Platform,
-  Alert
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { AuthService } from "../../services/api/authService";
 import { ActivityIndicator } from "react-native";
+import { validateEmail, validatePassword } from "../../utils/validation";
+import { CustomTextInput } from "../../components/auth/CustomTextInput";
+import { CustomButton } from "../../components/CustomButton";
 
 export default function SignUpScreen() {
   const navigation = useNavigation<any>();
@@ -21,7 +24,8 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const isFormValid = name.trim().length > 0 && email.trim().length > 0 && password.length >= 8;
+  const isFormValid =
+    name.trim().length > 0 && email.trim().length > 0 && password.length >= 8;
 
   const handleSignUp = async () => {
     if (!name || !email || !password) {
@@ -29,30 +33,32 @@ export default function SignUpScreen() {
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert("Invalid Email", "Please enter a valid email address.");
+    if (validateEmail(email) !== null) {
+      Alert.alert("Invalid Email", `${validateEmail(email)}`);
       return;
     }
 
-    if (password.length < 8) {
-      Alert.alert("Error", "Password must be at least 8 characters long.");
+    if (validatePassword(password) !== null) {
+      Alert.alert("Weak Password", `${validatePassword(password)}`);
       return;
     }
-    
+
     setLoading(true);
     try {
-      await AuthService.register({ 
-        username: name, 
-        email: email, 
-        password: password 
+      await AuthService.register({
+        username: name,
+        email: email,
+        password: password,
       });
       Alert.alert("Success", "Account created successfully! Please log in.");
       navigation.navigate("Login");
     } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || 
-                         Object.values(error.response?.data || {}).flat().join(", ") ||
-                         "Registration failed. Please try again.";
+      const errorMessage =
+        error.response?.data?.detail ||
+        Object.values(error.response?.data || {})
+          .flat()
+          .join(", ") ||
+        "Registration failed. Please try again.";
       Alert.alert("Registration Failed", errorMessage);
     } finally {
       setLoading(false);
@@ -60,13 +66,13 @@ export default function SignUpScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
+    <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.headerContainer}>
-        <TouchableOpacity 
-          style={styles.backButton} 
+        <TouchableOpacity
+          style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="chevron-back" size={24} color="#0F172A" />
@@ -76,65 +82,39 @@ export default function SignUpScreen() {
       </View>
 
       <View style={styles.card}>
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Full Name</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="person-outline" size={20} color="#A0AEC0" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Your Name"
-              placeholderTextColor="#A0AEC0"
-              value={name}
-              onChangeText={setName}
-            />
-          </View>
-        </View>
+        <CustomTextInput
+          placeholder="Your Name"
+          value={name}
+          onChange={setName}
+          iconName={"person-outline"}
+          label="Full Name"
+        />
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="mail-outline" size={20} color="#A0AEC0" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Email Address"
-              placeholderTextColor="#A0AEC0"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
-        </View>
+        <CustomTextInput
+          placeholder="Email Address"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChange={setEmail}
+          iconName={"mail-outline"}
+        />
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="lock-closed-outline" size={20} color="#A0AEC0" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#A0AEC0"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
-          </View>
-        </View>
+        <CustomTextInput
+          label="Password"
+          placeholder="Password"
+          keyboardType="default"
+          secureEntry={true}
+          value={password}
+          onChange={setPassword}
+          iconName={"lock-closed-outline"}
+        />
 
-        <TouchableOpacity 
-          style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]} 
+        <CustomButton
+          label="Sign Up"
           onPress={handleSignUp}
-          disabled={!isFormValid || loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <>
-              <Text style={styles.buttonText}>Sign Up</Text>
-              <Ionicons name="arrow-forward" size={20} color="#FFF" style={{ marginLeft: 8 }} />
-            </>
-          )}
-        </TouchableOpacity>
+          isDisabled={!isFormValid || loading}
+          loading={loading}
+        />
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account? </Text>
@@ -185,55 +165,6 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     paddingHorizontal: 24,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#0F172A",
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#B34A30",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 52,
-    backgroundColor: "#FAF5F4",
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: "#0F172A",
-  },
-  button: {
-    flexDirection: "row",
-    backgroundColor: "#B34A30",
-    height: 56,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 20,
-    shadowColor: "#B34A30",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  buttonDisabled: {
-    opacity: 0.7,
   },
   footer: {
     flexDirection: "row",
