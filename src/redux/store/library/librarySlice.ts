@@ -11,7 +11,7 @@ export const fetchLikedSongs = createAsyncThunk(
     } catch (e: any) {
       return rejectWithValue(e.message);
     }
-  }
+  },
 );
 
 export const toggleLikeSongAction = createAsyncThunk(
@@ -23,7 +23,7 @@ export const toggleLikeSongAction = createAsyncThunk(
     } catch (e: any) {
       return rejectWithValue(e.message);
     }
-  }
+  },
 );
 
 export const fetchPlaylists = createAsyncThunk(
@@ -34,7 +34,7 @@ export const fetchPlaylists = createAsyncThunk(
     } catch (e: any) {
       return rejectWithValue(e.message);
     }
-  }
+  },
 );
 
 export const createPlaylistAction = createAsyncThunk(
@@ -45,7 +45,7 @@ export const createPlaylistAction = createAsyncThunk(
     } catch (e: any) {
       return rejectWithValue(e.message);
     }
-  }
+  },
 );
 
 export const deletePlaylistAction = createAsyncThunk(
@@ -57,12 +57,15 @@ export const deletePlaylistAction = createAsyncThunk(
     } catch (e: any) {
       return rejectWithValue(e.message);
     }
-  }
+  },
 );
 
 export const addTrackToPlaylistAction = createAsyncThunk(
   "library/addTrackToPlaylist",
-  async ({ playlistId, trackId }: { playlistId: string; trackId: string }, { rejectWithValue, dispatch }) => {
+  async (
+    { playlistId, trackId }: { playlistId: string; trackId: string },
+    { rejectWithValue, dispatch },
+  ) => {
     try {
       await LibraryService.addTrackToPlaylist(playlistId, trackId);
       // Refetch playlists to update track counts
@@ -71,12 +74,15 @@ export const addTrackToPlaylistAction = createAsyncThunk(
     } catch (e: any) {
       return rejectWithValue(e.message);
     }
-  }
+  },
 );
 
 export const removeTrackFromPlaylistAction = createAsyncThunk(
   "library/removeTrackFromPlaylist",
-  async ({ playlistId, trackId }: { playlistId: string; trackId: string }, { rejectWithValue, dispatch }) => {
+  async (
+    { playlistId, trackId }: { playlistId: string; trackId: string },
+    { rejectWithValue, dispatch },
+  ) => {
     try {
       await LibraryService.removeTrackFromPlaylist(playlistId, trackId);
       // Refetch playlists to update track counts
@@ -85,7 +91,7 @@ export const removeTrackFromPlaylistAction = createAsyncThunk(
     } catch (e: any) {
       return rejectWithValue(e.message);
     }
-  }
+  },
 );
 
 interface LibraryState {
@@ -120,18 +126,22 @@ const librarySlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // TOGGLE LIKE
       .addCase(toggleLikeSongAction.fulfilled, (state, action) => {
+        state.loading = false;
         const track = action.payload;
-        const exists = state.likedSongs.find(t => t.id === track.id);
+        const exists = state.likedSongs.find((t) => t.id === track.id);
         if (exists) {
-          state.likedSongs = state.likedSongs.filter(t => t.id !== track.id);
+          state.likedSongs = state.likedSongs.filter((t) => t.id !== track.id);
         } else {
           state.likedSongs.push(track);
         }
       })
-      
+      .addCase(toggleLikeSongAction.pending, (state) => {
+        state.loading = true;
+      })
+
       // FETCH PLAYLISTS
       .addCase(fetchPlaylists.pending, (state) => {
         state.loading = true;
@@ -144,15 +154,17 @@ const librarySlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // CREATE PLAYLIST
       .addCase(createPlaylistAction.fulfilled, (state, action) => {
         state.playlists.push(action.payload);
       })
-      
+
       // DELETE PLAYLIST
       .addCase(deletePlaylistAction.fulfilled, (state, action) => {
-        state.playlists = state.playlists.filter(p => p.id !== action.payload);
+        state.playlists = state.playlists.filter(
+          (p) => p.id !== action.payload,
+        );
       });
   },
 });

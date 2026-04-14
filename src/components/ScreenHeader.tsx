@@ -1,13 +1,25 @@
-import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  GestureResponderEvent,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Colors } from "../constants/theme";
 
 type ScreenHeaderProps = {
   screenTitle?: string;
+  postIcon?: any;
+  onPostPress?: ((event: GestureResponderEvent) => void) | undefined;
 };
 
-export function ScreenHeader({ screenTitle }: ScreenHeaderProps) {
+export function ScreenHeader({
+  screenTitle,
+  postIcon,
+  onPostPress,
+}: ScreenHeaderProps) {
   const navigation = useNavigation<any>();
   return (
     <View style={styles.header}>
@@ -22,7 +34,13 @@ export function ScreenHeader({ screenTitle }: ScreenHeaderProps) {
           {screenTitle}
         </Text>
       )}
-      <View style={styles.headerButton} />
+      {postIcon ? (
+        <TouchableOpacity onPress={onPostPress} style={styles.headerButton}>
+          <Ionicons name={postIcon} size={26} color={Colors.light.text} />
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.headerButton} />
+      )}
     </View>
   );
 }

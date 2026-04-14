@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -12,9 +12,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColor } from "../../hooks/use-theme-color";
 import { searchSongs, getRecommendedSongs } from "../../services/api/api";
-import { Track } from "../../types";
-import { audioPlayer } from "../../services/audio/AudioPlayerService";
-import { setQueue } from "../../redux/store/player/playerSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../redux/store/store";
 import {
@@ -26,9 +23,6 @@ import { TrackList } from "../../components/home/TrackList";
 import { homeScreenLogic } from "../../services/logic/homeScreenLogic";
 
 export default function HomeScreen() {
-  // const [recommended, setRecommended] = useState<Track[]>([]);
-  // const [suggestions, setSuggestions] = useState<Track[]>([]);
-  // const [loading, setLoading] = useState(true);
   const {
     recommended,
     setRecommended,
@@ -70,11 +64,6 @@ export default function HomeScreen() {
       isMounted = false;
     };
   }, []);
-
-  // const handlePlayTrack = async (track: Track, queue: Track[]) => {
-  //   dispatch(setQueue(queue));
-  //   await audioPlayer.loadPlayTrack(track);
-  // };
 
   if (loading) {
     return (
