@@ -9,9 +9,11 @@ export const fetchProfile = createAsyncThunk(
       const userData = await AuthService.me();
       return userData;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.detail || "Failed to fetch profile");
+      return rejectWithValue(
+        error.response?.data?.detail || "Failed to fetch profile",
+      );
     }
-  }
+  },
 );
 
 interface AuthState {
@@ -49,7 +51,7 @@ const authSlice = createSlice({
       state.isLoggedIn = false;
       state.currentUser = null;
       AsyncStorage.multiRemove(["access_token", "refresh_token"]);
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -68,5 +70,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { loginStart, loginSuccess, loginFailure, logout } = authSlice.actions;
+export const { loginStart, loginSuccess, loginFailure, logout } =
+  authSlice.actions;
+export const selectAuthLoading = (state: any) => state.auth.loading;
 export default authSlice.reducer;

@@ -1,0 +1,103 @@
+import { useEffect, useState } from "react";
+import { Track } from "../../types";
+import { useNavigation } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../redux/store/store";
+import React from "react";
+import { searchSongs } from "../api/api";
+import { setQueue } from "../../redux/store/player/playerSlice";
+import { audioPlayer } from "../audio/AudioPlayerService";
+import { addTrackToPlaylistAction } from "../../redux/store/library/librarySlice";
+
+export function libraryScreenLogic() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Track[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isPickerVisible, setIsPickerVisible] = useState(false);
+  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
+  const navigation = useNavigation<any>();
+  const dispatch = useDispatch<AppDispatch>();
+
+  const { likedSongs, playlists } = useSelector(
+    (state: RootState) => state.library,
+  );
+  const activeQuery = React.useRef<string>("");
+
+  const fetchResults = async (searchQuery: string) => {
+    activeQuery.current = searchQuery;
+
+    // 1. Local Search (The "Algorithm" improvement)
+    const localLiked = likedSongs.filter(
+      (s) =>
+        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.artist.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+
+    // 2. Remote Search
+    try {
+      const remoteTracks = await searchSongs(searchQuery);
+
+      // 3. Race condition check
+      if (activeQuery.current !== searchQuery) return;
+
+      // 4. Combine and deduplicate
+      const combined = [...localLiked];
+      remoteTracks.forEach((rt) => {
+        if (!combined.find((lt) => lt.id === rt.id)) {
+          combined.push(rt);
+        }
+      });
+
+      setResults(combined);
+    } catch (e) {
+      if (activeQuery.current === searchQuery) {
+        setResults(localLiked);
+      }
+    } finally {
+      if (activeQuery.current === searchQuery) {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handlePlayTrack = async (track: Track) => {
+    dispatch(setQueue(results));
+    await audioPlayer.loadPlayTrack(track);
+    navigation.navigate("NowPlaying");
+  };
+
+  const handleOpenPicker = (track: Track) => {
+    setSelectedTrack(track);
+    setIsPickerVisible(true);
+  };
+
+  const handleAddToPlaylist = (playlistId: string) => {
+    if (selectedTrack) {
+      dispatch(
+        addTrackToPlaylistAction({
+          playlistId,
+          trackId: selectedTrack.id,
+        }),
+      );
+      setIsPickerVisible(false);
+      setSelectedTrack(null);
+    }
+  };
+
+  return {
+    query,
+    setQuery,
+    results,
+    setResults,
+    loading,
+    setLoading,
+    isPickerVisible,
+    setIsPickerVisible,
+    selectedTrack,
+    likedSongs,
+    fetchResults,
+    handlePlayTrack,
+    handleAddToPlaylist,
+    handleOpenPicker,
+  };
+}

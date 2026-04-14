@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,59 +5,25 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { useDispatch } from "react-redux";
-import {
-  loginStart,
-  loginSuccess,
-  loginFailure,
-} from "../../redux/store/auth/authSlice";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AuthService } from "../../services/api/authService";
 import { CustomTextInput } from "../../components/auth/CustomTextInput";
 import { CustomButton } from "../../components/CustomButton";
-import { validateEmail, validatePassword } from "../../utils/validation";
+import { loginScreenLogic } from "../../services/logic/loginScreenLogic";
 
 export default function LoginScreen() {
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    isLoading,
+    isFormValid,
+    handleLogin,
+  } = loginScreenLogic();
+
   const navigation = useNavigation<any>();
-  const dispatch = useDispatch();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const isFormValid = email.trim().length > 0 && password.length >= 8;
-
-  const handleLogin = async () => {
-    if (validateEmail(email) !== null) {
-      Alert.alert("Invalid Email", `${validateEmail(email)}`);
-      return;
-    }
-
-    if (validatePassword(password) !== null) {
-      Alert.alert("Weak Password", `${validatePassword(password)}`);
-      return;
-    }
-
-    dispatch(loginStart());
-    try {
-      const data = await AuthService.login({ email, password });
-      const { access, refresh } = data;
-
-      await AsyncStorage.setItem("access_token", access);
-      await AsyncStorage.setItem("refresh_token", refresh);
-
-      dispatch(loginSuccess({ email }));
-      navigation.navigate("Drawer");
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.detail ||
-        "Login failed. Please check your credentials.";
-      dispatch(loginFailure(errorMessage));
-      Alert.alert("Login Failed", errorMessage);
-    }
-  };
 
   return (
     <KeyboardAvoidingView
@@ -115,6 +80,7 @@ export default function LoginScreen() {
           onPress={handleLogin}
           isDisabled={!isFormValid}
           label="Let's Start"
+          loading={isLoading}
         />
 
         {/* Sign Up Link */}

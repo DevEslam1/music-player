@@ -23,11 +23,21 @@ import {
 } from "../../redux/store/library/librarySlice";
 import { SuggestionItem } from "../../components/home/SuggestionItem";
 import { TrackList } from "../../components/home/TrackList";
+import { homeScreenLogic } from "../../services/logic/homeScreenLogic";
 
 export default function HomeScreen() {
-  const [recommended, setRecommended] = useState<Track[]>([]);
-  const [suggestions, setSuggestions] = useState<Track[]>([]);
-  const [loading, setLoading] = useState(true);
+  // const [recommended, setRecommended] = useState<Track[]>([]);
+  // const [suggestions, setSuggestions] = useState<Track[]>([]);
+  // const [loading, setLoading] = useState(true);
+  const {
+    recommended,
+    setRecommended,
+    suggestions,
+    setSuggestions,
+    loading,
+    setLoading,
+    handlePlayTrack,
+  } = homeScreenLogic();
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
 
@@ -61,10 +71,10 @@ export default function HomeScreen() {
     };
   }, []);
 
-  const handlePlayTrack = async (track: Track, queue: Track[]) => {
-    dispatch(setQueue(queue));
-    await audioPlayer.loadPlayTrack(track);
-  };
+  // const handlePlayTrack = async (track: Track, queue: Track[]) => {
+  //   dispatch(setQueue(queue));
+  //   await audioPlayer.loadPlayTrack(track);
+  // };
 
   if (loading) {
     return (
