@@ -27,7 +27,7 @@ interface AppNavigatorProps {
 }
 
 const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
-  // Logic to hide mini-player on specific screens
+
   const hideMiniPlayer = ["Login", "SignUp", "NowPlaying"].includes(currentRoute || "");
 
   return (

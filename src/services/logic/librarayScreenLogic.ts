@@ -26,21 +26,21 @@ export function libraryScreenLogic() {
   const fetchResults = async (searchQuery: string) => {
     activeQuery.current = searchQuery;
 
-    // 1. Local Search (The "Algorithm" improvement)
+
     const localLiked = likedSongs.filter(
       (s) =>
         s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         s.artist.toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
-    // 2. Remote Search
+
     try {
       const remoteTracks = await searchSongs(searchQuery);
 
-      // 3. Race condition check
+
       if (activeQuery.current !== searchQuery) return;
 
-      // 4. Combine and deduplicate
+
       const combined = [...localLiked];
       remoteTracks.forEach((rt) => {
         if (!combined.find((lt) => lt.id === rt.id)) {

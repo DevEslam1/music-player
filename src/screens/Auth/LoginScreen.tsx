@@ -30,14 +30,12 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      {/* Header */}
       <View style={styles.headerContainer}>
         <Text style={styles.title}>Welcome Back</Text>
         <Text style={styles.subtitle}>Where Sound Comes Alive</Text>
       </View>
 
       <View style={styles.loginCard}>
-        {/* Log In Title Section */}
         <View style={styles.loginTitleRow}>
           <View style={styles.iconBox}>
             <Ionicons name="log-in-outline" size={20} color="#B34A30" />
@@ -52,7 +50,7 @@ export default function LoginScreen() {
 
         <View style={styles.divider} />
 
-        {/* Form Fields */}
+
 
         <CustomTextInput
           label="Email"
@@ -75,7 +73,6 @@ export default function LoginScreen() {
           iconName={"lock-closed-outline"}
         />
 
-        {/* Submit Button */}
         <CustomButton
           onPress={handleLogin}
           isDisabled={!isFormValid}
@@ -83,7 +80,6 @@ export default function LoginScreen() {
           loading={isLoading}
         />
 
-        {/* Sign Up Link */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Don't have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>

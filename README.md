@@ -46,21 +46,21 @@ A premium, high-performance music player app built with **React Native**, **Expo
 | **Language**        | Language selection (English / Arabic coming soon)        |
 | **Terms**           | Application terms of service                             |
 | **FAQ**             | Common questions with expandable answers                 |
-| **Auth**            | Validated Login & SignUp with disabled-until-ready forms  |
+| **Auth**            | Validated Login & SignUp with disabled-until-ready forms |
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer          | Technology                                             |
-| -------------- | ------------------------------------------------------ |
-| **Language**   | TypeScript (Strict Typing)                             |
-| **Core**       | React Native (Expo SDK)                                |
-| **State**      | Redux Toolkit (Async Thunks for Backend Sync)          |
-| **Audio**      | Expo-Audio (Background Playback + Authenticated URLs)  |
-| **Networking** | Axios (w/ JWT Interceptors & Retry Logic)              |
-| **Navigation** | React Navigation (Native Stack + Custom Drawer)        |
-| **Storage**    | AsyncStorage (Safe Token & Local State Persistence)    |
+| Layer          | Technology                                            |
+| -------------- | ----------------------------------------------------- |
+| **Language**   | TypeScript (Strict Typing)                            |
+| **Core**       | React Native (Expo SDK)                               |
+| **State**      | Redux Toolkit (Async Thunks for Backend Sync)         |
+| **Audio**      | Expo-Audio (Background Playback + Authenticated URLs) |
+| **Networking** | Axios (w/ JWT Interceptors & Retry Logic)             |
+| **Navigation** | React Navigation (Native Stack + Custom Drawer)       |
+| **Storage**    | AsyncStorage (Safe Token & Local State Persistence)   |
 
 ---
 
@@ -101,17 +101,20 @@ src/
 ### Installation & Execution
 
 1. **Clone & Enter**:
+
    ```bash
    git clone https://github.com/DevEslam1/music-player.git
    cd music-player
    ```
 
 2. **Setup Dependencies**:
+
    ```bash
    npm install
    ```
 
 3. **Launch Project**:
+
    ```bash
    npx expo start -c
    ```

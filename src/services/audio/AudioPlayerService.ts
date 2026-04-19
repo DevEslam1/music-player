@@ -6,7 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LibraryService } from "../api/libraryService";
 import { Platform, Alert } from "react-native";
 
-// Configure audio mode safely
+
 const initAudioMode = async () => {
   try {
     await setAudioModeAsync({
@@ -38,14 +38,12 @@ class AudioPlayerService {
   public async loadPlayTrack(track: Track) {
     this.currentLoadingTrackId = track.id;
 
-    // 1. Release any existing player
+
     if (this.player) {
       try {
         this.player.pause();
         this.player.release();
-      } catch (e) {
-        // Ignore errors during cleanup
-      }
+
       this.statusSubscription?.remove();
       this.player = null;
       this.statusSubscription = null;
@@ -54,14 +52,14 @@ class AudioPlayerService {
     try {
       store.dispatch(setCurrentTrack(track));
       
-      // 2. Retrieve token for authenticated playback
+
       const token = await AsyncStorage.getItem("access_token");
       const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
-      // 3. Ensure audio mode is set
+
       await initAudioMode();
 
-      // 4. Ensure HTTPS (Android blocks HTTP cleartext)
+
       let streamUrl = track.previewUrl;
       if (streamUrl && streamUrl.startsWith('http://')) {
         streamUrl = streamUrl.replace('http://', 'https://');
@@ -69,13 +67,13 @@ class AudioPlayerService {
 
       console.log("🎵 Playing URL:", streamUrl);
 
-      // 5. Create new player with the track URL and headers
+
       const player = createAudioPlayer({
         uri: streamUrl,
         headers
       });
 
-      // 6. Race condition check
+
       if (this.currentLoadingTrackId !== track.id) {
         player.release();
         return;
@@ -83,7 +81,7 @@ class AudioPlayerService {
 
       this.player = player;
 
-      // 7. Subscribe to playback status updates
+
       this.statusSubscription = this.player.addListener('playbackStatusUpdate', (status) => {
         if (status.playing !== undefined) {
           store.dispatch(setProgress({
@@ -97,7 +95,7 @@ class AudioPlayerService {
         }
       });
 
-      // 8. Start playback
+
       if (Platform.OS === 'android') {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
@@ -107,7 +105,7 @@ class AudioPlayerService {
         store.dispatch(setIsPlaying(true));
       }
 
-      // 9. Log play to history
+
       LibraryService.logPlay(track.id).catch(e => console.warn("Failed to log play:", e));
     } catch (e: any) {
       console.error("Audio Load Error:", e.message);
