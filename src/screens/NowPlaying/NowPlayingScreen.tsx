@@ -4,7 +4,8 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity,
-  Dimensions
+  Dimensions,
+  Platform
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,12 +30,158 @@ import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get("window");
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000', // Base color behind blur
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 10, // give some space before image
+  },
+  headerButton: {
+    padding: 4,
+    width: 40,
+    alignItems: 'center'
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  carouselContainer: {
+    height: width * 0.85,
+    marginBottom: 20,
+  },
+  pagerView: {
+    flex: 1,
+  },
+  page: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  albumArtShadow: {
+    // Specifically for Android: Shadow must be on the container
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.3,
+    shadowRadius: 18,
+    elevation: 20,
+    backgroundColor: '#000', // Ensures shadow is visible
+    borderRadius: 24,
+  },
+  albumArt: {
+    width: width * 0.8,
+    height: width * 0.8,
+    borderRadius: 24,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginBottom: 24,
+    position: 'relative',
+  },
+  textStack: {
+    alignItems: 'center',
+    paddingHorizontal: 54, // Avoid overlap with absolute actions
+  },
+  actionsBox: {
+    position: 'absolute',
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionBtn: {
+    marginRight: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  artist: {
+    fontSize: 14,
+    color: "#A0AEC0",
+    textAlign: 'center',
+  },
+  secondaryControls: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 32,
+    marginBottom: 16,
+  },
+  rightSecondaryControls: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  secondaryBtn: {
+    marginLeft: 24,
+    alignItems: 'center',
+  },
+  modeLabel: {
+    fontSize: 8,
+    color: '#B34A30',
+    fontWeight: 'bold',
+    marginTop: 2,
+  },
+  progressContainer: {
+    paddingHorizontal: 32,
+    marginBottom: 24,
+  },
+  timeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  timeText: {
+    fontSize: 12,
+  },
+  slider: {
+    width: "100%",
+    height: 40,
+  },
+  mainControls: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 32,
+  },
+  controlBtn: {
+    padding: 16,
+  },
+  playPauseBtn: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#B34A30',
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 32,
+    shadowColor: "#B34A30",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+});
+
 export default function NowPlayingScreen() {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
   const player = useSelector((state: RootState) => state.player);
   const likedSongs = useSelector((state: RootState) => state.library.likedSongs);
   const [isPickerVisible, setIsPickerVisible] = React.useState(false);
+  const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
   
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -75,6 +222,7 @@ export default function NowPlayingScreen() {
     if (player.currentTrack && pagerRef.current && player.queue.length > 0) {
       const idx = player.queue.findIndex(t => t.id === player.currentTrack?.id);
       if (idx !== -1) {
+        // Use animated: true for a smoother transition when skipping songs
         pagerRef.current.setPage(idx);
       }
     }
@@ -119,15 +267,31 @@ export default function NowPlayingScreen() {
   if (!player.currentTrack) return null;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-          <Ionicons name="arrow-back" size={26} color={textColor} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: textColor }]}>Playing Now</Text>
-        <View style={styles.headerButton} /> 
+    <View style={styles.container}>
+      {/* Immersive Background Blur */}
+      <View style={StyleSheet.absoluteFill}>
+         <Image 
+          source={{ uri: player.currentTrack.image || "https://picsum.photos/400" }} 
+          style={StyleSheet.absoluteFill}
+          blurRadius={Platform.OS === 'ios' ? 70 : 40} // Higher blur for iOS looks more glassy
+        />
+        <View 
+          style={[
+            StyleSheet.absoluteFill, 
+            { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)' }
+          ]} 
+        />
       </View>
+
+      <SafeAreaView style={styles.contentContainer}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
+            <Ionicons name="arrow-back" size={26} color={textColor} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: textColor }]}>Playing Now</Text>
+          <View style={styles.headerButton} /> 
+        </View>
 
       {/* Album Art Carousel */}
       <View style={styles.carouselContainer}>
@@ -140,19 +304,23 @@ export default function NowPlayingScreen() {
           >
             {player.queue.map((track, index) => (
               <View key={`${track.id}-${index}`} style={styles.page}>
-                <Animated.Image 
-                  source={{ uri: track.image || "https://picsum.photos/400" }} 
-                  style={[styles.albumArt, animatedImageStyle]} 
-                />
+                <View style={styles.albumArtShadow}>
+                  <Animated.Image 
+                    source={{ uri: track.image || "https://picsum.photos/400" }} 
+                    style={[styles.albumArt, animatedImageStyle]} 
+                  />
+                </View>
               </View>
             ))}
           </PagerView>
         ) : (
           <View style={styles.page}>
-            <Animated.Image 
-              source={{ uri: player.currentTrack.image || "https://picsum.photos/400" }} 
-              style={[styles.albumArt, animatedImageStyle]} 
-            />
+            <View style={styles.albumArtShadow}>
+              <Animated.Image 
+                source={{ uri: player.currentTrack.image || "https://picsum.photos/400" }} 
+                style={[styles.albumArt, animatedImageStyle]} 
+              />
+            </View>
           </View>
         )}
       </View>
@@ -261,7 +429,7 @@ export default function NowPlayingScreen() {
           }} 
           style={styles.playPauseBtn}
         >
-          <Ionicons name={player.isPlaying ? "pause-outline" : "play-outline"} size={40} color={textColor} />
+          <Ionicons name={player.isPlaying ? "pause" : "play"} size={44} color="#FFF" />
         </TouchableOpacity>
         
         <TouchableOpacity 
@@ -282,135 +450,7 @@ export default function NowPlayingScreen() {
       />
       
     </SafeAreaView>
+  </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginTop: 10,
-    marginBottom: 10, // give some space before image
-  },
-  headerButton: {
-    padding: 4,
-    width: 40,
-    alignItems: 'center'
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  carouselContainer: {
-    height: width * 0.85,
-    marginBottom: 20,
-  },
-  pagerView: {
-    flex: 1,
-  },
-  page: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  albumArt: {
-    width: width * 0.8,
-    height: width * 0.8,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowRadius: 15,
-    elevation: 10,
-  },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 24,
-    position: 'relative',
-  },
-  textStack: {
-    alignItems: 'center',
-    paddingHorizontal: 54, // Avoid overlap with absolute actions
-  },
-  actionsBox: {
-    position: 'absolute',
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionBtn: {
-    marginRight: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  artist: {
-    fontSize: 14,
-    color: "#A0AEC0",
-    textAlign: 'center',
-  },
-  secondaryControls: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 32,
-    marginBottom: 16,
-  },
-  rightSecondaryControls: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  secondaryBtn: {
-    marginLeft: 24,
-    alignItems: 'center',
-  },
-  modeLabel: {
-    fontSize: 8,
-    color: '#B34A30',
-    fontWeight: 'bold',
-    marginTop: 2,
-  },
-  progressContainer: {
-    paddingHorizontal: 32,
-    marginBottom: 24,
-  },
-  timeRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  timeText: {
-    fontSize: 12,
-  },
-  slider: {
-    width: "100%",
-    height: 40,
-  },
-  mainControls: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 32,
-  },
-  controlBtn: {
-    padding: 16,
-  },
-  playPauseBtn: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: 32,
-  },
-});
 

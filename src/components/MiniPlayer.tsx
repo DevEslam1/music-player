@@ -30,7 +30,13 @@ export const MiniPlayer = () => {
     <View style={[styles.wrapper, { bottom: insets.bottom + 10 }]}>
       <TouchableOpacity
         activeOpacity={0.9}
-        style={[styles.container, { backgroundColor }]}
+        style={[
+          styles.container, 
+          { 
+            backgroundColor: isDarkMode ? 'rgba(30, 41, 59, 0.9)' : 'rgba(255, 255, 255, 0.85)',
+            borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+          }
+        ]}
         onPress={() => navigation.navigate("NowPlaying")}
       >
         <View style={styles.progressBarBackground}>
@@ -74,32 +80,35 @@ const styles = StyleSheet.create({
     elevation: 15,
   },
   container: {
-    height: 64,
-    borderRadius: 16,
+    height: 72,
+    borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
   },
   progressBarBackground: {
-    height: 2,
-    backgroundColor: "rgba(0,0,0,0.05)",
+    height: 3,
+    backgroundColor: "rgba(0,0,0,0.1)",
     width: "100%",
   },
   progressBarFill: {
     height: "100%",
     backgroundColor: "#B34A30",
+    shadowColor: "#B34A30",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
   },
   content: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
   },
   image: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    marginRight: 10,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    marginRight: 12,
   },
   info: {
     flex: 1,

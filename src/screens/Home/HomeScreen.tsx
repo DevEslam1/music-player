@@ -21,6 +21,7 @@ import {
 import { SuggestionItem } from "../../components/home/SuggestionItem";
 import { TrackList } from "../../components/home/TrackList";
 import { homeScreenLogic } from "../../services/logic/homeScreenLogic";
+import { HomeSkeleton } from "../../components/home/HomeSkeleton";
 
 export default function HomeScreen() {
   const {
@@ -53,7 +54,10 @@ export default function HomeScreen() {
         if (isMounted) {
           setRecommended(topTracks.slice(0, 5));
           setSuggestions(suggestionTracks.slice(0, 6));
-          setLoading(false);
+          // Small delay to make the shimmer feel intentional
+          setTimeout(() => {
+            if (isMounted) setLoading(false);
+          }, 800);
         }
       } catch (e) {
         setLoading(false);
@@ -66,16 +70,7 @@ export default function HomeScreen() {
   }, []);
 
   if (loading) {
-    return (
-      <SafeAreaView
-        style={[
-          styles.container,
-          { backgroundColor, justifyContent: "center" },
-        ]}
-      >
-        <ActivityIndicator size="large" color="#B34A30" />
-      </SafeAreaView>
-    );
+    return <HomeSkeleton />;
   }
 
   return (

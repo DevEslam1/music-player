@@ -16,6 +16,7 @@ export const Colors = {
     inputBackground: "#FAF0EE",
     progressTrack: "#E8F5E9",
     surface: "#FFFFFF",
+    skeleton: "#E2E8F0",
   },
   dark: {
     text: "#ECEDEE",
@@ -26,6 +27,7 @@ export const Colors = {
     tabIconSelected: tintColorDark,
     inputBackground: "#1E2022",
     surface: "#1E2022",
+    skeleton: "#2D3748",
   },
 };
 

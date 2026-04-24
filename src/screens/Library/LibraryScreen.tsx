@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Text, StyleSheet, FlatList, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColor } from "../../hooks/use-theme-color";
+import { SearchBar } from "../../components/library/SearchBar";
+import { SearchItem } from "../../components/library/SearchItem";
 import PlaylistPicker from "../../components/PlaylistPicker";
 import { ScreenHeader } from "../../components/ScreenHeader";
-import { SearchBar } from "../../components/library/SerachBar";
-import { SearchItem } from "../../components/library/SearchItem";
-import { libraryScreenLogic } from "../../services/logic/librarayScreenLogic";
+import { libraryScreenLogic } from "../../services/logic/libraryScreenLogic";
 
 export default function LibraryScreen() {
   const searchTimeout = React.useRef<NodeJS.Timeout | null>(null);
