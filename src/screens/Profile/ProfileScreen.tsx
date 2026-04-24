@@ -39,7 +39,7 @@ export default function ProfileScreen() {
           <Ionicons name="arrow-back" size={26} color={textColor} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: textColor }]}>Profile</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
           <Ionicons name="settings-outline" size={24} color={textColor} />
         </TouchableOpacity>
       </View>
@@ -65,7 +65,10 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.menuContainer}>
-          <TouchableOpacity style={[styles.menuItem, { backgroundColor: cardBg }]}>
+          <TouchableOpacity 
+            style={[styles.menuItem, { backgroundColor: cardBg }]}
+            onPress={() => navigation.navigate("Notifications")}
+          >
             <Ionicons name="notifications-outline" size={22} color={textColor} />
             <Text style={[styles.menuText, { color: textColor }]}>Notifications</Text>
             <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
@@ -75,7 +78,10 @@ export default function ProfileScreen() {
             <Text style={[styles.menuText, { color: textColor }]}>Privacy & Safety</Text>
             <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.menuItem, { backgroundColor: cardBg }]}>
+          <TouchableOpacity 
+            style={[styles.menuItem, { backgroundColor: cardBg }]}
+            onPress={() => navigation.navigate("Support")}
+          >
             <Ionicons name="help-circle-outline" size={22} color={textColor} />
             <Text style={[styles.menuText, { color: textColor }]}>Support</Text>
             <Ionicons name="chevron-forward" size={20} color="#94A3B8" />

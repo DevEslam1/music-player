@@ -7,6 +7,8 @@ import LibraryScreen from "../screens/Library/LibraryScreen";
 import NowPlayingScreen from "../screens/NowPlaying/NowPlayingScreen";
 import PlaylistDetailScreen from "../screens/Playlist/PlaylistDetail";
 import TermsScreen from "../screens/Legal/TermsScreen";
+import NotificationsScreen from "../screens/Notifications/NotificationsScreen";
+import SupportScreen from "../screens/Support/SupportScreen";
 import DrawerNavigator from "./DrawerNavigator";
 import { MiniPlayer } from "../components/MiniPlayer";
 
@@ -17,6 +19,8 @@ export type MainStack = {
   NowPlaying: undefined;
   PlaylistDetail: { playlistId: string; name: string };
   TermsOfService: undefined;
+  Notifications: undefined;
+  Support: undefined;
   Drawer: undefined;
 };
 
@@ -39,6 +43,8 @@ const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
         <Stack.Screen name="NowPlaying" component={NowPlayingScreen} />
         <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
         <Stack.Screen name="TermsOfService" component={TermsScreen} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
+        <Stack.Screen name="Support" component={SupportScreen} />
         <Stack.Screen name="Drawer" component={DrawerNavigator} />
       </Stack.Navigator>
       {!hideMiniPlayer && <MiniPlayer />}

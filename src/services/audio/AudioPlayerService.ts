@@ -41,6 +41,7 @@ class AudioPlayerService {
 
     if (this.player) {
       try {
+        (this.player as any).setActiveForLockScreen(false);
         this.player.pause();
         this.player.release();
       } catch (e) {}

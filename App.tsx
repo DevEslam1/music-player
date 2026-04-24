@@ -8,6 +8,7 @@ import {
 } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { OfflineBanner } from "./src/components/OfflineBanner";
 
 export const navigationRef = createNavigationContainerRef();
 
@@ -36,6 +37,7 @@ export default function App() {
   return (
     <Provider store={store}>
       <SafeAreaProvider>
+        <OfflineBanner />
         <RootContent />
       </SafeAreaProvider>
     </Provider>
