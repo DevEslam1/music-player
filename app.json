@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "music-player",
-    "slug": "music-player",
+    "name": "GiG Player",
+    "slug": "gig-player",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",

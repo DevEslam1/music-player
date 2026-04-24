@@ -79,7 +79,7 @@ class AudioPlayerService {
       (player as any).setActiveForLockScreen(true, {
         title: track.name,
         artist: track.artist,
-        albumTitle: "Music Player",
+        albumTitle: "GiG Player",
         artworkUrl: track.image || "https://picsum.photos/400",
       });
 

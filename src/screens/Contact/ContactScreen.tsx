@@ -56,7 +56,7 @@ export default function ContactScreen() {
             <Ionicons name="code-slash-outline" size={50} color="#fff" />
           </View>
           <Text style={[styles.heroTitle, { color: textColor }]}>The Creators</Text>
-          <Text style={styles.heroSubtitle}>GIG Music Player was developed with passion. Connect with the authors below.</Text>
+          <Text style={styles.heroSubtitle}>GiG Player was developed with passion. Connect with the authors below.</Text>
         </View>
 
         <View style={styles.optionsSection}>

@@ -59,15 +59,15 @@ export default function FAQScreen() {
     },
     {
       question: "What is Hybrid Search?",
-      answer: "GIG's Hybrid Search combines your local library and the cloud. It searches your Liked Songs and Playlists first, ensuring they appear at the top of the results."
+      answer: "GiG's Hybrid Search combines your local library and the cloud. It searches your Liked Songs and Playlists first, ensuring they appear at the top of the results."
     },
     {
       question: "How do I toggle Dark Mode?",
       answer: "Simply open the Drawer Menu and tap the Moon icon in the top right corner. The app will instantly switch between Light and Dark mode."
     },
     {
-      question: "Can I use GIG offline?",
-      answer: "Currently, GIG requires an active internet connection to stream music from our cloud library. Offline mode is a featured planned for future updates!"
+      question: "Can I use GiG Player offline?",
+      answer: "Currently, GiG Player requires an active internet connection to stream music from our cloud library. Offline mode is a featured planned for future updates!"
     },
     {
       question: "How do I contacted support?",
@@ -88,7 +88,7 @@ export default function FAQScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.subtitle}>Frequently Asked Questions</Text>
         <Text style={[styles.description, { color: textColor + '99' }]}>
-          Find quick answers to common questions about using GIG Music Player.
+          Find quick answers to common questions about using GiG Player.
         </Text>
 
         <View style={styles.faqContainer}>

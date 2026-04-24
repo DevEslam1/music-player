@@ -1,4 +1,4 @@
-# GIG Music Player 🎧
+# GiG Player 🎧
 
 <p align="center">
   <img src="https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React Native" />
@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge" alt="Status: Production Ready" />
 </p>
 
-A premium, high-performance music player app built with **React Native**, **Expo**, and **TypeScript**. GIG Music Player offers a seamless blend of cloud-synced music management and global discovery via a custom **Railway Production Backend**, all wrapped in a stunning, theme-aware "Sonic Noir" aesthetic.
+A premium, high-performance music player app built with **React Native**, **Expo**, and **TypeScript**. GiG Player offers a seamless blend of cloud-synced music management and global discovery via a custom **Railway Production Backend**, all wrapped in a stunning, theme-aware "Sonic Noir" aesthetic.
 
 ---
 
@@ -80,7 +80,7 @@ A premium, high-performance music player app built with **React Native**, **Expo
 
 ### 📦 Production Build (APK)
 
-GIG Music Player is ready for production. To generate an Android APK using EAS CLI:
+GiG Player is ready for production. To generate an Android APK using EAS CLI:
 
 1. **Install EAS CLI**: `npm install -g eas-cli`
 2. **Login**: `eas login`

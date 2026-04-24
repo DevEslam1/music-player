@@ -25,7 +25,7 @@ export default function TermsScreen() {
         <View style={[styles.card, { backgroundColor: surfaceColor }]}>
           <Text style={[styles.title, { color: textColor }]}>1. Acceptance of Terms</Text>
           <Text style={styles.text}>
-            By using GIG Music Player, you agree to these terms. If you do not agree, please do not use the app.
+            By using GiG Player, you agree to these terms. If you do not agree, please do not use the app.
           </Text>
 
           <Text style={[styles.title, { color: textColor }]}>2. User Account</Text>
@@ -35,7 +35,7 @@ export default function TermsScreen() {
 
           <Text style={[styles.title, { color: textColor }]}>3. Cloud Content</Text>
           <Text style={styles.text}>
-            GIG Music Player provides streaming services. Users are responsible for their network data consumption while streaming.
+            GiG Player provides streaming services. Users are responsible for their network data consumption while streaming.
           </Text>
 
           <Text style={[styles.title, { color: textColor }]}>4. Intellectual Property</Text>
