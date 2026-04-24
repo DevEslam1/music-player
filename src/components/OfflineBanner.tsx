@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Platform } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import NetInfo from '@react-native-community/netinfo';
 import Animated, { 
   useSharedValue, 
@@ -10,32 +11,34 @@ import { Ionicons } from '@expo/vector-icons';
 
 export const OfflineBanner = () => {
   const [isOffline, setIsOffline] = useState(false);
-  const translateY = useSharedValue(-100);
+  const insets = useSafeAreaInsets();
+  
+  // Starting position: off-screen above the top
+  const translateY = useSharedValue(-200);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
-      // If isConnected is false, we are definitely offline.
-      // If isInternetReachable is false, we might have WiFi but no actual internet.
       const offline = state.isConnected === false || state.isInternetReachable === false;
       setIsOffline(offline);
-      translateY.value = offline ? 0 : -100;
+      // Position it 10px below the status bar/notch
+      translateY.value = offline ? insets.top + 10 : -200;
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [insets.top]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: withSpring(translateY.value, { damping: 15, stiffness: 100 }) }],
+    top: withSpring(translateY.value, { damping: 15, stiffness: 100 }),
   }));
 
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
-      <SafeAreaView>
-        <View style={styles.content}>
-          <Ionicons name="cloud-offline-outline" size={20} color="#FFF" />
-          <Text style={styles.text}>No Internet Connection</Text>
+      <View style={styles.content}>
+        <View style={styles.iconCircle}>
+          <Ionicons name="cloud-offline" size={16} color="#FFF" />
         </View>
-      </SafeAreaView>
+        <Text style={styles.text}>Connection Lost • Working Offline</Text>
+      </View>
     </Animated.View>
   );
 };
@@ -43,29 +46,39 @@ export const OfflineBanner = () => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#EF4444', // Premium Red
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(239, 68, 68, 0.95)', // Slightly translucent Premium Red
     zIndex: 9999,
-    paddingTop: Platform.OS === 'android' ? 10 : 0, // Safe area handling for android if not using SafeAreaView properly
+    borderRadius: 30,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
     elevation: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
     gap: 10,
+  },
+  iconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   text: {
     color: '#FFF',
-    fontSize: 14,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
 });

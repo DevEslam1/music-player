@@ -14,11 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColor } from "../../hooks/use-theme-color";
 
-if (Platform.OS === 'android') {
-  if (UIManager.setLayoutAnimationEnabledExperimental) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-  }
-}
+
 
 const FAQItem = ({ question, answer, textColor }: { question: string, answer: string, textColor: string }) => {
   const [expanded, setExpanded] = useState(false);
