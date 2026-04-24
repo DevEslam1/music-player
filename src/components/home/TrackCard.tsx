@@ -1,7 +1,8 @@
+import React from "react";
 import { TouchableOpacity, Image, Text, StyleSheet } from "react-native";
 import { Track } from "../../types";
 
-export function TrackCard({
+const TrackCardInner = ({
   track,
   onPress,
   textColor,
@@ -9,12 +10,15 @@ export function TrackCard({
   track: Track;
   onPress: () => void;
   textColor: string;
-}) {
+}) => {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <Image
         source={{ uri: track.image || "https://picsum.photos/200" }}
         style={styles.cardImage}
+        // Reduces memory usage on low-end devices
+        resizeMethod="resize"
+        resizeMode="cover"
       />
       <Text style={[styles.cardTitle, { color: textColor }]} numberOfLines={1}>
         {track.name}
@@ -24,7 +28,9 @@ export function TrackCard({
       </Text>
     </TouchableOpacity>
   );
-}
+};
+
+export const TrackCard = React.memo(TrackCardInner);
 
 const styles = StyleSheet.create({
   card: {

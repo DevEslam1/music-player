@@ -1,8 +1,9 @@
+import React from "react";
 import { TouchableOpacity, Image, View, Text, StyleSheet } from "react-native";
 import { Track } from "../../types";
 import { Ionicons } from "@expo/vector-icons";
 
-export function SuggestionItem({
+const SuggestionItemInner = ({
   track,
   onPress,
   textColor,
@@ -10,12 +11,14 @@ export function SuggestionItem({
   track: Track;
   onPress: () => void;
   textColor: string;
-}) {
+}) => {
   return (
     <TouchableOpacity style={styles.suggestionItem} onPress={onPress}>
       <Image
         source={{ uri: track.image || "https://picsum.photos/200" }}
         style={styles.suggestionImage}
+        resizeMethod="resize"
+        resizeMode="cover"
       />
       <View style={styles.suggestionInfo}>
         <Text
@@ -31,7 +34,9 @@ export function SuggestionItem({
       <Ionicons name="play-circle-outline" size={28} color="#B34A30" />
     </TouchableOpacity>
   );
-}
+};
+
+export const SuggestionItem = React.memo(SuggestionItemInner);
 
 const styles = StyleSheet.create({
   suggestionItem: {

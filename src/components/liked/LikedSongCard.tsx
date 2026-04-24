@@ -1,3 +1,4 @@
+import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 import {
   TouchableOpacity,
@@ -17,12 +18,12 @@ type LikedSongCardProps = {
   onRemove?: ((event: GestureResponderEvent) => void) | undefined;
 };
 
-export function LikedSongCard({
+const LikedSongCardInner = ({
   item,
   onPress,
   editMode,
   onRemove,
-}: LikedSongCardProps) {
+}: LikedSongCardProps) => {
   const textColor = useThemeColor({}, "text");
 
   return (
@@ -35,6 +36,8 @@ export function LikedSongCard({
         <Image
           source={{ uri: item.image || "https://picsum.photos/200" }}
           style={styles.cardImage}
+          resizeMethod="resize"
+          resizeMode="cover"
         />
         {editMode && (
           <TouchableOpacity style={styles.removeBadge} onPress={onRemove}>
@@ -50,7 +53,9 @@ export function LikedSongCard({
       </Text>
     </TouchableOpacity>
   );
-}
+};
+
+export const LikedSongCard = React.memo(LikedSongCardInner);
 
 const styles = StyleSheet.create({
   card: {

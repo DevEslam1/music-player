@@ -1,3 +1,4 @@
+import React from "react";
 import {
   TouchableOpacity,
   Image,
@@ -17,13 +18,12 @@ type SearchItemProps = {
   isLiked?: boolean;
 };
 
-export function SearchItem({
+const SearchItemInner = ({
   item,
   onPlayTrack,
   onOpenPicker,
   isLiked = false,
-}: SearchItemProps) {
-  //   const isLiked = likedSongs.some((s) => s.id === item.id);
+}: SearchItemProps) => {
   const textColor = useThemeColor({}, "text");
 
   return (
@@ -31,6 +31,8 @@ export function SearchItem({
       <Image
         source={{ uri: item.image || "https://picsum.photos/200" }}
         style={styles.cardImage}
+        resizeMethod="resize"
+        resizeMode="cover"
       />
       <View style={styles.cardInfo}>
         <Text
@@ -63,7 +65,9 @@ export function SearchItem({
       </View>
     </TouchableOpacity>
   );
-}
+};
+
+export const SearchItem = React.memo(SearchItemInner);
 
 const styles = StyleSheet.create({
   card: {

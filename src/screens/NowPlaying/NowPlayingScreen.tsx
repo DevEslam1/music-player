@@ -273,7 +273,7 @@ export default function NowPlayingScreen() {
          <Image 
           source={{ uri: player.currentTrack.image || "https://picsum.photos/400" }} 
           style={StyleSheet.absoluteFill}
-          blurRadius={Platform.OS === 'ios' ? 70 : 40} // Higher blur for iOS looks more glassy
+          blurRadius={Platform.OS === 'ios' ? 70 : 20} // Reduced for Android low-end performance
         />
         <View 
           style={[

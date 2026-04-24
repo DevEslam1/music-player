@@ -1,61 +1,75 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withRepeat, 
-  withTiming, 
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
   withSequence,
-  interpolate
+  withTiming,
+  SharedValue,
 } from 'react-native-reanimated';
 import { useThemeColor } from '../../hooks/use-theme-color';
 
 const { width } = Dimensions.get('window');
 
-const ShimmerBlock = ({ style }: { style: any }) => {
+// Single shared opacity to drive ALL shimmer blocks from one animation
+// instead of one animation per block — critical for low-end devices
+const useShimmerOpacity = () => {
   const opacity = useSharedValue(0.3);
-
   useEffect(() => {
     opacity.value = withRepeat(
       withSequence(
-        withTiming(0.7, { duration: 1000 }),
-        withTiming(0.3, { duration: 1000 })
+        withTiming(0.75, { duration: 900 }),
+        withTiming(0.3, { duration: 900 })
       ),
       -1,
       true
     );
   }, []);
+  return opacity;
+};
 
+const ShimmerBlock = ({
+  style,
+  opacity,
+  baseColor,
+}: {
+  style: any;
+  opacity: SharedValue<number>;
+  baseColor: string;
+}) => {
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
   }));
-
-  const skeletonColor = useThemeColor({}, 'skeleton'); // Assuming we have a skeleton color or just use surface
-  const baseColor = skeletonColor || '#E2E8F0';
-
-  return <Animated.View style={[style, { backgroundColor: baseColor }, animatedStyle]} />;
+  return (
+    <Animated.View style={[style, { backgroundColor: baseColor }, animatedStyle]} />
+  );
 };
 
 export const HomeSkeleton = () => {
   const backgroundColor = useThemeColor({}, 'background');
+  const skeletonColor = useThemeColor({}, 'skeleton') || '#E2E8F0';
+
+  // One shared opacity for ALL shimmer blocks — saves many animation threads
+  const opacity = useShimmerOpacity();
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
       {/* Header Skeleton */}
       <View style={styles.header}>
-        <ShimmerBlock style={styles.circle} />
-        <ShimmerBlock style={styles.circle} />
+        <ShimmerBlock style={styles.circle} opacity={opacity} baseColor={skeletonColor} />
+        <ShimmerBlock style={styles.circle} opacity={opacity} baseColor={skeletonColor} />
       </View>
 
       {/* Horizontal List Skeleton */}
       <View style={styles.section}>
-        <ShimmerBlock style={styles.title} />
+        <ShimmerBlock style={styles.title} opacity={opacity} baseColor={skeletonColor} />
         <View style={styles.horizontalList}>
           {[1, 2, 3].map(i => (
             <View key={i} style={styles.cardContainer}>
-              <ShimmerBlock style={styles.card} />
-              <ShimmerBlock style={styles.cardText} />
-              <ShimmerBlock style={styles.cardSubText} />
+              <ShimmerBlock style={styles.card} opacity={opacity} baseColor={skeletonColor} />
+              <ShimmerBlock style={styles.cardText} opacity={opacity} baseColor={skeletonColor} />
+              <ShimmerBlock style={styles.cardSubText} opacity={opacity} baseColor={skeletonColor} />
             </View>
           ))}
         </View>
@@ -63,22 +77,22 @@ export const HomeSkeleton = () => {
 
       {/* Favorite Section Skeleton */}
       <View style={styles.section}>
-        <ShimmerBlock style={styles.title} />
-        <ShimmerBlock style={styles.largeBlock} />
+        <ShimmerBlock style={styles.title} opacity={opacity} baseColor={skeletonColor} />
+        <ShimmerBlock style={styles.largeBlock} opacity={opacity} baseColor={skeletonColor} />
       </View>
 
       {/* Vertical List Skeleton */}
       <View style={styles.section}>
         <View style={styles.row}>
-           <ShimmerBlock style={styles.title} />
-           <ShimmerBlock style={styles.smallLink} />
+          <ShimmerBlock style={styles.title} opacity={opacity} baseColor={skeletonColor} />
+          <ShimmerBlock style={styles.smallLink} opacity={opacity} baseColor={skeletonColor} />
         </View>
         {[1, 2, 3, 4].map(i => (
           <View key={i} style={styles.listItem}>
-            <ShimmerBlock style={styles.itemSquare} />
+            <ShimmerBlock style={styles.itemSquare} opacity={opacity} baseColor={skeletonColor} />
             <View style={styles.itemMeta}>
-              <ShimmerBlock style={styles.itemTitle} />
-              <ShimmerBlock style={styles.itemSub} />
+              <ShimmerBlock style={styles.itemTitle} opacity={opacity} baseColor={skeletonColor} />
+              <ShimmerBlock style={styles.itemSub} opacity={opacity} baseColor={skeletonColor} />
             </View>
           </View>
         ))}

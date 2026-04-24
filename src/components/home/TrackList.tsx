@@ -1,7 +1,8 @@
+import React, { useCallback } from "react";
 import { Text, FlatList, StyleSheet, View } from "react-native";
 import { Track } from "../../types";
 import { TrackCard } from "./TrackCard";
-import { Colors } from "../../constants/theme";
+import { useThemeColor } from "../../hooks/use-theme-color";
 
 type TrackListProps = {
   label?: string;
@@ -9,32 +10,46 @@ type TrackListProps = {
   handlePlayTrack: (track: Track, queue: Track[]) => Promise<void>;
   horizontal?: boolean;
 };
+
 export function TrackList({
   label,
   trackList,
   handlePlayTrack,
   horizontal = true,
 }: TrackListProps) {
+  const textColor = useThemeColor({}, "text");
+
+  // Memoize renderItem to prevent recreation on every parent re-render
+  const renderItem = useCallback(
+    ({ item }: { item: Track }) => (
+      <TrackCard
+        track={item}
+        textColor={textColor}
+        onPress={() => handlePlayTrack(item, trackList)}
+      />
+    ),
+    [textColor, trackList, handlePlayTrack]
+  );
+
+  const flatListPerformanceProps = {
+    removeClippedSubviews: true,  // Don't render off-screen items (low-end wins)
+    maxToRenderPerBatch: 5,       // Render 5 items per JS frame
+    windowSize: 5,                // Keep 5 screens worth of items in memory
+    initialNumToRender: 4,        // Fast first paint
+    updateCellsBatchingPeriod: 50, // Batch updates every 50ms
+  };
+
   return label ? (
     <View>
-      {label && (
-        <Text style={[styles.sectionTitle, { color: Colors.light.text }]}>
-          {label}
-        </Text>
-      )}
+      <Text style={[styles.sectionTitle, { color: textColor }]}>{label}</Text>
       <FlatList
         horizontal={horizontal}
         showsHorizontalScrollIndicator={false}
         data={trackList}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
-        renderItem={({ item }) => (
-          <TrackCard
-            track={item}
-            textColor={Colors.light.text}
-            onPress={() => handlePlayTrack(item, trackList)}
-          />
-        )}
+        renderItem={renderItem}
+        {...flatListPerformanceProps}
       />
     </View>
   ) : (
@@ -44,13 +59,8 @@ export function TrackList({
       data={trackList}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.listContainer}
-      renderItem={({ item }) => (
-        <TrackCard
-          track={item}
-          textColor={Colors.light.text}
-          onPress={() => handlePlayTrack(item, trackList)}
-        />
-      )}
+      renderItem={renderItem}
+      {...flatListPerformanceProps}
     />
   );
 }

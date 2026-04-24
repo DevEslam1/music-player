@@ -11,10 +11,12 @@ export function homeScreenLogic() {
   const [suggestions, setSuggestions] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
+  const navigation = useNavigation<any>();
 
   const handlePlayTrack = async (track: Track, queue: Track[]) => {
     dispatch(setQueue(queue));
     await audioPlayer.loadPlayTrack(track);
+    navigation.navigate("NowPlaying");
   };
 
   return {

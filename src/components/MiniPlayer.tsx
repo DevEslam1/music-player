@@ -43,7 +43,12 @@ export const MiniPlayer = () => {
           <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
         </View>
         <View style={styles.content}>
-          <Image source={{ uri: currentTrack.image }} style={styles.image} />
+          <Image
+            source={{ uri: currentTrack.image }}
+            style={styles.image}
+            resizeMethod="resize"
+            resizeMode="cover"
+          />
           <View style={styles.info}>
             <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>
               {currentTrack.name}
