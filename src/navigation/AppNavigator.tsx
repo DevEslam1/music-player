@@ -12,6 +12,9 @@ import SupportScreen from "../screens/Support/SupportScreen";
 import DrawerNavigator from "./DrawerNavigator";
 import { MiniPlayer } from "../components/MiniPlayer";
 
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store/store";
+
 export type MainStack = {
   Login: undefined;
   SignUp: undefined;
@@ -31,21 +34,28 @@ interface AppNavigatorProps {
 }
 
 const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
-
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const hideMiniPlayer = ["Login", "SignUp", "NowPlaying"].includes(currentRoute || "");
 
   return (
     <View style={styles.container}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="Library" component={LibraryScreen} />
-        <Stack.Screen name="NowPlaying" component={NowPlayingScreen} />
-        <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
-        <Stack.Screen name="TermsOfService" component={TermsScreen} />
-        <Stack.Screen name="Notifications" component={NotificationsScreen} />
-        <Stack.Screen name="Support" component={SupportScreen} />
-        <Stack.Screen name="Drawer" component={DrawerNavigator} />
+        {!isLoggedIn ? (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="SignUp" component={SignUpScreen} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen name="Drawer" component={DrawerNavigator} />
+            <Stack.Screen name="Library" component={LibraryScreen} />
+            <Stack.Screen name="NowPlaying" component={NowPlayingScreen} />
+            <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
+            <Stack.Screen name="TermsOfService" component={TermsScreen} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} />
+            <Stack.Screen name="Support" component={SupportScreen} />
+          </>
+        )}
       </Stack.Navigator>
       {!hideMiniPlayer && <MiniPlayer />}
     </View>

@@ -108,6 +108,27 @@ class AudioPlayerService {
         }
       }));
 
+      // --- LOCK SCREEN LISTENERS ---
+      this.subscriptions.push((this.player as any).addListener('playRequest', () => {
+        console.log("Remote: Play Request");
+        this.player?.play();
+      }));
+
+      this.subscriptions.push((this.player as any).addListener('pauseRequest', () => {
+        console.log("Remote: Pause Request");
+        this.player?.pause();
+      }));
+
+      this.subscriptions.push((this.player as any).addListener('nextTrackRequest', () => {
+        console.log("Remote: Next Track Request");
+        this.playNext();
+      }));
+
+      this.subscriptions.push((this.player as any).addListener('previousTrackRequest', () => {
+        console.log("Remote: Previous Track Request");
+        this.playPrevious();
+      }));
+
 
       if (Platform.OS === 'android') {
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -163,9 +184,12 @@ class AudioPlayerService {
     }
 
     let nextTrack = state.queue[nextIndex];
-    if (state.isShuffled) {
-      nextIndex = Math.floor(Math.random() * state.queue.length);
-      nextTrack = state.queue[nextIndex];
+    if (state.isShuffled && state.queue.length > 1) {
+      let randomIndex = currentIndex;
+      while (randomIndex === currentIndex) {
+        randomIndex = Math.floor(Math.random() * state.queue.length);
+      }
+      nextTrack = state.queue[randomIndex];
     }
 
     await this.loadPlayTrack(nextTrack);

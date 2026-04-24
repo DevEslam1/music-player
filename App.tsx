@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import AppNavigator from "./src/navigation/AppNavigator";
 import { Provider, useSelector } from "react-redux";
+import { AuthInitializer } from "./src/components/AuthInitializer";
 import { store, RootState } from "./src/redux/store/store";
 import { 
   NavigationContainer, 
@@ -36,10 +37,12 @@ function RootContent() {
 export default function App() {
   return (
     <Provider store={store}>
-      <SafeAreaProvider>
-        <OfflineBanner />
-        <RootContent />
-      </SafeAreaProvider>
+      <AuthInitializer>
+        <SafeAreaProvider>
+          <OfflineBanner />
+          <RootContent />
+        </SafeAreaProvider>
+      </AuthInitializer>
     </Provider>
   );
 }
