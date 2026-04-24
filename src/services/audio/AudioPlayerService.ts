@@ -62,9 +62,10 @@ class AudioPlayerService {
       await initAudioMode();
 
 
-      let streamUrl = track.previewUrl;
-      if (streamUrl && streamUrl.startsWith('http://')) {
-        streamUrl = streamUrl.replace('http://', 'https://');
+      let streamUrl = track.previewUrl || track.uri;
+      if (streamUrl) {
+        // Force HTTPS — Android release builds block cleartext HTTP by default
+        streamUrl = streamUrl.replace(/^http:\/\//i, 'https://');
       }
 
       console.log("🎵 Playing URL:", streamUrl);
@@ -94,9 +95,11 @@ class AudioPlayerService {
       this.subscriptions.push(this.player.addListener('playbackStatusUpdate', (status) => {
         if (status.playing !== undefined) {
           store.dispatch(setIsPlaying(status.playing));
+          // Use the track's known duration from the API as fallback instead of hardcoded 30s
+          const fallbackDuration = (track.duration || 0) / 1000; // track.duration is in ms, status.duration is in seconds
           store.dispatch(setProgress({
             position: (status.currentTime || 0) * 1000,
-            duration: (status.duration || 30) * 1000,
+            duration: (status.duration || fallbackDuration || 0) * 1000,
           }));
         }
 

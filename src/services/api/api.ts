@@ -18,10 +18,17 @@ export interface CustomApiTrackRaw {
 
 const ensureAbsoluteUrl = (url: string | null): string => {
   if (!url) return "";
-  if (url.startsWith("http")) return url;
   
-  const cleanUrl = url.startsWith("/") ? url : `/${url}`;
-  return `${BASE_DOMAIN}${cleanUrl}`;
+  let fullUrl: string;
+  if (url.startsWith("http")) {
+    fullUrl = url;
+  } else {
+    const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+    fullUrl = `${BASE_DOMAIN}${cleanUrl}`;
+  }
+  
+  // Force HTTPS — Android release builds block cleartext HTTP
+  return fullUrl.replace(/^http:\/\//i, 'https://');
 };
 
 export const mapCustomTrackToModel = (track: CustomApiTrackRaw): Track => ({
