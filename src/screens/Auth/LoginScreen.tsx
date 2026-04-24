@@ -58,7 +58,7 @@ export default function LoginScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
-          onChange={setEmail}
+          onChangeText={setEmail}
           iconName={"person-outline"}
           withGreenDt={true}
         />
@@ -69,7 +69,7 @@ export default function LoginScreen() {
           keyboardType="default"
           secureEntry={true}
           value={password}
-          onChange={setPassword}
+          onChangeText={setPassword}
           iconName={"lock-closed-outline"}
         />
 

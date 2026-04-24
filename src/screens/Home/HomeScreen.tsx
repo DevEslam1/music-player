@@ -13,7 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useThemeColor } from "../../hooks/use-theme-color";
 import { searchSongs, getRecommendedSongs } from "../../services/api/api";
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../../redux/store/store";
+import { RootState, AppDispatch } from "../../redux/store/store";
 import {
   fetchLikedSongs,
   fetchPlaylists,
@@ -33,7 +33,7 @@ export default function HomeScreen() {
     handlePlayTrack,
   } = homeScreenLogic();
   const navigation = useNavigation<any>();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const { likedSongs } = useSelector((state: RootState) => state.library);
 

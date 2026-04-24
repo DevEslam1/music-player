@@ -19,6 +19,13 @@ import PlaylistPicker from "../../components/PlaylistPicker";
 import Slider from "@react-native-community/slider";
 import PagerView from "react-native-pager-view";
 import { Image } from "react-native";
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withSpring, 
+  withTiming 
+} from "react-native-reanimated";
+import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get("window");
 
@@ -37,6 +44,25 @@ export default function NowPlayingScreen() {
     : false;
 
   const pagerRef = useRef<PagerView>(null);
+
+  // Breathing animation logic
+  const scale = useSharedValue(1);
+  const shadowOpacity = useSharedValue(0.2);
+
+  useEffect(() => {
+    if (player.isPlaying) {
+      scale.value = withSpring(1.08, { damping: 10, stiffness: 80 });
+      shadowOpacity.value = withTiming(0.4);
+    } else {
+      scale.value = withSpring(1, { damping: 15, stiffness: 100 });
+      shadowOpacity.value = withTiming(0.2);
+    }
+  }, [player.isPlaying]);
+
+  const animatedImageStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    shadowOpacity: shadowOpacity.value,
+  }));
 
   // Calculate initial page index
   const currentIndex = player.currentTrack && player.queue.length > 0 
@@ -114,13 +140,19 @@ export default function NowPlayingScreen() {
           >
             {player.queue.map((track, index) => (
               <View key={`${track.id}-${index}`} style={styles.page}>
-                <Image source={{ uri: track.image || "https://picsum.photos/400" }} style={styles.albumArt} />
+                <Animated.Image 
+                  source={{ uri: track.image || "https://picsum.photos/400" }} 
+                  style={[styles.albumArt, animatedImageStyle]} 
+                />
               </View>
             ))}
           </PagerView>
         ) : (
           <View style={styles.page}>
-            <Image source={{ uri: player.currentTrack.image || "https://picsum.photos/400" }} style={styles.albumArt} />
+            <Animated.Image 
+              source={{ uri: player.currentTrack.image || "https://picsum.photos/400" }} 
+              style={[styles.albumArt, animatedImageStyle]} 
+            />
           </View>
         )}
       </View>
@@ -132,10 +164,21 @@ export default function NowPlayingScreen() {
           <Text style={styles.artist} numberOfLines={1}>{player.currentTrack.artist}</Text>
         </View>
         <View style={styles.actionsBox}>
-          <TouchableOpacity onPress={() => setIsPickerVisible(true)} style={styles.actionBtn}>
+          <TouchableOpacity 
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setIsPickerVisible(true);
+            }} 
+            style={styles.actionBtn}
+          >
              <Ionicons name="add-circle-outline" size={28} color={textColor} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => dispatch(toggleLikeSongAction(player.currentTrack!))}>
+          <TouchableOpacity 
+            onPress={() => {
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              dispatch(toggleLikeSongAction(player.currentTrack!));
+            }}
+          >
             <Ionicons name={isLiked ? "heart" : "heart-outline"} size={26} color={isLiked ? "#B34A30" : textColor} />
           </TouchableOpacity>
         </View>
@@ -145,7 +188,13 @@ export default function NowPlayingScreen() {
       <View style={styles.secondaryControls}>
         <Ionicons name="volume-medium-outline" size={24} color={textColor} />
         <View style={styles.rightSecondaryControls}>
-          <TouchableOpacity onPress={() => dispatch(toggleRepeat())} style={styles.secondaryBtn}>
+          <TouchableOpacity 
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              dispatch(toggleRepeat());
+            }} 
+            style={styles.secondaryBtn}
+          >
             <Ionicons 
               name={player.repeatMode === 'track' ? "repeat" : "repeat-outline"} 
               size={20} 
@@ -157,7 +206,13 @@ export default function NowPlayingScreen() {
               </Text>
             )}
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => dispatch(toggleShuffle())} style={styles.secondaryBtn}>
+          <TouchableOpacity 
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              dispatch(toggleShuffle());
+            }} 
+            style={styles.secondaryBtn}
+          >
             <Ionicons name="shuffle-outline" size={20} color={player.isShuffled ? "#B34A30" : textColor} />
             {player.isShuffled && (
               <Text style={styles.modeLabel}>On</Text>
@@ -177,7 +232,10 @@ export default function NowPlayingScreen() {
           minimumValue={0}
           maximumValue={player.durationMillis || 30000}
           value={player.positionMillis}
-          onSlidingComplete={handleSeek}
+          onSlidingComplete={(val) => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            handleSeek(val);
+          }}
           minimumTrackTintColor="#B34A30"
           maximumTrackTintColor="#CBD5E1"
           thumbTintColor="#B34A30"
@@ -186,15 +244,33 @@ export default function NowPlayingScreen() {
 
       {/* Main Controls */}
       <View style={styles.mainControls}>
-        <TouchableOpacity onPress={() => audioPlayer.playPrevious()} style={styles.controlBtn}>
+        <TouchableOpacity 
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            audioPlayer.playPrevious();
+          }} 
+          style={styles.controlBtn}
+        >
           <Ionicons name="play-skip-back-outline" size={32} color={textColor} />
         </TouchableOpacity>
         
-        <TouchableOpacity onPress={() => audioPlayer.playPause()} style={styles.playPauseBtn}>
+        <TouchableOpacity 
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            audioPlayer.playPause();
+          }} 
+          style={styles.playPauseBtn}
+        >
           <Ionicons name={player.isPlaying ? "pause-outline" : "play-outline"} size={40} color={textColor} />
         </TouchableOpacity>
         
-        <TouchableOpacity onPress={() => audioPlayer.playNext()} style={styles.controlBtn}>
+        <TouchableOpacity 
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            audioPlayer.playNext();
+          }} 
+          style={styles.controlBtn}
+        >
           <Ionicons name="play-skip-forward-outline" size={32} color={textColor} />
         </TouchableOpacity>
       </View>
@@ -245,6 +321,10 @@ const styles = StyleSheet.create({
     width: width * 0.8,
     height: width * 0.8,
     borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowRadius: 15,
+    elevation: 10,
   },
   infoRow: {
     flexDirection: "row",

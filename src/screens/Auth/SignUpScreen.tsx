@@ -53,7 +53,7 @@ export default function SignUpScreen() {
         <CustomTextInput
           placeholder="Your Name"
           value={name}
-          onChange={setName}
+          onChangeText={setName}
           iconName={"person-outline"}
           label="Full Name"
         />
@@ -63,8 +63,9 @@ export default function SignUpScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
-          onChange={setEmail}
+          onChangeText={setEmail}
           iconName={"mail-outline"}
+          label="Email Address"
         />
 
         <CustomTextInput
@@ -73,7 +74,7 @@ export default function SignUpScreen() {
           keyboardType="default"
           secureEntry={true}
           value={password}
-          onChange={setPassword}
+          onChangeText={setPassword}
           iconName={"lock-closed-outline"}
         />
 

@@ -12,7 +12,7 @@ export type CustomTextInputProps = TextInputProps & {
   keyboardType?: string;
   autoCapitalize?: string;
   value: string;
-  onChange: ((text: string) => void) | undefined;
+  onChangeText: ((text: string) => void) | undefined;
   iconName: any;
   withGreenDt?: boolean;
   secureEntry?: boolean;
@@ -28,7 +28,7 @@ export function CustomTextInput({
   iconName,
   withGreenDt = false,
   secureEntry = false,
-  onChange,
+  onChangeText,
 }: CustomTextInputProps) {
   return (
     <View style={styles.inputContainer}>
@@ -50,7 +50,7 @@ export function CustomTextInput({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           value={value}
-          onChangeText={onChange}
+          onChangeText={onChangeText}
           secureTextEntry={secureEntry}
         />
       </View>

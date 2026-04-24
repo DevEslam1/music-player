@@ -9,7 +9,7 @@ export const VALIDATION_MESSAGES = {
     "Password must contain at least one uppercase letter",
   SHOUD_HAS_SPECIAL_CHARACTER:
     "Password must contain at least one special character",
-  MIN_PASSWORD_LENGTH: "Password must be at least 6 characters long",
+  MIN_PASSWORD_LENGTH: "Password must be at least 8 characters long",
   CONFIRM_PASSWORD_REQUIRED: "Please confirm your password",
   PASSWORD_NOT_MATCH: "Passwords do not match",
 };

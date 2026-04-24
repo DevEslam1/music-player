@@ -4,5 +4,5 @@ export const REGEX_PATTERNS = {
   HAS_LOWER_CASE: /[a-z]/,
   HAS_NUMBER: /[0-9]/,
   HAS_SPECIAL_CHARACTER: /[!@#$%^&*+-_(),.:{}<>]/,
-  MIN_LENGTH_6: /.{6,}/,
+  MIN_LENGTH_8: /.{8,}/,
 };

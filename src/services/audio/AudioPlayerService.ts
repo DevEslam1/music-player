@@ -24,7 +24,7 @@ class AudioPlayerService {
   private static instance: AudioPlayerService;
   private player: AudioPlayer | null = null;
   private currentLoadingTrackId: string | null = null;
-  private statusSubscription: { remove: () => void } | null = null;
+  private subscriptions: { remove: () => void }[] = [];
 
   private constructor() {}
 
@@ -43,10 +43,11 @@ class AudioPlayerService {
       try {
         this.player.pause();
         this.player.release();
+      } catch (e) {}
 
-      this.statusSubscription?.remove();
+      this.subscriptions.forEach(s => s.remove());
+      this.subscriptions = [];
       this.player = null;
-      this.statusSubscription = null;
     }
 
     try {
@@ -70,7 +71,14 @@ class AudioPlayerService {
 
       const player = createAudioPlayer({
         uri: streamUrl,
-        headers
+        headers,
+      });
+
+      (player as any).setActiveForLockScreen(true, {
+        title: track.name,
+        artist: track.artist,
+        albumTitle: "Music Player",
+        artworkUrl: track.image || "https://picsum.photos/400",
       });
 
 
@@ -82,8 +90,9 @@ class AudioPlayerService {
       this.player = player;
 
 
-      this.statusSubscription = this.player.addListener('playbackStatusUpdate', (status) => {
+      this.subscriptions.push(this.player.addListener('playbackStatusUpdate', (status) => {
         if (status.playing !== undefined) {
+          store.dispatch(setIsPlaying(status.playing));
           store.dispatch(setProgress({
             position: (status.currentTime || 0) * 1000,
             duration: (status.duration || 30) * 1000,
@@ -93,7 +102,7 @@ class AudioPlayerService {
         if (status.didJustFinish) {
           this.playNext();
         }
-      });
+      }));
 
 
       if (Platform.OS === 'android') {
