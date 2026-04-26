@@ -34,6 +34,10 @@ export function loginScreenLogic() {
 
     dispatch(loginStart());
     try {
+      
+      await AsyncStorage.removeItem("access_token");
+      await AsyncStorage.removeItem("refresh_token");
+
       const data = await AuthService.login({ email, password });
       const { access, refresh } = data;
 

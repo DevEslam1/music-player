@@ -103,7 +103,7 @@ export default function TracksListScreen() {
           <Text style={[styles.headerTitle, { color: textColor }]} numberOfLines={1}>
             {title}
           </Text>
-          <Text style={styles.headerSubtitle}>{tracks.length} tracks</Text>
+          <Text style={styles.headerSubtitle}>{tracksList.length} tracks</Text>
         </View>
         <View style={styles.headerButton} />
       </View>
