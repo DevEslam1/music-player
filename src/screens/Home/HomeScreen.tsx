@@ -123,7 +123,8 @@ export default function HomeScreen() {
           <TouchableOpacity 
             onPress={() => navigation.navigate("TracksList", { 
               title: "Suggestions", 
-              tracks: fullSuggestions 
+              tracks: fullSuggestions,
+              query: "Jazz"
             })}
           >
             <Text style={styles.seeAll}>See all</Text>

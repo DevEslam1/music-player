@@ -37,12 +37,12 @@ function RootContent() {
 export default function App() {
   return (
     <Provider store={store}>
-      <AuthInitializer>
-        <SafeAreaProvider>
+      <SafeAreaProvider>
+        <AuthInitializer>
           <OfflineBanner />
           <RootContent />
-        </SafeAreaProvider>
-      </AuthInitializer>
+        </AuthInitializer>
+      </SafeAreaProvider>
     </Provider>
   );
 }

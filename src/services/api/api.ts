@@ -42,10 +42,10 @@ export const mapCustomTrackToModel = (track: CustomApiTrackRaw): Track => ({
   previewUrl: ensureAbsoluteUrl(track.stream_url),
 });
 
-export const searchSongs = async (query: string): Promise<Track[]> => {
+export const searchSongs = async (query: string, offset: number = 0): Promise<Track[]> => {
   try {
     const response = await axiosClient.get(`/tracks/search/`, {
-      params: { q: query, limit: 10 }
+      params: { q: query, limit: 10, offset }
     });
     const data = response.data || [];
     return data.map(mapCustomTrackToModel);

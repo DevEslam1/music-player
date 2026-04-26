@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,20 +17,55 @@ import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import { useDispatch } from "react-redux";
 import { setQueue } from "../../redux/store/player/playerSlice";
 import { AppDispatch } from "../../redux/store/store";
+import { searchSongs } from "../../services/api/api";
 
 export default function TracksListScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
-  const { title, tracks } = route.params;
+  const { title, tracks: initialTracks, query } = route.params;
+
+  const [tracksList, setTracksList] = useState<Track[]>(initialTracks || []);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
 
   const handlePlayTrack = async (track: Track) => {
-    dispatch(setQueue(tracks));
+    dispatch(setQueue(tracksList));
     await audioPlayer.loadPlayTrack(track);
     navigation.navigate("NowPlaying");
+  };
+
+  const fetchMoreTracks = async () => {
+    if (!query || isLoadingMore || !hasMore) return;
+    
+    setIsLoadingMore(true);
+    try {
+      const newTracks = await searchSongs(query, tracksList.length);
+      if (newTracks.length === 0) {
+        setHasMore(false);
+      } else {
+        
+        const existingIds = new Set(tracksList.map(t => t.id));
+        const uniqueNewTracks = newTracks.filter(t => !existingIds.has(t.id));
+        setTracksList(prev => [...prev, ...uniqueNewTracks]);
+      }
+    } catch (e) {
+      console.warn("Error fetching more tracks", e);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color="#B34A30" />
+      </View>
+    );
   };
 
   const renderItem = ({ item, index }: { item: Track; index: number }) => (
@@ -73,11 +109,14 @@ export default function TracksListScreen() {
       </View>
 
       <FlatList
-        data={tracks}
+        data={tracksList}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        onEndReached={fetchMoreTracks}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
       />
     </SafeAreaView>
   );
@@ -149,5 +188,10 @@ const styles = StyleSheet.create({
   trackArtist: {
     fontSize: 14,
     color: "#94A3B8",
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
