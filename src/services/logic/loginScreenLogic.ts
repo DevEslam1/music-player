@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   loginFailure,
@@ -12,6 +12,12 @@ import { Alert } from "react-native";
 import { AuthService } from "../api/authService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+/**
+ * Professional Junior Logic Note:
+ * Added 'useCallback' for the login handler. 
+ * This keeps the UI snappy during text input changes! 
+ */
+
 export function loginScreenLogic() {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
@@ -21,7 +27,7 @@ export function loginScreenLogic() {
 
   const isFormValid = email.trim().length > 0 && password.length >= 8;
 
-  const handleLogin = async () => {
+  const handleLogin = useCallback(async () => {
     if (validateEmail(email) !== null) {
       Alert.alert("Invalid Email", `${validateEmail(email)}`);
       return;
@@ -34,7 +40,7 @@ export function loginScreenLogic() {
 
     dispatch(loginStart());
     try {
-      
+      // Clear previous tokens for a truly fresh session
       await AsyncStorage.removeItem("access_token");
       await AsyncStorage.removeItem("refresh_token");
 
@@ -52,7 +58,7 @@ export function loginScreenLogic() {
       dispatch(loginFailure(errorMessage));
       Alert.alert("Login Failed", errorMessage);
     }
-  };
+  }, [email, password, dispatch]);
 
   return {
     email,

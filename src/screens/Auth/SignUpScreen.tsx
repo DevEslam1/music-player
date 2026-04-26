@@ -1,21 +1,25 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { AuthService } from "../../services/api/authService";
-import { validateEmail, validatePassword } from "../../utils/validation";
 import { CustomTextInput } from "../../components/auth/CustomTextInput";
 import { CustomButton } from "../../components/CustomButton";
 import { signUpScreenLogic } from "../../services/logic/signUpScreenLogic";
+
+// Slicing components for cleaner code!
+import { AuthHeader } from "../../components/auth/AuthHeader";
+
+/**
+ * Junior Refactor:
+ * Now using the shared AuthHeader!
+ * Slicing screens into smaller parts makes our app more professional.
+ */
 
 export default function SignUpScreen() {
   const {
@@ -26,7 +30,6 @@ export default function SignUpScreen() {
     name,
     setName,
     loading,
-    setLoading,
     isFormValid,
     handleSignUp,
   } = signUpScreenLogic();
@@ -38,16 +41,12 @@ export default function SignUpScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={styles.headerContainer}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#0F172A" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Join our music community</Text>
-      </View>
+      {/* 1. Shared Auth Header with Back Button */}
+      <AuthHeader 
+        title="Create Account" 
+        subtitle="Join our music community" 
+        showBackButton={true}
+      />
 
       <View style={styles.card}>
         <CustomTextInput
@@ -100,36 +99,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
-  },
-  headerContainer: {
-    marginTop: 60,
-    paddingHorizontal: 24,
-    marginBottom: 30,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#0F172A",
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#475569",
-    fontWeight: "500",
   },
   card: {
     flex: 1,

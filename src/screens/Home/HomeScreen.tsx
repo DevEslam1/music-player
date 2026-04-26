@@ -1,14 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColor } from "../../hooks/use-theme-color";
 import { searchSongs, getRecommendedSongs } from "../../services/api/api";
@@ -23,6 +21,19 @@ import { TrackList } from "../../components/home/TrackList";
 import { homeScreenLogic } from "../../services/logic/homeScreenLogic";
 import { HomeSkeleton } from "../../components/home/HomeSkeleton";
 
+// Smaller, reusable components for a cleaner codebase! 
+import { HomeHeader } from "../../components/home/HomeHeader";
+import { EmptyFavorite } from "../../components/home/EmptyFavorite";
+
+/**
+ * Professional Junior Refactor:
+ * I've sliced the HomeScreen into smaller pieces.
+ * 1. HomeHeader - Handles the top menu and search icons.
+ * 2. EmptyFavorite - Shown when no songs are liked.
+ * 
+ * Slicing makes code much easier to maintain and faster to render! 🚀
+ */
+
 export default function HomeScreen() {
   const {
     recommended,
@@ -35,6 +46,7 @@ export default function HomeScreen() {
     setLoading,
     handlePlayTrack,
   } = homeScreenLogic();
+  
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
 
@@ -47,30 +59,35 @@ export default function HomeScreen() {
     let isMounted = true;
     const fetchHomeData = async () => {
       try {
-        
         dispatch(fetchLikedSongs());
         dispatch(fetchPlaylists());
 
         const topTracks = await getRecommendedSongs();
         const suggestionTracks = await searchSongs("Jazz");
+        
         if (isMounted) {
           setRecommended(topTracks.slice(0, 5));
           setSuggestions(suggestionTracks.slice(0, 6));
           setFullSuggestions(suggestionTracks);
           
+          // Small delay for the shimmer effect to feel smooth
           setTimeout(() => {
             if (isMounted) setLoading(false);
           }, 800);
         }
       } catch (e) {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchHomeData();
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [dispatch, setRecommended, setSuggestions, setFullSuggestions, setLoading]);
+
+  // Memoized handlers for child components
+  const onOpenDrawer = useCallback(() => navigation.openDrawer(), [navigation]);
+  const onNavigateLibrary = useCallback(() => navigation.navigate("Library"), [navigation]);
 
   if (loading) {
     return <HomeSkeleton />;
@@ -78,46 +95,37 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
-          <Ionicons name="menu-outline" size={28} color={textColor} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate("Library")}>
-          <Ionicons name="search-outline" size={24} color={textColor} />
-        </TouchableOpacity>
-      </View>
+      {/* Top Header Section */}
+      <HomeHeader 
+        onOpenDrawer={onOpenDrawer}
+        onNavigateLibrary={onNavigateLibrary}
+        textColor={textColor}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Horizontal Recommended List */}
         <TrackList
           label="Recommended for you"
           trackList={recommended}
           handlePlayTrack={handlePlayTrack}
         />
 
+        {/* Liked Songs / Favorites Section */}
         <Text style={[styles.sectionTitle, { color: textColor }]}>
           Favorite Songs
         </Text>
         {likedSongs.length > 0 ? (
           <TrackList trackList={likedSongs} handlePlayTrack={handlePlayTrack} />
         ) : (
-          <TouchableOpacity
-            style={styles.emptyFavorite}
-            onPress={() => navigation.navigate("Library")}
-          >
-            <Ionicons name="heart-outline" size={24} color="#B34A30" />
-            <Text style={styles.emptyFavoriteText}>
-              Tap ❤️ on a song to see it here
-            </Text>
-          </TouchableOpacity>
+          <EmptyFavorite onPress={onNavigateLibrary} />
         )}
 
+        {/* Suggestions Section with "See all" trigger */}
         <View style={styles.suggestionsHeader}>
-          <Text
-            style={[styles.sectionTitle, { color: textColor, marginBottom: 0 }]}
-          >
+          <Text style={[styles.sectionTitle, { color: textColor, marginBottom: 0 }]}>
             Suggestions
           </Text>
           <TouchableOpacity 
@@ -130,6 +138,8 @@ export default function HomeScreen() {
             <Text style={styles.seeAll}>See all</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Vertical Suggestion List */}
         <View style={styles.verticalList}>
           {suggestions.map((item) => (
             <SuggestionItem
@@ -149,14 +159,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginTop: 10,
-    marginBottom: 20,
-  },
   scrollContent: {
     paddingBottom: 80, 
   },
@@ -165,10 +167,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginHorizontal: 20,
     marginBottom: 16,
-  },
-  listContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 32,
   },
   suggestionsHeader: {
     flexDirection: "row",
@@ -185,24 +183,5 @@ const styles = StyleSheet.create({
   verticalList: {
     paddingHorizontal: 20,
     marginBottom: 20,
-  },
-  emptyFavorite: {
-    marginHorizontal: 20,
-    marginBottom: 32,
-    padding: 20,
-    borderRadius: 16,
-    backgroundColor: "rgba(179, 74, 48, 0.05)",
-    borderWidth: 1,
-    borderStyle: "dashed",
-    borderColor: "#B34A30",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-  },
-  emptyFavoriteText: {
-    fontSize: 14,
-    color: "#94A3B8",
-    fontWeight: "500",
-  },
+  }
 });

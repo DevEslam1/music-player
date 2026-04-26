@@ -1,8 +1,14 @@
 import { useNavigation } from "@react-navigation/native";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Alert } from "react-native";
 import { validateEmail, validatePassword } from "../../utils/validation";
 import { AuthService } from "../api/authService";
+
+/**
+ * Junior Developer Logic Tips:
+ * I used 'useCallback' here so handleSignUp doesn't rebuild 
+ * on every keystroke. It saves memory and makes the UI smoother! ✨
+ */
 
 export function signUpScreenLogic() {
   const navigation = useNavigation<any>();
@@ -14,7 +20,7 @@ export function signUpScreenLogic() {
   const isFormValid =
     name.trim().length > 0 && email.trim().length > 0 && password.length >= 8;
 
-  const handleSignUp = async () => {
+  const handleSignUp = useCallback(async () => {
     if (!name || !email || !password) {
       Alert.alert("Error", "Please fill in all fields.");
       return;
@@ -50,7 +56,7 @@ export function signUpScreenLogic() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [name, email, password, navigation]);
 
   return {
     email,

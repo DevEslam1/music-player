@@ -12,6 +12,9 @@ import { CustomTextInput } from "../../components/auth/CustomTextInput";
 import { CustomButton } from "../../components/CustomButton";
 import { loginScreenLogic } from "../../services/logic/loginScreenLogic";
 
+// Reusable Header
+import { AuthHeader } from "../../components/auth/AuthHeader";
+
 export default function LoginScreen() {
   const {
     email,
@@ -30,12 +33,15 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={styles.headerContainer}>
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Where Sound Comes Alive</Text>
-      </View>
+      {/* Centered Auth Header */}
+      <AuthHeader 
+        title="Welcome Back" 
+        subtitle="Where Sound Comes Alive" 
+        alignCenter={true}
+      />
 
       <View style={styles.loginCard}>
+        {/* Log In Title Row */}
         <View style={styles.loginTitleRow}>
           <View style={styles.iconBox}>
             <Ionicons name="log-in-outline" size={20} color="#B34A30" />
@@ -49,8 +55,6 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.divider} />
-
-
 
         <CustomTextInput
           label="Email"
@@ -95,22 +99,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
-  },
-  headerContainer: {
-    marginTop: 80,
-    alignItems: "center",
-    marginBottom: 40,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#0F172A",
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#475569",
-    fontWeight: "500",
   },
   loginCard: {
     flex: 1,
