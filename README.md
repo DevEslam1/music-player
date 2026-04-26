@@ -17,11 +17,12 @@ A premium, high-performance music player app built with **React Native**, **Expo
   - **Glassmorphism**: Translucent, blurred MiniPlayer and Now Playing overlays for a modern, OS-integrated feel.
   - **Immersive Backgrounds**: Dynamic, blurred album art backgrounds that adapt to the current track.
   - **Skeleton Shimmer**: Animated skeleton loaders on the Home screen to improve perceived performance during data fetching.
-- 🔐 **Secure Authentication**: Elegant Login and Sign Up flows powered by JWT (JSON Web Tokens) with front-end validation and reactive submit states.
+- 🔐 **Secure Authentication**: Elegant Login and Sign Up flows powered by JWT (JSON Web Tokens) with a unified **Custom Authentication Splash Screen** to mask loading phases, and aggressive cache wiping to prevent crossover credential errors.
 - ☁️ **Cloud Sync**: All your Liked Songs, Playlists, and History are synchronized in real-time with the production backend.
 - 📳 **Tactile feedback**: Integrated **Haptic Feedback** (via `expo-haptics`) for button presses, track changes, and list interactions.
 - 🎵 **Hybrid Search Engine**: Instantly find tracks across your local Liked Songs and the entire global catalog.
 - 📋 **Advanced Playlists**: Create, manage, browse, and delete playlists with full cloud persistence and CRUD operations.
+- 🔄 **Infinite Pagination**: The suggestion and list tracking engine seamlessly loads dynamic content via background offset updates as you scroll to the edge of tracks.
 - 💊 **Floating Pill MiniPlayer**: A safe-area-aware playback bar with a vibrant progress indicator.
 - 🎵 **Background Audio**: Music continues playing when the app is minimized or the screen is locked (utilizing `expo-audio`).
 - 🌓 **Sonic Noir Theming**: Full Dark and Light mode support with automatic System Status Bar synchronization.

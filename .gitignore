@@ -1,1 +1,6 @@
 node_modules
+CHANGELOG.md
+.expo/devices.json
+android/
+web/
+.expo/devices.json
