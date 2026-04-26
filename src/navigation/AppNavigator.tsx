@@ -35,7 +35,8 @@ interface AppNavigatorProps {
 
 const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-  const hideMiniPlayer = ["Login", "SignUp", "NowPlaying"].includes(currentRoute || "");
+  // Hide miniplayer during auth, now playing, or when route is not yet determined
+  const hideMiniPlayer = !currentRoute || ["Login", "SignUp", "NowPlaying"].includes(currentRoute);
 
   return (
     <View style={styles.container}>

@@ -29,7 +29,7 @@ export default function PlaylistPicker({ isVisible, onClose, onSelect }: Playlis
   const surfaceColor = useThemeColor({}, 'surface');
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
 
-  // Define a nice modal background overlay
+  
   const overlayColor = 'rgba(0, 0, 0, 0.5)';
 
   const renderItem = ({ item }: { item: any }) => (
@@ -58,7 +58,7 @@ export default function PlaylistPicker({ isVisible, onClose, onSelect }: Playlis
       <Pressable style={styles.overlay} onPress={onClose}>
         <View 
           style={[styles.content, { backgroundColor }]}
-          onStartShouldSetResponder={() => true} // prevent closing when clicking content
+          onStartShouldSetResponder={() => true} 
         >
           <View style={styles.header}>
             <Text style={[styles.title, { color: textColor }]}>Add to Playlist</Text>

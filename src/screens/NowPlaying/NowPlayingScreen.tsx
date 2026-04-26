@@ -33,7 +33,7 @@ const { width } = Dimensions.get("window");
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000', // Base color behind blur
+    backgroundColor: '#000', 
   },
   contentContainer: {
     flex: 1,
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     marginTop: 10,
-    marginBottom: 10, // give some space before image
+    marginBottom: 10, 
   },
   headerButton: {
     padding: 4,
@@ -67,13 +67,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   albumArtShadow: {
-    // Specifically for Android: Shadow must be on the container
+    
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.3,
     shadowRadius: 18,
     elevation: 20,
-    backgroundColor: '#000', // Ensures shadow is visible
+    backgroundColor: '#000', 
     borderRadius: 24,
   },
   albumArt: {
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   },
   textStack: {
     alignItems: 'center',
-    paddingHorizontal: 54, // Avoid overlap with absolute actions
+    paddingHorizontal: 54, 
   },
   actionsBox: {
     position: 'absolute',
@@ -192,7 +192,7 @@ export default function NowPlayingScreen() {
 
   const pagerRef = useRef<PagerView>(null);
 
-  // Breathing animation logic
+  
   const scale = useSharedValue(1);
   const shadowOpacity = useSharedValue(0.2);
 
@@ -211,18 +211,18 @@ export default function NowPlayingScreen() {
     shadowOpacity: shadowOpacity.value,
   }));
 
-  // Calculate initial page index
+  
   const currentIndex = player.currentTrack && player.queue.length > 0 
     ? player.queue.findIndex(t => t.id === player.currentTrack?.id) 
     : 0;
   const initialPageIndex = currentIndex !== -1 ? currentIndex : 0;
 
-  // Sync pager view with current track
+  
   useEffect(() => {
     if (player.currentTrack && pagerRef.current && player.queue.length > 0) {
       const idx = player.queue.findIndex(t => t.id === player.currentTrack?.id);
       if (idx !== -1) {
-        // Use animated: true for a smoother transition when skipping songs
+        
         pagerRef.current.setPage(idx);
       }
     }
@@ -231,13 +231,13 @@ export default function NowPlayingScreen() {
   const onPageSelected = async (e: any) => {
     const newIdx = e.nativeEvent.position;
     
-    // Safety: ignore the event if the queue is empty or index is invalid
+    
     if (player.queue.length === 0 || !player.queue[newIdx]) return;
     
     const track = player.queue[newIdx];
     
-    // CRITICAL: Only change song if it's DIFFERENT from what is currently playing
-    // This prevents the carousel from "resetting" the song to index 0 on mount
+    
+    
     if (track && track.id !== player.currentTrack?.id) {
       await audioPlayer.loadPlayTrack(track);
     }
@@ -268,12 +268,12 @@ export default function NowPlayingScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Immersive Background Blur */}
+      {}
       <View style={StyleSheet.absoluteFill}>
          <Image 
           source={{ uri: player.currentTrack.image || "https://picsum.photos/400" }} 
           style={StyleSheet.absoluteFill}
-          blurRadius={Platform.OS === 'ios' ? 70 : 20} // Reduced for Android low-end performance
+          blurRadius={Platform.OS === 'ios' ? 70 : 20} 
         />
         <View 
           style={[
@@ -284,7 +284,7 @@ export default function NowPlayingScreen() {
       </View>
 
       <SafeAreaView style={styles.contentContainer}>
-        {/* Header */}
+        {}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
             <Ionicons name="arrow-back" size={26} color={textColor} />
@@ -293,7 +293,7 @@ export default function NowPlayingScreen() {
           <View style={styles.headerButton} /> 
         </View>
 
-      {/* Album Art Carousel */}
+      {}
       <View style={styles.carouselContainer}>
         {player.queue.length > 0 ? (
           <PagerView 
@@ -325,7 +325,7 @@ export default function NowPlayingScreen() {
         )}
       </View>
 
-      {/* Track Info */}
+      {}
       <View style={styles.infoRow}>
         <View style={styles.textStack}>
           <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>{player.currentTrack.name}</Text>
@@ -352,7 +352,7 @@ export default function NowPlayingScreen() {
         </View>
       </View>
 
-      {/* Secondary Controls Row */}
+      {}
       <View style={styles.secondaryControls}>
         <Ionicons name="volume-medium-outline" size={24} color={textColor} />
         <View style={styles.rightSecondaryControls}>
@@ -389,7 +389,7 @@ export default function NowPlayingScreen() {
         </View>
       </View>
 
-      {/* Progress Bar */}
+      {}
       <View style={styles.progressContainer}>
         <View style={styles.timeRow}>
           <Text style={[styles.timeText, { color: textColor }]}>{formatTime(player.positionMillis)}</Text>
@@ -410,7 +410,7 @@ export default function NowPlayingScreen() {
         />
       </View>
 
-      {/* Main Controls */}
+      {}
       <View style={styles.mainControls}>
         <TouchableOpacity 
           onPress={() => {

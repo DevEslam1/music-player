@@ -13,14 +13,14 @@ export const OfflineBanner = () => {
   const [isOffline, setIsOffline] = useState(false);
   const insets = useSafeAreaInsets();
   
-  // Starting position: off-screen above the top
+  
   const translateY = useSharedValue(-200);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       const offline = state.isConnected === false || state.isInternetReachable === false;
       setIsOffline(offline);
-      // Position it 10px below the status bar/notch
+      
       translateY.value = offline ? insets.top + 10 : -200;
     });
 
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     right: 20,
-    backgroundColor: 'rgba(239, 68, 68, 0.95)', // Slightly translucent Premium Red
+    backgroundColor: 'rgba(239, 68, 68, 0.95)', 
     zIndex: 9999,
     borderRadius: 30,
     paddingHorizontal: 16,

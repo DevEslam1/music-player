@@ -34,7 +34,7 @@ export default function LikedSongsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      {/* Header */}
+      {}
       <ScreenHeader
         screenTitle="Liked Songs"
         postIcon={isEditMode ? "checkmark-circle" : "options-outline"}

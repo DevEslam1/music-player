@@ -64,7 +64,6 @@ class AudioPlayerService {
 
       let streamUrl = track.previewUrl || track.uri;
       if (streamUrl) {
-        // Force HTTPS — Android release builds block cleartext HTTP by default
         streamUrl = streamUrl.replace(/^http:\/\//i, 'https://');
       }
 
@@ -95,8 +94,8 @@ class AudioPlayerService {
       this.subscriptions.push(this.player.addListener('playbackStatusUpdate', (status) => {
         if (status.playing !== undefined) {
           store.dispatch(setIsPlaying(status.playing));
-          // Use the track's known duration from the API as fallback instead of hardcoded 30s
-          const fallbackDuration = (track.duration || 0) / 1000; // track.duration is in ms, status.duration is in seconds
+          
+          const fallbackDuration = (track.duration || 0) / 1000; 
           store.dispatch(setProgress({
             position: (status.currentTime || 0) * 1000,
             duration: (status.duration || fallbackDuration || 0) * 1000,
@@ -108,7 +107,7 @@ class AudioPlayerService {
         }
       }));
 
-      // --- LOCK SCREEN LISTENERS ---
+      
       this.subscriptions.push((this.player as any).addListener('playRequest', () => {
         console.log("Remote: Play Request");
         this.player?.play();
@@ -216,7 +215,7 @@ class AudioPlayerService {
 
   public async seek(positionMillis: number) {
     if (!this.player) return;
-    this.player.seekTo(positionMillis / 1000); // ms → seconds (expo-audio uses seconds)
+    this.player.seekTo(positionMillis / 1000); 
   }
 }
 

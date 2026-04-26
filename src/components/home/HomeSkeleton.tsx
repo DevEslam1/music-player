@@ -12,8 +12,8 @@ import { useThemeColor } from '../../hooks/use-theme-color';
 
 const { width } = Dimensions.get('window');
 
-// Single shared opacity to drive ALL shimmer blocks from one animation
-// instead of one animation per block — critical for low-end devices
+
+
 const useShimmerOpacity = () => {
   const opacity = useSharedValue(0.3);
   useEffect(() => {
@@ -50,18 +50,18 @@ export const HomeSkeleton = () => {
   const backgroundColor = useThemeColor({}, 'background');
   const skeletonColor = useThemeColor({}, 'skeleton') || '#E2E8F0';
 
-  // One shared opacity for ALL shimmer blocks — saves many animation threads
+  
   const opacity = useShimmerOpacity();
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      {/* Header Skeleton */}
+      {}
       <View style={styles.header}>
         <ShimmerBlock style={styles.circle} opacity={opacity} baseColor={skeletonColor} />
         <ShimmerBlock style={styles.circle} opacity={opacity} baseColor={skeletonColor} />
       </View>
 
-      {/* Horizontal List Skeleton */}
+      {}
       <View style={styles.section}>
         <ShimmerBlock style={styles.title} opacity={opacity} baseColor={skeletonColor} />
         <View style={styles.horizontalList}>
@@ -75,13 +75,13 @@ export const HomeSkeleton = () => {
         </View>
       </View>
 
-      {/* Favorite Section Skeleton */}
+      {}
       <View style={styles.section}>
         <ShimmerBlock style={styles.title} opacity={opacity} baseColor={skeletonColor} />
         <ShimmerBlock style={styles.largeBlock} opacity={opacity} baseColor={skeletonColor} />
       </View>
 
-      {/* Vertical List Skeleton */}
+      {}
       <View style={styles.section}>
         <View style={styles.row}>
           <ShimmerBlock style={styles.title} opacity={opacity} baseColor={skeletonColor} />

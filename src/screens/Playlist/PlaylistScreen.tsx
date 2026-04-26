@@ -69,7 +69,7 @@ export default function PlaylistScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      {/* Header */}
+      {}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.headerButton}>
           <Ionicons name="menu-outline" size={28} color={textColor} />
@@ -81,7 +81,7 @@ export default function PlaylistScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Creation form */}
+        {}
         {isCreating && (
           <View style={[styles.createForm, { backgroundColor: inputBg }]}>
             <Text style={[styles.formTitle, { color: textColor }]}>New Playlist</Text>
@@ -101,7 +101,7 @@ export default function PlaylistScreen() {
           </View>
         )}
 
-        {/* List */}
+        {}
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#B34A30" />

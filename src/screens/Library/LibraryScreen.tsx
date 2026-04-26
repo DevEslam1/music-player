@@ -43,7 +43,7 @@ export default function LibraryScreen() {
     setLoading(true);
     searchTimeout.current = setTimeout(() => {
       fetchResults(query);
-    }, 300); // Faster debounce for snappier feel
+    }, 300); 
 
     return () => {
       if (searchTimeout.current) clearTimeout(searchTimeout.current);
@@ -52,17 +52,17 @@ export default function LibraryScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      {/* Header */}
+      {}
       <ScreenHeader screenTitle="Search Library" />
 
-      {/* Search Input */}
+      {}
       <SearchBar
         query={query}
         onChangeText={setQuery}
         onSearchPress={() => setQuery("")}
       />
 
-      {/* Results */}
+      {}
       {loading ? (
         <ActivityIndicator
           size="large"

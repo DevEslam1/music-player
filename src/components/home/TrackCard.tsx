@@ -16,7 +16,7 @@ const TrackCardInner = ({
       <Image
         source={{ uri: track.image || "https://picsum.photos/200" }}
         style={styles.cardImage}
-        // Reduces memory usage on low-end devices
+        
         resizeMethod="resize"
         resizeMode="cover"
       />

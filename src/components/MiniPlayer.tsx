@@ -25,7 +25,7 @@ export const MiniPlayer = () => {
 
   const progressPercent = durationMillis > 0 ? (positionMillis / durationMillis) * 100 : 0;
   
-  // Floating Pill Design
+  
   return (
     <View style={[styles.wrapper, { bottom: insets.bottom + 10 }]}>
       <TouchableOpacity
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     left: 12,
     right: 12,
     zIndex: 100,
-    // Add shadow to the wrapper for better elevation
+    
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,

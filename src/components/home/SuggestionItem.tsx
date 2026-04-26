@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "rgba(226, 232, 240, 0.3)", // Very soft border
+    borderColor: "rgba(226, 232, 240, 0.3)", 
   },
   suggestionImage: {
     width: 48,

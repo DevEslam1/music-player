@@ -7,7 +7,7 @@ export const AuthService = {
   },
 
   register: async (userData: any) => {
-    // schema calls for username, email, password
+    
     const response = await axiosClient.post("auth/register/", userData);
     return response.data;
   },

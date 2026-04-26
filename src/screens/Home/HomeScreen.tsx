@@ -45,7 +45,7 @@ export default function HomeScreen() {
     let isMounted = true;
     const fetchHomeData = async () => {
       try {
-        // Sync user library
+        
         dispatch(fetchLikedSongs());
         dispatch(fetchPlaylists());
 
@@ -54,7 +54,7 @@ export default function HomeScreen() {
         if (isMounted) {
           setRecommended(topTracks.slice(0, 5));
           setSuggestions(suggestionTracks.slice(0, 6));
-          // Small delay to make the shimmer feel intentional
+          
           setTimeout(() => {
             if (isMounted) setLoading(false);
           }, 800);
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   scrollContent: {
-    paddingBottom: 80, // give space for miniplayer
+    paddingBottom: 80, 
   },
   sectionTitle: {
     fontSize: 22,

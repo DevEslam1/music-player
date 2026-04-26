@@ -19,7 +19,7 @@ export function TrackList({
 }: TrackListProps) {
   const textColor = useThemeColor({}, "text");
 
-  // Memoize renderItem to prevent recreation on every parent re-render
+  
   const renderItem = useCallback(
     ({ item }: { item: Track }) => (
       <TrackCard
@@ -32,11 +32,11 @@ export function TrackList({
   );
 
   const flatListPerformanceProps = {
-    removeClippedSubviews: true,  // Don't render off-screen items (low-end wins)
-    maxToRenderPerBatch: 5,       // Render 5 items per JS frame
-    windowSize: 5,                // Keep 5 screens worth of items in memory
-    initialNumToRender: 4,        // Fast first paint
-    updateCellsBatchingPeriod: 50, // Batch updates every 50ms
+    removeClippedSubviews: true,  
+    maxToRenderPerBatch: 5,       
+    windowSize: 5,                
+    initialNumToRender: 4,        
+    updateCellsBatchingPeriod: 50, 
   };
 
   return label ? (

@@ -41,7 +41,6 @@ export function loginScreenLogic() {
       await AsyncStorage.setItem("refresh_token", refresh);
 
       dispatch(loginSuccess({ email }));
-      navigation.navigate("Drawer");
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.detail ||

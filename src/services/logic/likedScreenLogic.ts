@@ -16,7 +16,7 @@ export function likedScreenLogic() {
   const [isEditMode, setIsEditMode] = React.useState(false);
 
   const handlePlay = async (track: Track) => {
-    if (isEditMode) return; // Prevent playing while editing
+    if (isEditMode) return; 
     dispatch(setQueue(likedSongs));
     await audioPlayer.loadPlayTrack(track);
     navigation.navigate("NowPlaying");

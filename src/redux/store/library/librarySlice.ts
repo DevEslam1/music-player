@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { Track, Playlist } from "../../../types";
 import { LibraryService } from "../../../services/api/libraryService";
 
-// ASYNC THUNKS
+
 export const fetchLikedSongs = createAsyncThunk(
   "library/fetchLikedSongs",
   async (_, { rejectWithValue }) => {
@@ -68,7 +68,7 @@ export const addTrackToPlaylistAction = createAsyncThunk(
   ) => {
     try {
       await LibraryService.addTrackToPlaylist(playlistId, trackId);
-      // Refetch playlists to update track counts
+      
       dispatch(fetchPlaylists());
       return { playlistId, trackId };
     } catch (e: any) {
@@ -85,7 +85,7 @@ export const removeTrackFromPlaylistAction = createAsyncThunk(
   ) => {
     try {
       await LibraryService.removeTrackFromPlaylist(playlistId, trackId);
-      // Refetch playlists to update track counts
+      
       dispatch(fetchPlaylists());
       return { playlistId, trackId };
     } catch (e: any) {
@@ -114,7 +114,7 @@ const librarySlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // FETCH LIKED
+      
       .addCase(fetchLikedSongs.pending, (state) => {
         state.loading = true;
       })
@@ -127,7 +127,7 @@ const librarySlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // TOGGLE LIKE
+      
       .addCase(toggleLikeSongAction.fulfilled, (state, action) => {
         state.loading = false;
         const track = action.payload;
@@ -142,7 +142,7 @@ const librarySlice = createSlice({
         state.loading = true;
       })
 
-      // FETCH PLAYLISTS
+      
       .addCase(fetchPlaylists.pending, (state) => {
         state.loading = true;
       })
@@ -155,12 +155,12 @@ const librarySlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // CREATE PLAYLIST
+      
       .addCase(createPlaylistAction.fulfilled, (state, action) => {
         state.playlists.push(action.payload);
       })
 
-      // DELETE PLAYLIST
+      
       .addCase(deletePlaylistAction.fulfilled, (state, action) => {
         state.playlists = state.playlists.filter(
           (p) => p.id !== action.payload,

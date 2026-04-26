@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 52,
-    backgroundColor: "#FAF5F4", // slight tint
+    backgroundColor: "#FAF5F4", 
   },
   inputIcon: {
     marginRight: 10,

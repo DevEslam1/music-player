@@ -27,7 +27,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      {/* Header with Close and Dark Mode toggle */}
+      {}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => props.navigation.closeDrawer()}>
           <Ionicons name="close-outline" size={30} color={textColor} />

@@ -1,7 +1,7 @@
 import { axiosClient, BASE_DOMAIN } from "./axiosClient";
 import { Track } from "../../types";
 
-// Raw response type for typing the axios request to the custom API
+
 export interface CustomApiTrackRaw {
   id: number;
   title: string;
@@ -27,7 +27,7 @@ const ensureAbsoluteUrl = (url: string | null): string => {
     fullUrl = `${BASE_DOMAIN}${cleanUrl}`;
   }
   
-  // Force HTTPS — Android release builds block cleartext HTTP
+  
   return fullUrl.replace(/^http:\/\//i, 'https://');
 };
 

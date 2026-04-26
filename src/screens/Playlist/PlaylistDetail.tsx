@@ -57,7 +57,7 @@ export default function PlaylistDetailScreen() {
   const handleRemoveTrack = async (trackId: string) => {
     try {
       await dispatch(removeTrackFromPlaylistAction({ playlistId, trackId })).unwrap();
-      // Remove from local state to avoid refetching everything
+      
       setTracks(prev => prev.filter(t => t.id !== trackId));
     } catch (e) {
       console.error("Failed to remove track:", e);
@@ -88,7 +88,7 @@ export default function PlaylistDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      {/* Header */}
+      {}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
           <Ionicons name="arrow-back" size={26} color={textColor} />

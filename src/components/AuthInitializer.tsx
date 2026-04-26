@@ -16,8 +16,8 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) =>
       try {
         const token = await AsyncStorage.getItem("access_token");
         if (token) {
-          // If we have a token, try to fetch the profile
-          // This will set isLoggedIn to true in the store if successful
+          
+          
           await dispatch(fetchProfile()).unwrap();
         }
       } catch (error) {

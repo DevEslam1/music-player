@@ -29,7 +29,7 @@ export default function ProfileScreen() {
   const textColor = useThemeColor({}, "text");
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
 
-  // Use a softer surface color based on the theme
+  
   const cardBg = isDarkMode ? "rgba(255, 255, 255, 0.05)" : "#F1F5F9";
 
   return (
