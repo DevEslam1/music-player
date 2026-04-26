@@ -18,6 +18,7 @@ import { toggleLikeSongAction, addTrackToPlaylistAction } from "../../redux/stor
 import { toggleShuffle, toggleRepeat } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import PlaylistPicker from "../../components/PlaylistPicker";
+import { DownloadService } from "../../services/api/downloadService";
 import PagerView from "react-native-pager-view";
 import Animated, { 
   useSharedValue, 
@@ -52,9 +53,24 @@ export default function NowPlayingScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
 
+  const downloadedTrackIds = useSelector((state: RootState) => state.downloads.downloadedTrackIds);
+
   const isLiked = player.currentTrack 
     ? likedSongs.some(t => t.id === player.currentTrack?.id) 
     : false;
+
+  const isDownloaded = player.currentTrack
+    ? downloadedTrackIds.includes(player.currentTrack.id)
+    : false;
+
+  const onToggleDownload = useCallback(async () => {
+    if (!player.currentTrack) return;
+    if (isDownloaded) {
+      await DownloadService.removeDownload(player.currentTrack.id);
+    } else {
+      await DownloadService.downloadTrack(player.currentTrack);
+    }
+  }, [player.currentTrack, isDownloaded]);
 
   const pagerRef = useRef<PagerView>(null);
 
@@ -164,12 +180,14 @@ export default function NowPlayingScreen() {
           animatedImageStyle={animatedImageStyle}
         />
 
-        {/* 2. Track Meta Info (Title, Artist, Like, Playlist) */}
+        {/* 2. Track Meta Info (Title, Artist, Like, Playlist, Download) */}
         <TrackMetaInfo 
           track={player.currentTrack}
           isLiked={isLiked}
+          isDownloaded={isDownloaded}
           onToggleLike={onToggleLike}
           onAddToPlaylist={() => setIsPickerVisible(true)}
+          onToggleDownload={onToggleDownload}
           textColor={textColor}
         />
 

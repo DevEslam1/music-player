@@ -34,7 +34,13 @@ function RootContent() {
   );
 }
 
+import { DownloadService } from "./src/services/api/downloadService";
+
 export default function App() {
+  React.useEffect(() => {
+    DownloadService.init();
+  }, []);
+
   return (
     <Provider store={store}>
       <SafeAreaProvider>

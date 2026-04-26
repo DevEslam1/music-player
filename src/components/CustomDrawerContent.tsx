@@ -72,6 +72,12 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           textColor={textColor}
           onPress={() => props.navigation.navigate("Playlist")} 
         />
+        <DrawerItem 
+          icon="cloud-download-outline" 
+          label="Downloads" 
+          textColor={textColor}
+          onPress={() => props.navigation.navigate("Downloads")} 
+        />
         
         <View style={[styles.divider, { backgroundColor: textColor + '10' }]} />
 

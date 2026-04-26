@@ -15,16 +15,20 @@ import { Track } from '../../types';
 interface TrackMetaInfoProps {
   track: Track;
   isLiked: boolean;
+  isDownloaded: boolean;
   onToggleLike: () => void;
   onAddToPlaylist: () => void;
+  onToggleDownload: () => void;
   textColor: string;
 }
 
 export const TrackMetaInfo = React.memo(({
   track,
   isLiked,
+  isDownloaded,
   onToggleLike,
   onAddToPlaylist,
+  onToggleDownload,
   textColor
 }: TrackMetaInfoProps) => {
   return (
@@ -39,6 +43,20 @@ export const TrackMetaInfo = React.memo(({
       </View>
 
       <View style={styles.actionsBox}>
+        <TouchableOpacity
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            onToggleDownload();
+          }}
+          style={styles.actionBtn}
+        >
+          <Ionicons 
+            name={isDownloaded ? "cloud-done" : "cloud-download-outline"} 
+            size={26} 
+            color={isDownloaded ? '#10B981' : textColor} 
+          />
+        </TouchableOpacity>
+
         <TouchableOpacity
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

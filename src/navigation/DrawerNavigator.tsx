@@ -14,10 +14,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
 import { CustomDrawerContent } from "../components/CustomDrawerContent";
 
+import DownloadsScreen from "../screens/Downloads/DownloadsScreen";
+
 export type drawerType = {
   Home: undefined;
   Playlist: undefined;
   LikedSongs: undefined;
+  Downloads: undefined;
   Profile: undefined;
   FAQ: undefined;
   Settings: undefined;
@@ -55,6 +58,7 @@ const DrawerNavigator = ({ lightColor, darkColor }: DrawerItemProps) => {
         <Drawer.Screen name="Home" component={HomeScreen} />
         <Drawer.Screen name="LikedSongs" component={LikedSongsScreen} />
         <Drawer.Screen name="Playlist" component={PlaylistScreen} />
+        <Drawer.Screen name="Downloads" component={DownloadsScreen} />
         <Drawer.Screen name="Profile" component={ProfileScreen} />
         <Drawer.Screen name="FAQ" component={FAQScreen} />
         <Drawer.Screen name="Settings" component={SettingsScreen} />

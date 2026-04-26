@@ -12,7 +12,7 @@ import * as Haptics from 'expo-haptics';
 interface PlaybackControlsProps {
   isPlaying: boolean;
   isShuffled: boolean;
-  repeatMode: 'off' | 'all' | 'track';
+  repeatMode: 'off' | 'queue' | 'track';
   onToggleShuffle: () => void;
   onToggleRepeat: () => void;
   onPlayPause: () => void;

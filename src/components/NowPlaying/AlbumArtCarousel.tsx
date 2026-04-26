@@ -18,7 +18,7 @@ const { width } = Dimensions.get('window');
 interface AlbumArtCarouselProps {
   queue: Track[];
   currentTrack: Track;
-  pagerRef: React.RefObject<PagerView>;
+  pagerRef: React.RefObject<PagerView | null>;
   initialPageIndex: number;
   onPageSelected: (e: any) => void;
   animatedImageStyle: any;

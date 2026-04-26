@@ -3,13 +3,15 @@ import authReducer from "./auth/authSlice";
 import themeReducer from "./theme/themeSlice";
 import playerReducer from "./player/playerSlice";
 import libraryReducer from "./library/librarySlice";
+import downloadsReducer from "./downloads/downloadsSlice";
 
 export const store = configureStore({
   reducer: { 
     auth: authReducer,
     theme: themeReducer,
     player: playerReducer,
-    library: libraryReducer
+    library: libraryReducer,
+    downloads: downloadsReducer,
   },
 });
 

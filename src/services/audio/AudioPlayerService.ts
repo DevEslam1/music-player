@@ -1,11 +1,21 @@
 import { createAudioPlayer, AudioPlayer, setAudioModeAsync } from "expo-audio";
 import { Track } from "../../types";
 import { store } from "../../redux/store/store";
-import { setIsPlaying, setProgress, setCurrentTrack, toggleRepeat } from "../../redux/store/player/playerSlice";
+import { setIsPlaying, setProgress, setCurrentTrack } from "../../redux/store/player/playerSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LibraryService } from "../api/libraryService";
 import { Platform, Alert } from "react-native";
+import * as FileSystem from 'expo-file-system';
+import { DownloadService } from "../api/downloadService";
 
+/**
+ * Audio Player Service
+ * Lock Screen Note (expo-audio 1.1.1):
+ * - Only play/pause, seek-forward (+10s), and seek-backward (-10s) are supported natively.
+ * - Next/Previous track buttons are NOT available — the native MediaSession callback
+ *   explicitly removes COMMAND_SEEK_TO_NEXT/PREVIOUS_MEDIA_ITEM.
+ * - There are no remote control events (no nextTrackRequest, etc.) in this SDK version.
+ */
 
 const initAudioMode = async () => {
   try {
@@ -18,6 +28,7 @@ const initAudioMode = async () => {
     console.warn("Failed to set audio mode:", e);
   }
 };
+
 initAudioMode();
 
 class AudioPlayerService {
@@ -38,7 +49,6 @@ class AudioPlayerService {
   public async loadPlayTrack(track: Track) {
     this.currentLoadingTrackId = track.id;
 
-
     if (this.player) {
       try {
         (this.player as any).setActiveForLockScreen(false);
@@ -54,34 +64,63 @@ class AudioPlayerService {
     try {
       store.dispatch(setCurrentTrack(track));
       
-
       const token = await AsyncStorage.getItem("access_token");
       const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
-
       await initAudioMode();
 
+      // Check if we have a locally downloaded version of this track!
+      const playerSource: any = {
+        uri: track.previewUrl || track.uri,
+        headers,
+      };
 
-      let streamUrl = track.previewUrl || track.uri;
-      if (streamUrl) {
-        streamUrl = streamUrl.replace(/^http:\/\//i, 'https://');
+      // Check if we have a locally downloaded version of this track!
+      try {
+        const localUri = await DownloadService.getLocalUri(track.id);
+        if (localUri) {
+          console.log("📂 OFFLINE MODE: Found local file at", localUri);
+          // expo-audio on Android requires a properly formatted file:// URI
+          const formattedLocalUri = localUri.startsWith('file://') ? localUri : `file://${localUri}`;
+          const fileInfo = await FileSystem.getInfoAsync(formattedLocalUri);
+          
+          if (fileInfo.exists) {
+            // Local playback: use a plain uri with NO headers — headers cause errors on local files
+            playerSource.uri = formattedLocalUri;
+            delete playerSource.headers;
+            console.log("✅ OFFLINE MODE: Local file verified. Playing:", formattedLocalUri);
+          } else {
+            console.log("⚠️ OFFLINE MODE: Metadata found but file is missing from disk. Streaming instead.");
+            if (playerSource.uri) playerSource.uri = playerSource.uri.replace(/^http:\/\//i, 'https://');
+          }
+        } else if (playerSource.uri) {
+          playerSource.uri = playerSource.uri.replace(/^http:\/\//i, 'https://');
+        }
+      } catch(e) {
+        console.warn("❌ OFFLINE CHECK FAILED:", e);
+        if (playerSource.uri) playerSource.uri = playerSource.uri.replace(/^http:\/\//i, 'https://');
       }
 
-      console.log("🎵 Playing URL:", streamUrl);
+      console.log("🎵 Final Playback URI:", playerSource.uri);
+      const player = createAudioPlayer(playerSource);
 
-
-      const player = createAudioPlayer({
-        uri: streamUrl,
-        headers,
-      });
-
-      (player as any).setActiveForLockScreen(true, {
+      // expo-audio 1.1.1 AudioMetadata only supports: title, artist, albumTitle, artworkUrl
+      const metadata = {
         title: track.name,
         artist: track.artist,
         albumTitle: "GiG Player",
         artworkUrl: track.image || "https://picsum.photos/400",
-      });
+      };
 
+      // expo-audio 1.1.1 AudioLockScreenOptions only supports showSeekForward and showSeekBackward.
+      // Next/Previous track buttons are NOT implemented in this version of the native library.
+      // The MediaSessionCallback explicitly removes COMMAND_SEEK_TO_NEXT/PREVIOUS_MEDIA_ITEM.
+      const options = {
+        showSeekForward: true,
+        showSeekBackward: true,
+      };
+
+      player.setActiveForLockScreen(true, metadata, options);
 
       if (this.currentLoadingTrackId !== track.id) {
         player.release();
@@ -90,15 +129,17 @@ class AudioPlayerService {
 
       this.player = player;
 
-
       this.subscriptions.push(this.player.addListener('playbackStatusUpdate', (status) => {
         if (status.playing !== undefined) {
           store.dispatch(setIsPlaying(status.playing));
-          
-          const fallbackDuration = (track.duration || 0) / 1000; 
+          // Fallback duration: previews are always 30s max. The full Spotify duration
+          // (track.duration) is incorrect for preview files, so cap it at 30000ms.
+          const previewFallbackMs = Math.min((track.duration || 30000), 30000);
           store.dispatch(setProgress({
             position: (status.currentTime || 0) * 1000,
-            duration: (status.duration || fallbackDuration || 0) * 1000,
+            duration: (status.duration && status.duration > 1)
+              ? status.duration * 1000
+              : previewFallbackMs,
           }));
         }
 
@@ -106,28 +147,6 @@ class AudioPlayerService {
           this.playNext();
         }
       }));
-
-      
-      this.subscriptions.push((this.player as any).addListener('playRequest', () => {
-        console.log("Remote: Play Request");
-        this.player?.play();
-      }));
-
-      this.subscriptions.push((this.player as any).addListener('pauseRequest', () => {
-        console.log("Remote: Pause Request");
-        this.player?.pause();
-      }));
-
-      this.subscriptions.push((this.player as any).addListener('nextTrackRequest', () => {
-        console.log("Remote: Next Track Request");
-        this.playNext();
-      }));
-
-      this.subscriptions.push((this.player as any).addListener('previousTrackRequest', () => {
-        console.log("Remote: Previous Track Request");
-        this.playPrevious();
-      }));
-
 
       if (Platform.OS === 'android') {
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -138,8 +157,8 @@ class AudioPlayerService {
         store.dispatch(setIsPlaying(true));
       }
 
-
       LibraryService.logPlay(track.id).catch(e => console.warn("Failed to log play:", e));
+
     } catch (e: any) {
       console.error("Audio Load Error:", e.message);
       Alert.alert("Audio Error", `${e.message}\n\nURL: ${track.previewUrl}`);
@@ -147,9 +166,16 @@ class AudioPlayerService {
     }
   }
 
+  private async handleRemoteFavorite(track: Track) {
+    try {
+      await LibraryService.toggleLike(track.id);
+    } catch (e) {
+      console.warn("Failed to like song from remote:", e);
+    }
+  }
+
   public async playPause() {
     if (!this.player) return;
-    
     const state = store.getState().player;
     if (state.isPlaying) {
       this.player.pause();
