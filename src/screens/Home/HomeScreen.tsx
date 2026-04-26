@@ -29,6 +29,8 @@ export default function HomeScreen() {
     setRecommended,
     suggestions,
     setSuggestions,
+    fullSuggestions,
+    setFullSuggestions,
     loading,
     setLoading,
     handlePlayTrack,
@@ -54,6 +56,7 @@ export default function HomeScreen() {
         if (isMounted) {
           setRecommended(topTracks.slice(0, 5));
           setSuggestions(suggestionTracks.slice(0, 6));
+          setFullSuggestions(suggestionTracks);
           
           setTimeout(() => {
             if (isMounted) setLoading(false);
@@ -117,7 +120,12 @@ export default function HomeScreen() {
           >
             Suggestions
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => navigation.navigate("TracksList", { 
+              title: "Suggestions", 
+              tracks: fullSuggestions 
+            })}
+          >
             <Text style={styles.seeAll}>See all</Text>
           </TouchableOpacity>
         </View>

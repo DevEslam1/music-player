@@ -9,6 +9,7 @@ import { audioPlayer } from "../audio/AudioPlayerService";
 export function homeScreenLogic() {
   const [recommended, setRecommended] = useState<Track[]>([]);
   const [suggestions, setSuggestions] = useState<Track[]>([]);
+  const [fullSuggestions, setFullSuggestions] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
   const navigation = useNavigation<any>();
@@ -24,6 +25,8 @@ export function homeScreenLogic() {
     setRecommended,
     suggestions,
     setSuggestions,
+    fullSuggestions,
+    setFullSuggestions,
     loading,
     setLoading,
     handlePlayTrack,

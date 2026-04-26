@@ -1,0 +1,153 @@
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  TouchableOpacity,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { useThemeColor } from "../../hooks/use-theme-color";
+import { Track } from "../../types";
+import { audioPlayer } from "../../services/audio/AudioPlayerService";
+import { useDispatch } from "react-redux";
+import { setQueue } from "../../redux/store/player/playerSlice";
+import { AppDispatch } from "../../redux/store/store";
+
+export default function TracksListScreen() {
+  const route = useRoute<any>();
+  const navigation = useNavigation<any>();
+  const dispatch = useDispatch<AppDispatch>();
+  const { title, tracks } = route.params;
+
+  const backgroundColor = useThemeColor({}, "background");
+  const textColor = useThemeColor({}, "text");
+
+  const handlePlayTrack = async (track: Track) => {
+    dispatch(setQueue(tracks));
+    await audioPlayer.loadPlayTrack(track);
+    navigation.navigate("NowPlaying");
+  };
+
+  const renderItem = ({ item, index }: { item: Track; index: number }) => (
+    <TouchableOpacity
+      style={styles.trackCard}
+      onPress={() => handlePlayTrack(item)}
+    >
+      <Text style={styles.trackNumber}>{index + 1}</Text>
+      <Image
+        source={{ uri: item.image || "https://picsum.photos/200" }}
+        style={styles.trackImage}
+      />
+      <View style={styles.textContainer}>
+        <Text style={[styles.trackName, { color: textColor }]} numberOfLines={1}>
+          {item.name}
+        </Text>
+        <Text style={styles.trackArtist} numberOfLines={1}>
+          {item.artist}
+        </Text>
+      </View>
+      <Ionicons name="play-circle-outline" size={24} color="#B34A30" />
+    </TouchableOpacity>
+  );
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.headerButton}
+        >
+          <Ionicons name="arrow-back" size={26} color={textColor} />
+        </TouchableOpacity>
+        <View style={styles.headerTitleContainer}>
+          <Text style={[styles.headerTitle, { color: textColor }]} numberOfLines={1}>
+            {title}
+          </Text>
+          <Text style={styles.headerSubtitle}>{tracks.length} tracks</Text>
+        </View>
+        <View style={styles.headerButton} />
+      </View>
+
+      <FlatList
+        data={tracks}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  headerButton: {
+    padding: 4,
+    width: 40,
+    alignItems: "center",
+  },
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: "#94A3B8",
+    marginTop: 2,
+  },
+  listContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  trackCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    backgroundColor: "rgba(148, 163, 184, 0.05)",
+    borderRadius: 16,
+    padding: 12,
+  },
+  trackNumber: {
+    width: 25,
+    fontSize: 14,
+    color: "#94A3B8",
+    fontWeight: "bold",
+    marginRight: 8,
+  },
+  trackImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    marginRight: 16,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  trackName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  trackArtist: {
+    fontSize: 14,
+    color: "#94A3B8",
+  },
+});

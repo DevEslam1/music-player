@@ -6,6 +6,7 @@ import SignUpScreen from "../screens/Auth/SignUpScreen";
 import LibraryScreen from "../screens/Library/LibraryScreen";
 import NowPlayingScreen from "../screens/NowPlaying/NowPlayingScreen";
 import PlaylistDetailScreen from "../screens/Playlist/PlaylistDetail";
+import TracksListScreen from "../screens/Home/TracksListScreen";
 import TermsScreen from "../screens/Legal/TermsScreen";
 import NotificationsScreen from "../screens/Notifications/NotificationsScreen";
 import SupportScreen from "../screens/Support/SupportScreen";
@@ -21,6 +22,7 @@ export type MainStack = {
   Library: undefined;
   NowPlaying: undefined;
   PlaylistDetail: { playlistId: string; name: string };
+  TracksList: { title: string; tracks: any[] };
   TermsOfService: undefined;
   Notifications: undefined;
   Support: undefined;
@@ -52,6 +54,7 @@ const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
             <Stack.Screen name="Library" component={LibraryScreen} />
             <Stack.Screen name="NowPlaying" component={NowPlayingScreen} />
             <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
+            <Stack.Screen name="TracksList" component={TracksListScreen} />
             <Stack.Screen name="TermsOfService" component={TermsScreen} />
             <Stack.Screen name="Notifications" component={NotificationsScreen} />
             <Stack.Screen name="Support" component={SupportScreen} />
