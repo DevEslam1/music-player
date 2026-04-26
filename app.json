@@ -14,7 +14,9 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -31,7 +33,6 @@
         "android.permission.INTERNET",
         "android.permission.ACCESS_NETWORK_STATE"
       ],
-      "usesCleartextTraffic": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.eslamm2500.musicplayer"
     },
@@ -45,7 +46,9 @@
           "microphonePermission": false,
           "enableBackgroundPlayback": true
         }
-      ]
+      ],
+      "expo-font",
+      "expo-asset"
     ],
     "extra": {
       "eas": {

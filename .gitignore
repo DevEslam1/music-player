@@ -1,6 +1,6 @@
 node_modules
 CHANGELOG.md
-.expo/devices.json
+.expo/
 android/
 web/
-.expo/devices.json
+implementation_plan.md.resolved
