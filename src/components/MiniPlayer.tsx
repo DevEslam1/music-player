@@ -1,11 +1,6 @@
 import { Image } from "expo-image";
 import React, { useRef } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { shallowEqual, useSelector } from "react-redux";
 import { RootState } from "../redux/store/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,12 +17,13 @@ import Animated, {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
+import type { SharedValue } from "react-native-reanimated";
 
 // ─── Thresholds ────────────────────────────────────────────────────────────────
-const SWIPE_THRESHOLD = 80;      // px to trigger next/prev
-const SCRUB_SENSITIVITY = 0.5;  // how many ms per px of drag
+const SWIPE_THRESHOLD = 80;
+const SCRUB_SENSITIVITY = 0.5;
 
-// ─── Helpers (called on JS thread via runOnJS) ─────────────────────────────────
+// ─── JS-thread callbacks (must be plain functions for runOnJS) ─────────────────
 function triggerNext() {
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   audioPlayer.playNext();
@@ -45,6 +41,7 @@ function triggerHapticLight() {
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 const MiniPlayerInner = () => {
+  // ── ALL hooks must be called unconditionally at the top ──────────────────────
   const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
   const isPlaying = useSelector((state: RootState) => state.player.isPlaying);
   const { positionMillis, durationMillis } = useSelector(
@@ -57,30 +54,43 @@ const MiniPlayerInner = () => {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
-
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
 
-  // ── Gesture shared values ──────────────────────────────
+  // Gesture shared values — must be before any early return
   const translateX = useSharedValue(0);
   const isScrubbing = useSharedValue(false);
-  const scrubStartPosition = useRef(0);
   const hapticFired = useSharedValue(false);
+  const scrubStartPosition = useSharedValue(0);
+  const scrubPositionMs = useSharedValue(-1);
 
+  // Animated card style — hook must be unconditional
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const animatedProgressStyle = useAnimatedStyle(() => {
+    let currentMs = positionMillis;
+    if (isScrubbing.value && scrubPositionMs.value !== -1) {
+      currentMs = scrubPositionMs.value;
+    }
+    const percent = durationMillis > 0 ? (currentMs / durationMillis) * 100 : 0;
+    return {
+      width: `${Math.max(0, Math.min(100, percent))}%` as any,
+    };
+  }, [positionMillis, durationMillis]);
+
+  // ── Early return AFTER all hooks ─────────────────────────────────────────────
   if (!currentTrack) return null;
 
-  const progressPercent = durationMillis > 0 ? (positionMillis / durationMillis) * 100 : 0;
-
-  // ── Swipe gesture (tap + short drag = next/prev) ───────
+  // ── Swipe gesture: left → next, right → prev ─────────────────────────────────
   const swipeGesture = Gesture.Pan()
     .onStart(() => {
       hapticFired.value = false;
     })
     .onUpdate((e) => {
-      // Only move card if not in long-press scrub mode
       if (!isScrubbing.value) {
         translateX.value = e.translationX;
-        // Fire a subtle haptic once threshold is crossed so the user feels it "snap"
         if (Math.abs(e.translationX) > SWIPE_THRESHOLD && !hapticFired.value) {
           hapticFired.value = true;
           runOnJS(triggerHapticLight)();
@@ -90,13 +100,11 @@ const MiniPlayerInner = () => {
     .onEnd((e) => {
       if (!isScrubbing.value) {
         if (e.translationX < -SWIPE_THRESHOLD) {
-          // Swipe left → next
           translateX.value = withTiming(-300, { duration: 200 }, () => {
             translateX.value = 0;
           });
           runOnJS(triggerNext)();
         } else if (e.translationX > SWIPE_THRESHOLD) {
-          // Swipe right → previous
           translateX.value = withTiming(300, { duration: 200 }, () => {
             translateX.value = 0;
           });
@@ -105,37 +113,31 @@ const MiniPlayerInner = () => {
           translateX.value = withSpring(0);
         }
       }
-      isScrubbing.value = false;
     });
 
-  // ── Long-press + drag = scrub track position ───────────
+  // ── Long-press + drag = scrub ─────────────────────────────────────────────────
   const longPressScrubGesture = Gesture.Pan()
-    .activateAfterLongPress(500) // 500 ms hold activates scrub mode
+    .activateAfterLongPress(500)
     .onStart(() => {
       isScrubbing.value = true;
       runOnJS(triggerHapticLight)();
-      // Snapshot current position on JS thread via ref
-      runOnJS((pos: number) => { scrubStartPosition.current = pos; })(positionMillis);
+      scrubStartPosition.value = positionMillis;
+      scrubPositionMs.value = positionMillis;
     })
     .onUpdate((e) => {
       if (isScrubbing.value && durationMillis > 0) {
-        const deltaPx = e.translationX;
-        const deltaMs = deltaPx * (durationMillis / 300) * SCRUB_SENSITIVITY;
-        const targetMs = Math.max(0, Math.min(durationMillis, scrubStartPosition.current + deltaMs));
-        runOnJS(triggerSeek)(targetMs);
+        const deltaMs = e.translationX * (durationMillis / 300) * SCRUB_SENSITIVITY;
+        scrubPositionMs.value = Math.max(0, Math.min(durationMillis, scrubStartPosition.value + deltaMs));
       }
     })
     .onEnd(() => {
+      if (isScrubbing.value) {
+        runOnJS(triggerSeek)(scrubPositionMs.value);
+      }
       isScrubbing.value = false;
     });
 
-  // Compose: long-press scrub takes priority; swipe is the fallback
   const composedGesture = Gesture.Simultaneous(longPressScrubGesture, swipeGesture);
-
-  // ── Animated style for card slide ─────────────────────
-  const animatedCardStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
 
   return (
     <View style={[styles.wrapper, { bottom: insets.bottom + 10 }]}>
@@ -167,17 +169,17 @@ const MiniPlayerInner = () => {
                 },
               ]}
             >
-              <View
+              <Animated.View
                 style={[
                   styles.progressBarFill,
                   {
-                    width: `${progressPercent}%`,
                     backgroundColor: accentColor,
                     shadowColor: accentColor,
                     shadowOpacity: 0.8,
                     shadowRadius: 4,
                     shadowOffset: { width: 0, height: 0 },
                   },
+                  animatedProgressStyle,
                 ]}
               />
             </View>
@@ -189,10 +191,7 @@ const MiniPlayerInner = () => {
                 contentFit="cover"
               />
               <View style={styles.info}>
-                <Text
-                  style={[styles.title, { color: textColor }]}
-                  numberOfLines={1}
-                >
+                <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>
                   {currentTrack.name}
                 </Text>
                 <Text style={styles.artist} numberOfLines={1}>
@@ -227,7 +226,7 @@ const MiniPlayerInner = () => {
             </View>
           </TouchableOpacity>
 
-          {/* Swipe hint arrows — shown at edges as the card moves */}
+          {/* Swipe direction hints */}
           <SwipeHintArrows translateX={translateX} accentColor={accentColor} />
         </Animated.View>
       </GestureDetector>
@@ -235,9 +234,7 @@ const MiniPlayerInner = () => {
   );
 };
 
-import type { SharedValue } from "react-native-reanimated";
-
-// ─── Arrow hints that fade in as the user drags ────────────────────────────────
+// ─── Arrow hints ───────────────────────────────────────────────────────────────
 function SwipeHintArrows({
   translateX,
   accentColor,
@@ -254,11 +251,9 @@ function SwipeHintArrows({
 
   return (
     <>
-      {/* Right-drag hint: prev */}
       <Animated.View style={[styles.hintLeft, leftStyle]}>
         <Ionicons name="play-skip-back" size={16} color={accentColor} />
       </Animated.View>
-      {/* Left-drag hint: next */}
       <Animated.View style={[styles.hintRight, rightStyle]}>
         <Ionicons name="play-skip-forward" size={16} color={accentColor} />
       </Animated.View>
@@ -268,6 +263,7 @@ function SwipeHintArrows({
 
 export const MiniPlayer = React.memo(MiniPlayerInner);
 
+// ─── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   wrapper: {
     position: "absolute",
@@ -335,7 +331,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginLeft: 4,
   },
-  // ── Arrow hints ─────────────────────────────
   hintLeft: {
     position: "absolute",
     left: -24,
