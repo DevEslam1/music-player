@@ -3,20 +3,26 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from "r
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColor } from "../../hooks/use-theme-color";
-import { useSelector } from "react-redux";
-import { RootState } from "../../redux/store/store";
+import { useAccentColor, useThemeColor } from "../../hooks/use-theme-color";
 
-const ContactOption = ({ icon, title, subtitle, onPress }: any) => {
+interface ContactOptionProps {
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  title: string;
+  subtitle: string;
+  onPress: () => void;
+}
+
+const ContactOption = ({ icon, title, subtitle, onPress }: ContactOptionProps) => {
   const textColor = useThemeColor({}, "text");
   const surfaceColor = useThemeColor({}, "surface");
+  const accentColor = useAccentColor();
   return (
     <TouchableOpacity 
       style={[styles.optionCard, { backgroundColor: surfaceColor }]} 
       onPress={onPress}
     >
       <View style={styles.optionIcon}>
-        <Ionicons name={icon} size={28} color="#B34A30" />
+        <Ionicons name={icon} size={28} color={accentColor} />
       </View>
       <View style={styles.optionText}>
         <Text style={[styles.optionTitle, { color: textColor }]}>{title}</Text>
@@ -31,6 +37,7 @@ export default function ContactScreen() {
   const navigation = useNavigation<any>();
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
 
   const handleEmail = () => {
     Linking.openURL('mailto:karima.mahmoud.dev@gmail.com');
@@ -52,7 +59,7 @@ export default function ContactScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.heroSection}>
-          <View style={styles.heroIconCircle}>
+          <View style={[styles.heroIconCircle, { backgroundColor: accentColor, shadowColor: accentColor }]}>
             <Ionicons name="code-slash-outline" size={50} color="#fff" />
           </View>
           <Text style={[styles.heroTitle, { color: textColor }]}>The Creators</Text>
@@ -116,11 +123,9 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "#B34A30",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
-    shadowColor: "#B34A30",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -151,7 +156,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: "rgba(179, 74, 48, 0.1)",
+    backgroundColor: "rgba(148, 163, 184, 0.1)",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -167,21 +172,5 @@ const styles = StyleSheet.create({
   optionSubtitle: {
     fontSize: 13,
     color: "#94A3B8",
-  },
-  chatButton: {
-    backgroundColor: "#B34A30",
-    paddingVertical: 18,
-    borderRadius: 20,
-    alignItems: "center",
-    shadowColor: "#B34A30",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  chatButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });

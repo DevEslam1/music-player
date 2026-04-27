@@ -13,6 +13,7 @@ import { useDispatch } from 'react-redux';
 import { setFirstLaunch } from '../../redux/store/auth/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useAccentColor, useThemeColor } from '../../hooks/use-theme-color';
 import Animated, { 
   FadeInDown, 
   FadeInUp, 
@@ -31,6 +32,25 @@ const { width, height } = Dimensions.get('window');
 const WelcomeScreen = () => {
   const dispatch = useDispatch();
   const floatAnim = useSharedValue(0);
+  const accentColor = useAccentColor();
+  const backgroundColor = useThemeColor({}, "background");
+  const textColor = useThemeColor({}, "text");
+  const mutedTextColor = useThemeColor(
+    { light: "#64748B", dark: "#94A3B8" },
+    "text",
+  );
+  const heroBackground = useThemeColor(
+    { light: "#F8FAFC", dark: "#1E2022" },
+    "surface",
+  );
+  const badgeBackground = useThemeColor(
+    { light: "#FCE8E2", dark: "rgba(179, 74, 48, 0.18)" },
+    "surface",
+  );
+  const badgeTextColor = useThemeColor(
+    { light: accentColor, dark: accentColor },
+    "text",
+  );
 
   useEffect(() => {
     floatAnim.value = withRepeat(
@@ -57,13 +77,17 @@ const WelcomeScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+    <View style={[styles.container, { backgroundColor }]}>
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        barStyle={backgroundColor === "#151718" ? "light-content" : "dark-content"}
+      />
       
       {/* Background Content */}
       <Animated.View 
         entering={ZoomIn.duration(1500)}
-        style={styles.imageContainer}
+        style={[styles.imageContainer, { backgroundColor: heroBackground }]}
       >
         {/* Spongebob Floating Image */}
         <Animated.View style={[styles.characterContainer, floatStyle]}>
@@ -86,11 +110,13 @@ const WelcomeScreen = () => {
             entering={FadeInDown.delay(400).duration(1000)}
             style={styles.textGroup}
           >
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>PREMIUM MUSIC PLAYER</Text>
+            <View style={[styles.badge, { backgroundColor: badgeBackground }]}>
+              <Text style={[styles.badgeText, { color: badgeTextColor }]}>
+                PREMIUM MUSIC PLAYER
+              </Text>
             </View>
-            <Text style={styles.title}>GiG Player</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: textColor }]}>GiG Player</Text>
+            <Text style={[styles.subtitle, { color: mutedTextColor }]}>
               Immerse yourself in high-fidelity sound. Explore millions of tracks with our unbounded carousel experience.
             </Text>
           </Animated.View>
@@ -102,10 +128,10 @@ const WelcomeScreen = () => {
             <TouchableOpacity 
               activeOpacity={0.8}
               onPress={handleGetStarted}
-              style={styles.button}
+              style={[styles.button, { shadowColor: accentColor }]}
             >
               <LinearGradient
-                colors={['#B34A30', '#D86345']}
+                colors={[accentColor, '#D86345']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.gradient}
@@ -119,7 +145,9 @@ const WelcomeScreen = () => {
             entering={FadeInUp.delay(1000).duration(1000)}
             style={styles.footer}
           >
-            <Text style={styles.footerText}>Discover your sound, anytime, anywhere.</Text>
+            <Text style={[styles.footerText, { color: mutedTextColor }]}>
+              Discover your sound, anytime, anywhere.
+            </Text>
           </Animated.View>
         </View>
       </SafeAreaView>
@@ -130,14 +158,12 @@ const WelcomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   imageContainer: {
     position: 'absolute',
     top: 0,
     width: width,
     height: height * 0.65,
-    backgroundColor: '#F8FAFC', // Soft light background
   },
   overlay: {
     position: 'absolute',
@@ -167,7 +193,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   badgeText: {
-    color: '#B34A30',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,
@@ -175,13 +200,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 48,
     fontWeight: '900',
-    color: '#1A1A1A',
     marginBottom: 12,
     letterSpacing: -1.5,
   },
   subtitle: {
     fontSize: 16,
-    color: '#64748B',
     lineHeight: 24,
     maxWidth: '90%',
   },
@@ -193,7 +216,6 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     overflow: 'hidden',
-    shadowColor: '#B34A30',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.35,
     shadowRadius: 20,
@@ -214,7 +236,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerText: {
-    color: '#94A3B8',
     fontSize: 13,
     fontWeight: '500',
   },

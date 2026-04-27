@@ -7,7 +7,14 @@ import { RootState } from "../redux/store/store";
 import { toggleTheme } from "../redux/store/theme/themeSlice";
 import { useThemeColor } from "../hooks/use-theme-color";
 
-const DrawerItem = ({ icon, label, onPress, textColor }: any) => (
+interface DrawerItemProps {
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  label: string;
+  onPress: () => void;
+  textColor: string;
+}
+
+const DrawerItem = ({ icon, label, onPress, textColor }: DrawerItemProps) => (
   <TouchableOpacity style={styles.item} onPress={onPress}>
     <Ionicons name={icon} size={24} color={textColor} style={styles.icon} />
     <Text style={[styles.label, { color: textColor }]}>{label}</Text>
@@ -23,7 +30,6 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      {}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => props.navigation.closeDrawer()}>
           <Ionicons name="close-outline" size={30} color={textColor} />

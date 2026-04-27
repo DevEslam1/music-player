@@ -11,6 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import { CustomTextInput } from "../../components/auth/CustomTextInput";
 import { CustomButton } from "../../components/CustomButton";
 import { signUpScreenLogic } from "../../services/logic/signUpScreenLogic";
+import { useAccentColor, useThemeColor } from "../../hooks/use-theme-color";
 
 // Slicing components for cleaner code!
 import { AuthHeader } from "../../components/auth/AuthHeader";
@@ -35,10 +36,16 @@ export default function SignUpScreen() {
   } = signUpScreenLogic();
 
   const navigation = useNavigation<any>();
+  const backgroundColor = useThemeColor({}, "background");
+  const accentColor = useAccentColor();
+  const mutedTextColor = useThemeColor(
+    { light: "#64748B", dark: "#94A3B8" },
+    "text",
+  );
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       {/* 1. Shared Auth Header with Back Button */}
@@ -85,9 +92,11 @@ export default function SignUpScreen() {
         />
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
+          <Text style={[styles.footerText, { color: mutedTextColor }]}>
+            Already have an account?{" "}
+          </Text>
           <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-            <Text style={styles.linkText}>Log In</Text>
+            <Text style={[styles.linkText, { color: accentColor }]}>Log In</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -98,7 +107,6 @@ export default function SignUpScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
   },
   card: {
     flex: 1,
@@ -112,11 +120,9 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    color: "#64748B",
   },
   linkText: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#B34A30",
   },
 });

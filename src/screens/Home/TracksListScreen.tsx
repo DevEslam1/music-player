@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useAccentColor, useThemeColor } from "../../hooks/use-theme-color";
 import { Track } from "../../types";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import { useDispatch } from "react-redux";
@@ -31,6 +31,7 @@ export default function TracksListScreen() {
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
 
   const handlePlayTrack = async (track: Track) => {
     dispatch(setQueue(tracksList));
@@ -63,7 +64,7 @@ export default function TracksListScreen() {
     if (!isLoadingMore) return null;
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color="#B34A30" />
+        <ActivityIndicator size="small" color={accentColor} />
       </View>
     );
   };
@@ -86,7 +87,7 @@ export default function TracksListScreen() {
           {item.artist}
         </Text>
       </View>
-      <Ionicons name="play-circle-outline" size={24} color="#B34A30" />
+      <Ionicons name="play-circle-outline" size={24} color={accentColor} />
     </TouchableOpacity>
   );
 
