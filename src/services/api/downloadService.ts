@@ -2,24 +2,29 @@ import { Paths, File } from 'expo-file-system';
 import * as FileSystemLegacy from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Track } from '../../types';
-import { store } from '../../redux/store/store';
-import { 
-  hydrateDownloads, 
-  upsertDownload, 
-  removeDownload, 
-  setDownloadProgress, 
-  clearDownloadProgress,
-  DownloadedTrack
-} from '../../redux/store/downloads/downloadsSlice';
+// We use type imports which are erased at runtime and don't cause require cycles
+import type { DownloadedTrack } from '../../redux/store/downloads/downloadsSlice';
 import NetInfo from '@react-native-community/netinfo';
-import { showAppBanner } from '../../components/OfflineBanner';
 
 const DOWNLOADS_KEY = 'offline_downloads';
 
 // Map to store active resumable downloads for cancellation support
 const activeResumables = new Map<string, FileSystemLegacy.DownloadResumable>();
 
+let reduxDispatch: any = null;
+let reduxGetState: any = null;
+let reduxActions: any = null;
+
 export const DownloadService = {
+  /**
+   * Inject Redux store methods and actions to avoid circular dependencies
+   */
+  injectRedux: (dispatch: any, getState: any, actions: any) => {
+    reduxDispatch = dispatch;
+    reduxGetState = getState;
+    reduxActions = actions;
+  },
+
   /**
    * Initializes the download state from AsyncStorage and pushes to Redux
    */
@@ -28,7 +33,9 @@ export const DownloadService = {
       const stored = await AsyncStorage.getItem(DOWNLOADS_KEY);
       if (stored) {
         const metadata: Record<string, DownloadedTrack> = JSON.parse(stored);
-        store.dispatch(hydrateDownloads(metadata));
+        if (reduxDispatch && reduxActions?.hydrateDownloads) {
+          reduxDispatch(reduxActions.hydrateDownloads(metadata));
+        }
       }
     } catch (e) {
       console.warn('Failed to init DownloadService:', e);
@@ -41,8 +48,11 @@ export const DownloadService = {
   getLocalUri: async (trackId: string): Promise<string | null> => {
     try {
       // 1. Try to get from Redux state first (fastest)
-      const state = store.getState();
-      const track = state.downloads.tracks[trackId];
+      let track = null;
+      if (reduxGetState) {
+        const state = reduxGetState();
+        track = state.downloads?.tracks?.[trackId];
+      }
       let uriToVerify = track?.localUri;
 
       // 2. Fallback: If not in Redux, check deterministic path
@@ -77,14 +87,18 @@ export const DownloadService = {
       // 1. Network Check
       const netInfo = await NetInfo.fetch();
       if (!netInfo.isConnected) {
-        showAppBanner('Please connect to the internet to download tracks.', 'warning');
+        if (reduxDispatch && reduxActions?.showBanner) {
+          reduxDispatch(reduxActions.showBanner({ message: 'Please connect to the internet to download tracks.', type: 'warning' }));
+        }
         return;
       }
 
       // 2. Storage Check (require at least 50MB)
       const freeStorage = Paths.availableDiskSpace;
       if (freeStorage < 50 * 1024 * 1024) {
-        showAppBanner('You need at least 50MB of free space to download tracks.', 'warning');
+        if (reduxDispatch && reduxActions?.showBanner) {
+          reduxDispatch(reduxActions.showBanner({ message: 'You need at least 50MB of free space to download tracks.', type: 'warning' }));
+        }
         return;
       }
 
@@ -97,11 +111,13 @@ export const DownloadService = {
       const fileUri = new File(Paths.document, fileName).uri;
 
       // Initialize progress
-      store.dispatch(setDownloadProgress({
-        trackId: track.id,
-        progress: 0,
-        status: 'downloading'
-      }));
+      if (reduxDispatch && reduxActions?.setDownloadProgress) {
+        reduxDispatch(reduxActions.setDownloadProgress({
+          trackId: track.id,
+          progress: 0,
+          status: 'downloading'
+        }));
+      }
 
       const token = await AsyncStorage.getItem("access_token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -113,11 +129,13 @@ export const DownloadService = {
         { headers },
         (downloadProgress) => {
           const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
-          store.dispatch(setDownloadProgress({
-            trackId: track.id,
-            progress,
-            status: 'downloading'
-          }));
+          if (reduxDispatch && reduxActions?.setDownloadProgress) {
+            reduxDispatch(reduxActions.setDownloadProgress({
+              trackId: track.id,
+              progress,
+              status: 'downloading'
+            }));
+          }
         }
       );
 
@@ -164,18 +182,22 @@ export const DownloadService = {
       await AsyncStorage.setItem(DOWNLOADS_KEY, JSON.stringify(metadata));
 
       // Update Redux
-      store.dispatch(upsertDownload(downloadedTrack));
-      store.dispatch(clearDownloadProgress(track.id));
+      if (reduxDispatch && reduxActions) {
+        if (reduxActions.upsertDownload) reduxDispatch(reduxActions.upsertDownload(downloadedTrack));
+        if (reduxActions.clearDownloadProgress) reduxDispatch(reduxActions.clearDownloadProgress(track.id));
+      }
 
     } catch (e: any) {
       console.error('Download failed:', e);
       activeResumables.delete(track.id);
-      store.dispatch(setDownloadProgress({
-        trackId: track.id,
-        progress: 0,
-        status: 'error',
-        errorMessage: e.message
-      }));
+      if (reduxDispatch && reduxActions?.setDownloadProgress) {
+        reduxDispatch(reduxActions.setDownloadProgress({
+          trackId: track.id,
+          progress: 0,
+          status: 'error',
+          errorMessage: e.message
+        }));
+      }
       throw e;
     }
   },
@@ -189,7 +211,9 @@ export const DownloadService = {
       try {
         await resumable.pauseAsync(); // Pause then delete from map is equivalent to cancel
         activeResumables.delete(trackId);
-        store.dispatch(clearDownloadProgress(trackId));
+        if (reduxDispatch && reduxActions?.clearDownloadProgress) {
+          reduxDispatch(reduxActions.clearDownloadProgress(trackId));
+        }
       } catch (e) {
         console.warn('Failed to cancel download:', e);
       }
@@ -201,8 +225,11 @@ export const DownloadService = {
    */
   removeDownload: async (trackId: string): Promise<void> => {
     try {
-      const state = store.getState();
-      const trackToRemove = state.downloads.tracks[trackId];
+      let trackToRemove = null;
+      if (reduxGetState) {
+        const state = reduxGetState();
+        trackToRemove = state.downloads?.tracks?.[trackId];
+      }
 
       let uriToDelete = trackToRemove?.localUri;
       if (!uriToDelete) {
@@ -231,7 +258,9 @@ export const DownloadService = {
       }
 
       // Update Redux
-      store.dispatch(removeDownload(trackId));
+      if (reduxDispatch && reduxActions?.removeDownload) {
+        reduxDispatch(reduxActions.removeDownload(trackId));
+      }
     } catch (e) {
       console.error('Failed to remove download:', e);
       throw e;

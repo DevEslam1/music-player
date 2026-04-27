@@ -8,11 +8,13 @@ import { downloadsScreenLogic } from "../../services/logic/downloadsScreenLogic"
 import { Ionicons } from "@expo/vector-icons";
 import { DownloadButton } from "../../components/DownloadButton";
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { useNavigation } from "@react-navigation/native";
 
 export default function DownloadsScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
+  const navigation = useNavigation<any>();
 
   const {
     downloadedTracks,
@@ -53,6 +55,8 @@ export default function DownloadsScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
       <ScreenHeader 
         screenTitle="Offline Library" 
+        leftIcon="menu"
+        onBack={() => navigation.openDrawer()}
         postIcon={downloadedTracks.length > 0 ? "trash-outline" : undefined}
         onPostPress={handleDeleteAll}
       />

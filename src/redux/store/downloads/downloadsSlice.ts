@@ -1,5 +1,8 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { Track } from "../../../types";
+import { DownloadService } from "../../../services/api/downloadService";
+import { RootState } from "../store";
+
 
 export interface DownloadedTrack extends Track {
   localUri: string;
@@ -16,11 +19,13 @@ export interface DownloadProgress {
 interface DownloadsState {
   tracks: Record<string, DownloadedTrack>;
   activeDownloads: Record<string, DownloadProgress>;
+  autoDownloadEnabled: boolean;
 }
 
 const initialState: DownloadsState = {
   tracks: {},
   activeDownloads: {},
+  autoDownloadEnabled: false,
 };
 
 const downloadsSlice = createSlice({
@@ -43,6 +48,9 @@ const downloadsSlice = createSlice({
     clearDownloadProgress: (state, action: PayloadAction<string>) => {
       delete state.activeDownloads[action.payload];
     },
+    setAutoDownloadEnabled: (state, action: PayloadAction<boolean>) => {
+      state.autoDownloadEnabled = action.payload;
+    },
   },
 });
 
@@ -51,7 +59,8 @@ export const {
   upsertDownload, 
   removeDownload, 
   setDownloadProgress, 
-  clearDownloadProgress 
+  clearDownloadProgress,
+  setAutoDownloadEnabled 
 } = downloadsSlice.actions;
 
 export const selectIsDownloaded = (state: { downloads: DownloadsState }, trackId: string) => 
@@ -59,5 +68,28 @@ export const selectIsDownloaded = (state: { downloads: DownloadsState }, trackId
 
 export const selectDownloadProgress = (state: { downloads: DownloadsState }, trackId: string) => 
   state.downloads.activeDownloads[trackId];
+
+export const batchDownloadTracksAction = createAsyncThunk<
+  void,
+  Track[],
+  { state: RootState }
+>("downloads/batchDownload", async (tracks, { getState, dispatch }) => {
+  const state = getState();
+  const { tracks: downloadedTracks, activeDownloads } = state.downloads;
+
+  // Filter out tracks that are already downloaded or actively downloading
+  const tracksToDownload = tracks.filter(t => {
+    return !downloadedTracks[t.id] && !activeDownloads[t.id];
+  });
+
+  if (tracksToDownload.length > 0) {
+    tracksToDownload.forEach(track => {
+      dispatch(setDownloadProgress({ trackId: track.id, progress: 0, status: 'downloading' }));
+      DownloadService.downloadTrack(track).catch(e => {
+        console.warn('Batch download failed for track', track.id, e);
+      });
+    });
+  }
+});
 
 export default downloadsSlice.reducer;

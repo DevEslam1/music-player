@@ -6,16 +6,19 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { fetchLikedSongs } from "../../redux/store/library/librarySlice";
 import { RootState } from "../../redux/store/store";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { LikedSongCard } from "../../components/liked/LikedSongCard";
 import { likedScreenLogic } from "../../services/logic/likedScreenLogic";
+import { setAutoDownloadEnabled, batchDownloadTracksAction } from "../../redux/store/downloads/downloadsSlice";
 
 export default function LikedSongsScreen() {
   const {
@@ -27,6 +30,12 @@ export default function LikedSongsScreen() {
     handlePlay,
     handleRemove,
   } = likedScreenLogic();
+
+  const navigation = useNavigation<any>();
+  const autoDownloadEnabled = useSelector(
+    (state: RootState) => state.downloads.autoDownloadEnabled,
+  );
+  
   const likedSongsLastFetchedAt = useSelector(
     (state: RootState) => state.library.likedSongsLastFetchedAt,
   );
@@ -56,11 +65,34 @@ export default function LikedSongsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      {}
       <ScreenHeader
         screenTitle="Liked Songs"
-        postIcon={isEditMode ? "checkmark-circle" : "options-outline"}
-        onPostPress={() => setIsEditMode(!isEditMode)}
+        leftIcon="menu"
+        onBack={() => navigation.openDrawer()}
+        rightComponent={
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity 
+              onPress={() => {
+                const newValue = !autoDownloadEnabled;
+                dispatch(setAutoDownloadEnabled(newValue));
+                if (newValue) {
+                  dispatch(batchDownloadTracksAction(likedSongs));
+                }
+              }}
+              style={{ marginRight: 15, padding: 4 }}
+            >
+
+              <Ionicons 
+                name={autoDownloadEnabled ? "cloud-done" : "cloud-offline"} 
+                size={26} 
+                color={autoDownloadEnabled ? accentColor : "#94A3B8"} 
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setIsEditMode(!isEditMode)} style={{ padding: 4 }}>
+              <Ionicons name={isEditMode ? "checkmark-circle" : "options-outline"} size={26} color={accentColor} />
+            </TouchableOpacity>
+          </View>
+        }
       />
 
       {loading ? (
@@ -121,7 +153,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 24,
   },
-
   emptyContainer: {
     flex: 1,
     justifyContent: "center",

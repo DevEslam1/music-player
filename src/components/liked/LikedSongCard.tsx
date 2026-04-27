@@ -4,6 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { TouchableOpacity, View, Text, GestureResponderEvent, StyleSheet } from "react-native";
 import { Track } from "../../types";
 import { useThemeColor } from "../../hooks/use-theme-color";
+import { DownloadButton } from "../DownloadButton";
+
 
 type LikedSongCardProps = {
   item: Track;
@@ -44,6 +46,9 @@ const LikedSongCardInner = ({
       <Text style={styles.cardSubtitle} numberOfLines={1}>
         {item.artist}
       </Text>
+      <View style={styles.downloadContainer}>
+        <DownloadButton track={item} size={24} color={textColor} />
+      </View>
     </TouchableOpacity>
   );
 };
@@ -94,5 +99,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#94A3B8",
     textAlign: "center",
+  },
+  downloadContainer: {
+    alignItems: "center",
+    marginTop: 8,
   },
 });

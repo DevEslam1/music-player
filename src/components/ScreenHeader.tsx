@@ -15,12 +15,18 @@ type ScreenHeaderProps = {
   screenTitle?: string;
   postIcon?: React.ComponentProps<typeof Ionicons>["name"];
   onPostPress?: ((event: GestureResponderEvent) => void) | undefined;
+  rightComponent?: React.ReactNode;
+  leftIcon?: React.ComponentProps<typeof Ionicons>["name"];
+  onBack?: () => void;
 };
 
 export function ScreenHeader({
   screenTitle,
   postIcon,
   onPostPress,
+  rightComponent,
+  leftIcon = "arrow-back",
+  onBack,
 }: ScreenHeaderProps) {
   const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
   const textColor = useThemeColor({}, "text");
@@ -29,17 +35,17 @@ export function ScreenHeader({
   return (
     <View style={styles.header}>
       <TouchableOpacity
-        onPress={() => navigation.goBack()}
+        onPress={() => (onBack ? onBack() : navigation.goBack())}
         style={styles.headerButton}
       >
-        <Ionicons name="arrow-back" size={26} color={textColor} />
+        <Ionicons name={leftIcon} size={26} color={textColor} />
       </TouchableOpacity>
       {screenTitle && (
         <Text style={[styles.headerTitle, { color: textColor }]}>
           {screenTitle}
         </Text>
       )}
-      {postIcon ? (
+      {rightComponent ? rightComponent : postIcon ? (
         <TouchableOpacity onPress={onPostPress} style={styles.headerButton}>
           <Ionicons name={postIcon} size={26} color={accentColor} />
         </TouchableOpacity>

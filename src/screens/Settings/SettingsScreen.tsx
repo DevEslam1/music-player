@@ -11,6 +11,7 @@ import { ACCENT_COLORS } from "../../constants/theme";
 import Constants from "expo-constants";
 import { AppDispatch } from "../../redux/store/store";
 import { SettingItem } from "../../components/settings/SettingItem";
+import { ScreenHeader } from "../../components/ScreenHeader";
 
 export default function SettingsScreen() {
   const navigation = useNavigation<any>();
@@ -25,13 +26,11 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={26} color={textColor} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: textColor }]}>Settings</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <ScreenHeader
+        screenTitle="Settings"
+        leftIcon="menu"
+        onBack={() => navigation.openDrawer()}
+      />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.section, { backgroundColor: surfaceColor }]}>
@@ -74,6 +73,16 @@ export default function SettingsScreen() {
               <Text style={styles.valueText}>English</Text>
               <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
             </View>
+          </SettingItem>
+        </View>
+        <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+          <Text style={[styles.sectionTitle, { color: accentColor }]}>Storage & Downloads</Text>
+          <SettingItem icon="cloud-download-outline" label="Auto-Download Favorites">
+            <Switch 
+              value={useSelector((state: any) => state.downloads.autoDownloadEnabled)} 
+              onValueChange={(val) => { dispatch({ type: "downloads/setAutoDownloadEnabled", payload: val }); }} 
+              trackColor={{ false: "#CBD5E1", true: accentColor }}
+            />
           </SettingItem>
         </View>
 

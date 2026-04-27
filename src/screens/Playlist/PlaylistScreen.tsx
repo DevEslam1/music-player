@@ -24,6 +24,8 @@ import {
   selectPlaylistsLoading,
 } from "../../redux/store/library/librarySlice";
 import { PlaylistSummary } from "../../types";
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { setAutoDownloadEnabled } from "../../redux/store/downloads/downloadsSlice";
 
 export default function PlaylistScreen() {
   const navigation = useNavigation<any>();
@@ -32,6 +34,9 @@ export default function PlaylistScreen() {
     (state: RootState) => state.library,
   );
   const loading = useSelector(selectPlaylistsLoading);
+  const autoDownloadEnabled = useSelector(
+    (state: RootState) => state.downloads.autoDownloadEnabled,
+  );
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -93,15 +98,28 @@ export default function PlaylistScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.headerButton}>
-          <Ionicons name="menu-outline" size={28} color={textColor} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: textColor }]}>My Playlists</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={() => setIsCreating(!isCreating)}>
-          <Ionicons name={isCreating ? "close" : "add"} size={28} color={textColor} />
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        screenTitle="My Playlists"
+        leftIcon="menu"
+        onBack={() => navigation.openDrawer()}
+        rightComponent={
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity 
+              onPress={() => dispatch(setAutoDownloadEnabled(!autoDownloadEnabled))}
+              style={{ marginRight: 15, padding: 4 }}
+            >
+              <Ionicons 
+                name={autoDownloadEnabled ? "cloud-done" : "cloud-offline"} 
+                size={26} 
+                color={autoDownloadEnabled ? accentColor : "#94A3B8"} 
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={{ padding: 4 }} onPress={() => setIsCreating(!isCreating)}>
+              <Ionicons name={isCreating ? "close" : "add"} size={28} color={textColor} />
+            </TouchableOpacity>
+          </View>
+        }
+      />
 
       <ScrollView 
         contentContainerStyle={styles.scrollContent}

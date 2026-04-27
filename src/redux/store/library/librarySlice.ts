@@ -2,6 +2,9 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { PlaylistSummary, Track } from "../../../types";
 import { LibraryService } from "../../../services/api/libraryService";
 import { getRecommendedSongs, searchSongs } from "../../../services/api/api";
+import { DownloadService } from "../../../services/api/downloadService";
+import { RootState } from "../store";
+import { upsertDownload, setDownloadProgress, clearDownloadProgress } from "../downloads/downloadsSlice";
 
 const HOME_FEED_TTL_MS = 5 * 60 * 1000;
 
@@ -48,10 +51,22 @@ export const fetchLikedSongs = createAsyncThunk<
 export const toggleLikeSongAction = createAsyncThunk<
   Track,
   Track,
-  { rejectValue: string }
->("library/toggleLikeSong", async (track, { rejectWithValue }) => {
+  { rejectValue: string, state: RootState }
+>("library/toggleLikeSong", async (track, { rejectWithValue, getState, dispatch }) => {
   try {
     await LibraryService.toggleLike(track.id);
+    
+    // Auto-download logic
+    const state = getState();
+    const isLiked = state.library.likedSongs.some(t => t.id === track.id);
+    // If it *wasn't* liked before (so it is now being liked) and auto-download is on
+    if (!isLiked && state.downloads.autoDownloadEnabled) {
+      dispatch(setDownloadProgress({ trackId: track.id, progress: 0, status: 'downloading' }));
+      DownloadService.downloadTrack(track).catch(e => {
+        console.warn('Auto-download failed', e);
+      });
+    }
+    
     return track;
   } catch (e: any) {
     return rejectWithValue(e.message);

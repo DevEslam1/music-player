@@ -1,9 +1,16 @@
 import React from 'react';
 import { TouchableOpacity, ActivityIndicator, StyleSheet, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../redux/store/store';
-import { selectIsDownloaded, selectDownloadProgress } from '../redux/store/downloads/downloadsSlice';
+import { 
+  selectIsDownloaded, 
+  selectDownloadProgress,
+  removeDownload as removeDownloadAction,
+  setDownloadProgress,
+  upsertDownload,
+  clearDownloadProgress
+} from '../redux/store/downloads/downloadsSlice';
 import { DownloadService } from '../services/api/downloadService';
 import { useAccentColor } from '../hooks/use-theme-color';
 import { Track } from '../types';
@@ -25,12 +32,13 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
   const color = propColor || accentColor;
   const isDownloaded = useSelector((state: RootState) => selectIsDownloaded(state, track.id));
   const downloadProgress = useSelector((state: RootState) => selectDownloadProgress(state, track.id));
+  const dispatch = useDispatch();
 
   const handlePress = async () => {
     if (isDownloaded) {
-      // Remove directly with banner feedback instead of Alert
       showAppBanner('Removing from offline library…', 'info');
       await DownloadService.removeDownload(track.id);
+      dispatch(removeDownloadAction(track.id));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       showAppBanner('Track removed from downloads.', 'success');
       return;
@@ -38,6 +46,7 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
 
     if (downloadProgress?.status === 'downloading') {
       await DownloadService.cancelDownload(track.id);
+      dispatch(clearDownloadProgress(track.id));
       showAppBanner('Download cancelled.', 'info');
       return;
     }
@@ -45,10 +54,13 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       showAppBanner('Starting download…', 'info');
-      await DownloadService.downloadTrack(track);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      showAppBanner(`"${track.name}" downloaded!`, 'success');
+      dispatch(setDownloadProgress({ trackId: track.id, progress: 0, status: 'downloading' }));
+      
+      DownloadService.downloadTrack(track).catch(e => {
+        console.warn('DownloadTrack failed:', e);
+      });
     } catch (e: any) {
+      dispatch(setDownloadProgress({ trackId: track.id, progress: 0, status: 'error', errorMessage: e.message }));
       showAppBanner(e.message || 'Download failed.', 'error');
     }
   };

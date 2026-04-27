@@ -14,6 +14,7 @@ import { setQueue } from "../../redux/store/player/playerSlice";
 import { removeTrackFromPlaylistAction } from "../../redux/store/library/librarySlice";
 import { AppDispatch } from "../../redux/store/store";
 import { MainStack } from "../../navigation/AppNavigator";
+import { DownloadButton } from "../../components/DownloadButton";
 
 export default function PlaylistDetailScreen() {
   const route = useRoute<RouteProp<MainStack, "PlaylistDetail">>();
@@ -73,12 +74,15 @@ export default function PlaylistDetailScreen() {
           <Text style={styles.trackArtist} numberOfLines={1}>{item.artist}</Text>
         </View>
       </TouchableOpacity>
-      <TouchableOpacity 
-        style={styles.removeBtn} 
-        onPress={() => handleRemoveTrack(item.id)}
-      >
-        <Ionicons name="trash-outline" size={20} color="#EF4444" />
-      </TouchableOpacity>
+      <View style={styles.actionsContainer}>
+        <DownloadButton track={item} size={22} color={textColor} />
+        <TouchableOpacity 
+          style={styles.removeBtn} 
+          onPress={() => handleRemoveTrack(item.id)}
+        >
+          <Ionicons name="trash-outline" size={20} color="#EF4444" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -199,8 +203,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#94A3B8",
   },
+  actionsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   removeBtn: {
     padding: 8,
+    marginLeft: 4,
   },
   emptyContainer: {
     flex: 1,

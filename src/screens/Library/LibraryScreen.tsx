@@ -1,95 +1,123 @@
-import React, { useState, useEffect } from "react";
-import { Text, StyleSheet, FlatList, ActivityIndicator } from "react-native";
+import React, { useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSelector, useDispatch } from "react-redux";
+import { Ionicons } from "@expo/vector-icons";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { RootState, AppDispatch } from "../../redux/store/store";
+import { libraryScreenLogic } from "../../services/logic/libraryScreenLogic";
 import { SearchBar } from "../../components/library/SearchBar";
 import { SearchItem } from "../../components/library/SearchItem";
 import PlaylistPicker from "../../components/PlaylistPicker";
-import { ScreenHeader } from "../../components/ScreenHeader";
-import { libraryScreenLogic } from "../../services/logic/libraryScreenLogic";
+import { setAutoDownloadEnabled, batchDownloadTracksAction } from "../../redux/store/downloads/downloadsSlice";
 
 export default function LibraryScreen() {
-  const searchTimeout = React.useRef<NodeJS.Timeout | null>(null);
+  const {
+    query,
+    setQuery,
+    results,
+    loading,
+    fetchResults,
+    handlePlayTrack,
+    handleOpenPicker,
+    isPickerVisible,
+    setIsPickerVisible,
+    handleAddToPlaylist,
+    likedSongs,
+  } = libraryScreenLogic();
+  
+  const dispatch = useDispatch<AppDispatch>();
+  const autoDownloadEnabled = useSelector(
+    (state: RootState) => state.downloads.autoDownloadEnabled,
+  );
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
 
-  const {
-    query,
-    setQuery,
-    results,
-    setResults,
-    loading,
-    setLoading,
-    isPickerVisible,
-    setIsPickerVisible,
-    selectedTrack,
-    likedSongs,
-    fetchResults,
-    handlePlayTrack,
-    handleAddToPlaylist,
-    handleOpenPicker,
-  } = libraryScreenLogic();
-
   useEffect(() => {
-    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    const delayDebounceFn = setTimeout(() => {
+      if (query.trim().length >= 2) {
+        fetchResults(query);
+      } else {
+        // If query is empty, maybe show liked songs as default or empty results
+        fetchResults(query);
+      }
+    }, 500);
 
-    if (query.trim() === "") {
-      setResults([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    searchTimeout.current = setTimeout(() => {
-      fetchResults(query);
-    }, 300); 
-
-    return () => {
-      if (searchTimeout.current) clearTimeout(searchTimeout.current);
-    };
+    return () => clearTimeout(delayDebounceFn);
   }, [query]);
+
+  const isLiked = useCallback((trackId: string) => {
+    return likedSongs.some(s => s.id === trackId);
+  }, [likedSongs]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      {}
-      <ScreenHeader screenTitle="Search Library" />
-
-      {}
-      <SearchBar
-        query={query}
-        onChangeText={setQuery}
-        onSearchPress={() => setQuery("")}
+      <ScreenHeader
+        screenTitle="Library"
+        leftIcon="arrow-back"
+        rightComponent={
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity 
+              onPress={() => {
+                const newValue = !autoDownloadEnabled;
+                dispatch(setAutoDownloadEnabled(newValue));
+                if (newValue && results?.length > 0) {
+                  dispatch(batchDownloadTracksAction(results));
+                }
+              }}
+              style={{ padding: 4 }}
+            >
+              <Ionicons 
+                name={autoDownloadEnabled ? "cloud-done" : "cloud-offline"} 
+                size={26} 
+                color={autoDownloadEnabled ? accentColor : "#94A3B8"} 
+              />
+            </TouchableOpacity>
+          </View>
+        }
       />
 
-      {}
-      {loading ? (
-        <ActivityIndicator
-          size="large"
-          color={accentColor}
-          style={{ marginTop: 40 }}
+      <View style={styles.searchContainer}>
+        <SearchBar
+          query={query}
+          onChangeText={setQuery}
+          onSearchPress={() => setQuery("")}
         />
+      </View>
+
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={accentColor} />
+        </View>
+      ) : results.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, { color: textColor }]}>
+            {query ? "No songs found" : "Your library search results will appear here."}
+          </Text>
+        </View>
       ) : (
         <FlatList
           data={results}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
           renderItem={({ item }) => (
             <SearchItem
               item={item}
               onPlayTrack={() => handlePlayTrack(item)}
               onOpenPicker={() => handleOpenPicker(item)}
-              isLiked={likedSongs.some((s) => s.id === item.id)}
+              isLiked={isLiked(item.id)}
             />
           )}
-          ListEmptyComponent={
-            query.length > 0 ? (
-              <Text style={[styles.emptyText, { color: textColor }]}>
-                No results found.
-              </Text>
-            ) : null
-          }
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContainer}
         />
       )}
 
@@ -106,14 +134,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  searchContainer: {
+    paddingVertical: 12,
+  },
   listContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 80,
   },
-
+  emptyContainer: {
+    flex: 1,
+    paddingTop: 100,
+    alignItems: "center",
+  },
   emptyText: {
-    textAlign: "center",
-    marginTop: 40,
     fontSize: 16,
+    opacity: 0.8,
+    textAlign: "center",
+    paddingHorizontal: 40,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
