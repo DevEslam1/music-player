@@ -1,14 +1,6 @@
+import { Image } from "expo-image";
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Dimensions, 
-  StatusBar,
-  Image,
-  SafeAreaView
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, StatusBar, SafeAreaView } from "react-native";
 import { useDispatch } from 'react-redux';
 import { setFirstLaunch } from '../../redux/store/auth/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';

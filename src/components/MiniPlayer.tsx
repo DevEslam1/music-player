@@ -1,5 +1,6 @@
+import { Image } from "expo-image";
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image, Platform } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from "react-native";
 import { shallowEqual, useSelector } from "react-redux";
 import { RootState } from "../redux/store/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,6 +8,7 @@ import { audioPlayer } from "../services/audio/AudioPlayerService";
 import { useNavigation } from "@react-navigation/native";
 import { useAccentColor, useThemeColor } from "../hooks/use-theme-color";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Haptics from 'expo-haptics';
 
 const MiniPlayerInner = () => {
   const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
@@ -64,8 +66,7 @@ const MiniPlayerInner = () => {
           <Image
             source={{ uri: currentTrack.image }}
             style={styles.image}
-            resizeMethod="resize"
-            resizeMode="cover"
+            contentFit="cover"
           />
           <View style={styles.info}>
             <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>
@@ -76,10 +77,16 @@ const MiniPlayerInner = () => {
             </Text>
           </View>
           <View style={styles.controls}>
-            <TouchableOpacity onPress={() => audioPlayer.playPause()} style={styles.playBtn}>
+            <TouchableOpacity onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              audioPlayer.playPause();
+            }} style={styles.playBtn}>
               <Ionicons name={isPlaying ? "pause" : "play"} size={26} color={accentColor} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => audioPlayer.playNext()} style={styles.nextBtn}>
+            <TouchableOpacity onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              audioPlayer.playNext();
+            }} style={styles.nextBtn}>
               <Ionicons name="play-skip-forward" size={22} color={textColor} />
             </TouchableOpacity>
           </View>

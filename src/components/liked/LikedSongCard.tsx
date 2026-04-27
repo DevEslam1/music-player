@@ -1,13 +1,7 @@
+import { Image } from "expo-image";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  TouchableOpacity,
-  View,
-  Image,
-  Text,
-  GestureResponderEvent,
-  StyleSheet,
-} from "react-native";
+import { TouchableOpacity, View, Text, GestureResponderEvent, StyleSheet } from "react-native";
 import { Track } from "../../types";
 import { useThemeColor } from "../../hooks/use-theme-color";
 
@@ -36,8 +30,7 @@ const LikedSongCardInner = ({
         <Image
           source={{ uri: item.image || "https://picsum.photos/200" }}
           style={styles.cardImage}
-          resizeMethod="resize"
-          resizeMode="cover"
+          contentFit="cover"
         />
         {editMode && (
           <TouchableOpacity style={styles.removeBadge} onPress={onRemove}>

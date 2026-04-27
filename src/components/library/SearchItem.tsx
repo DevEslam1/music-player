@@ -1,12 +1,6 @@
+import { Image } from "expo-image";
 import React from "react";
-import {
-  TouchableOpacity,
-  Image,
-  View,
-  Text,
-  GestureResponderEvent,
-  StyleSheet,
-} from "react-native";
+import { TouchableOpacity, View, Text, GestureResponderEvent, StyleSheet } from "react-native";
 import { Track } from "../../types";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
@@ -33,8 +27,7 @@ const SearchItemInner = ({
       <Image
         source={{ uri: item.image || "https://picsum.photos/200" }}
         style={styles.cardImage}
-        resizeMethod="resize"
-        resizeMode="cover"
+        contentFit="cover"
       />
       <View style={styles.cardInfo}>
         <Text
@@ -58,8 +51,8 @@ const SearchItemInner = ({
         </View>
       </View>
       <View style={styles.cardActions}>
-        <DownloadButton track={item} size={22} />
-        <TouchableOpacity onPress={onOpenPicker} style={styles.actionBtn}>
+        <DownloadButton track={item} size={24} color={textColor} />
+        <TouchableOpacity onPress={onOpenPicker}>
           <Ionicons name="add-circle-outline" size={26} color={textColor} />
         </TouchableOpacity>
         <TouchableOpacity onPress={onPlayTrack}>
@@ -104,8 +97,6 @@ const styles = StyleSheet.create({
   cardActions: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  actionBtn: {
-    marginRight: 12,
+    gap: 12,
   },
 });

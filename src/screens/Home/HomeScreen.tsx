@@ -1,10 +1,11 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -72,11 +73,23 @@ export default function HomeScreen() {
     playlistsLastFetchedAt,
   ]);
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([
+      dispatch(fetchLikedSongs()),
+      dispatch(fetchPlaylists()),
+      dispatch(fetchHomeFeed())
+    ]);
+    setRefreshing(false);
+  }, [dispatch]);
+
   // Memoized handlers for child components
   const onOpenDrawer = useCallback(() => navigation.openDrawer(), [navigation]);
   const onNavigateLibrary = useCallback(() => navigation.navigate("Library"), [navigation]);
 
-  if (loading) {
+  if (loading && !refreshing) {
     return <HomeSkeleton />;
   }
 
@@ -92,6 +105,9 @@ export default function HomeScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={accentColor} />
+        }
       >
         {/* Horizontal Recommended List */}
         <TrackList

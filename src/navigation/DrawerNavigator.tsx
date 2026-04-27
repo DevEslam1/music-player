@@ -7,8 +7,6 @@ import FAQScreen from "../screens/FAQ/FAQScreen";
 import SettingsScreen from "../screens/Settings/SettingsScreen";
 import ContactScreen from "../screens/Contact/ContactScreen";
 import LanguageScreen from "../screens/Language/LanguageScreen";
-import NotificationsScreen from "../screens/Notifications/NotificationsScreen";
-import SupportScreen from "../screens/Support/SupportScreen";
 import { useThemeColor } from "../hooks/use-theme-color";
 import { CustomDrawerContent } from "../components/CustomDrawerContent";
 
@@ -24,22 +22,12 @@ export type drawerType = {
   Settings: undefined;
   Contact: undefined;
   Language: undefined;
-  Notifications: undefined;
-  Support: undefined;
-};
-
-export type DrawerItemProps = {
-  lightColor?: string;
-  darkColor?: string;
 };
 
 const Drawer = createDrawerNavigator<drawerType>();
 
-const DrawerNavigator = ({ lightColor, darkColor }: DrawerItemProps) => {
-  const backgroundColor = useThemeColor(
-    { light: lightColor, dark: darkColor },
-    "background",
-  );
+const DrawerNavigator = () => {
+  const backgroundColor = useThemeColor({}, "background");
 
   return (
     <Drawer.Navigator
@@ -62,8 +50,6 @@ const DrawerNavigator = ({ lightColor, darkColor }: DrawerItemProps) => {
       <Drawer.Screen name="Settings" component={SettingsScreen} />
       <Drawer.Screen name="Contact" component={ContactScreen} />
       <Drawer.Screen name="Language" component={LanguageScreen} />
-      <Drawer.Screen name="Notifications" component={NotificationsScreen} />
-      <Drawer.Screen name="Support" component={SupportScreen} />
     </Drawer.Navigator>
   );
 };

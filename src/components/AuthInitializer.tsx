@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchProfile, setFirstLaunch } from '../redux/store/auth/authSlice';
 import { AppDispatch } from '../redux/store/store';
@@ -48,6 +49,7 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) =>
         }
       } catch (error) {
         console.log("Auto-login failed or initialization error:", error);
+        Alert.alert("Session Expired", "Please log in again.");
       } finally {
         setIsInitializing(false);
       }

@@ -1,5 +1,6 @@
+import { Image } from "expo-image";
 import React from "react";
-import { TouchableOpacity, Image, View, Text, StyleSheet } from "react-native";
+import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import { Track } from "../../types";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -20,8 +21,7 @@ const SuggestionItemInner = ({
       <Image
         source={{ uri: track.image || "https://picsum.photos/200" }}
         style={styles.suggestionImage}
-        resizeMethod="resize"
-        resizeMode="cover"
+        contentFit="cover"
       />
       <View style={styles.suggestionInfo}>
         <Text

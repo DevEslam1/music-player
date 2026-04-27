@@ -1,5 +1,6 @@
+import { Image } from "expo-image";
 import React from "react";
-import { TouchableOpacity, Image, Text, StyleSheet, View } from "react-native";
+import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
 import { Track } from "../../types";
 
 const TrackCardInner = ({
@@ -17,8 +18,7 @@ const TrackCardInner = ({
         <Image
           source={{ uri: track.image || "https://picsum.photos/200" }}
           style={styles.cardImage}
-          resizeMethod="resize"
-          resizeMode="cover"
+          contentFit="cover"
         />
       </View>
       <Text style={[styles.cardTitle, { color: textColor }]} numberOfLines={1}>

@@ -1,5 +1,6 @@
+import { Image } from "expo-image";
 import React, { useRef, useEffect } from 'react';
-import { View, StyleSheet, Image, FlatList, Platform, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, FlatList, Platform, useWindowDimensions } from "react-native";
 import Animated, { 
   useAnimatedStyle, 
   useSharedValue, 

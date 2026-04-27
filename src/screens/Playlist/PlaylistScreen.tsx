@@ -8,7 +8,8 @@ import {
   TextInput,
   Alert,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
+  RefreshControl
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -41,12 +42,24 @@ export default function PlaylistScreen() {
 
   const [isCreating, setIsCreating] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
   React.useEffect(() => {
     if (!playlistsLastFetchedAt) {
       dispatch(fetchPlaylists());
     }
   }, [dispatch, playlistsLastFetchedAt]);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await dispatch(fetchPlaylists()).unwrap();
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [dispatch]);
 
   const handleCreate = () => {
     if (newPlaylistName.trim() === "") return;
@@ -90,7 +103,16 @@ export default function PlaylistScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={accentColor}
+          />
+        }
+      >
         {isCreating && (
           <View style={[styles.createForm, { backgroundColor: inputBg }]}>
             <Text style={[styles.formTitle, { color: textColor }]}>New Playlist</Text>

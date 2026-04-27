@@ -11,6 +11,8 @@ import TermsScreen from "../screens/Legal/TermsScreen";
 import DrawerNavigator from "./DrawerNavigator";
 import { WelcomeScreen } from "../screens/Auth";
 import { MiniPlayer } from "../components/MiniPlayer";
+import NotificationsScreen from "../screens/Notifications/NotificationsScreen";
+import SupportScreen from "../screens/Support/SupportScreen";
 
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store/store";
@@ -26,6 +28,8 @@ export type MainStack = {
   TermsOfService: undefined;
   Drawer: undefined;
   Welcome: undefined;
+  Notifications: undefined;
+  Support: undefined;
 };
 
 const Stack = createNativeStackNavigator<MainStack>();
@@ -62,6 +66,8 @@ const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
             <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
             <Stack.Screen name="TracksList" component={TracksListScreen} />
             <Stack.Screen name="TermsOfService" component={TermsScreen} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} />
+            <Stack.Screen name="Support" component={SupportScreen} />
           </>
         )}
       </Stack.Navigator>

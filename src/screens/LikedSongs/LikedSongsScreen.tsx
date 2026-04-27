@@ -5,6 +5,7 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -35,6 +36,19 @@ export default function LikedSongsScreen() {
       dispatch(fetchLikedSongs());
     }
   }, [dispatch, likedSongsLastFetchedAt]);
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await dispatch(fetchLikedSongs()).unwrap();
+    } catch (error) {
+      console.log("Failed to refresh liked songs:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [dispatch]);
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -73,6 +87,13 @@ export default function LikedSongsScreen() {
           contentContainerStyle={styles.listContainer}
           columnWrapperStyle={styles.columnWrapper}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={accentColor}
+            />
+          }
           renderItem={({ item }) => (
             <LikedSongCard
               item={item}

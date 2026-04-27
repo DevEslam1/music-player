@@ -1,13 +1,6 @@
+import { Image } from "expo-image";
 import React, { useRef, useEffect, useCallback } from "react";
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity,
-  Dimensions,
-  Platform,
-  Image
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";

@@ -1,5 +1,6 @@
-import React from "react";
-import { Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Image, View } from "react-native";
+import { Image } from "expo-image";
+import React, { useState, useCallback } from "react";
+import { Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, View, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { ScreenHeader } from "../../components/ScreenHeader";
@@ -21,6 +22,12 @@ export default function DownloadsScreen() {
     handleDeleteAll,
     totalStorage
   } = downloadsScreenLogic();
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 500); // Mock refresh for UI consistency
+  }, []);
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
@@ -69,6 +76,13 @@ export default function DownloadsScreen() {
           data={downloadedTracks}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={accentColor}
+            />
+          }
           renderItem={({ item }) => (
             <Swipeable renderRightActions={() => renderRightActions(item.id)}>
               <TouchableOpacity 
