@@ -12,6 +12,7 @@ import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import { useDispatch } from "react-redux";
 import { setQueue } from "../../redux/store/player/playerSlice";
 import { removeTrackFromPlaylistAction } from "../../redux/store/library/librarySlice";
+import { batchDownloadTracksAction } from "../../redux/store/downloads/downloadsSlice";
 import { AppDispatch } from "../../redux/store/store";
 import { MainStack } from "../../navigation/AppNavigator";
 import { DownloadButton } from "../../components/DownloadButton";
@@ -61,6 +62,12 @@ export default function PlaylistDetailScreen() {
     }
   };
 
+  const handleDownloadAll = () => {
+    if (tracks.length > 0) {
+      dispatch(batchDownloadTracksAction(tracks));
+    }
+  };
+
   const renderItem = ({ item, index }: { item: Track, index: number }) => (
     <View style={styles.trackCard}>
       <Text style={styles.trackNumber}>{index + 1}</Text>
@@ -96,9 +103,14 @@ export default function PlaylistDetailScreen() {
           <Text style={[styles.headerTitle, { color: textColor }]} numberOfLines={1}>{name}</Text>
           <Text style={styles.headerSubtitle}>{tracks.length} songs</Text>
         </View>
-        <TouchableOpacity style={styles.headerButton} onPress={fetchPlaylistTracks}>
-          <Ionicons name="refresh-outline" size={24} color={textColor} />
-        </TouchableOpacity>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <TouchableOpacity style={styles.headerButton} onPress={handleDownloadAll} disabled={tracks.length === 0}>
+            <Ionicons name="cloud-download-outline" size={24} color={textColor} style={{ opacity: tracks.length === 0 ? 0.5 : 1 }} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerButton} onPress={fetchPlaylistTracks}>
+            <Ionicons name="refresh-outline" size={24} color={textColor} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {loading ? (

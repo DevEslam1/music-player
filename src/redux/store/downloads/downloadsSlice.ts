@@ -83,12 +83,17 @@ export const batchDownloadTracksAction = createAsyncThunk<
   });
 
   if (tracksToDownload.length > 0) {
-    tracksToDownload.forEach(track => {
-      dispatch(setDownloadProgress({ trackId: track.id, progress: 0, status: 'downloading' }));
-      DownloadService.downloadTrack(track).catch(e => {
-        console.warn('Batch download failed for track', track.id, e);
+    // Simple concurrency limit: process in chunks of 3
+    const CHUNK_SIZE = 3;
+    for (let i = 0; i < tracksToDownload.length; i += CHUNK_SIZE) {
+      const chunk = tracksToDownload.slice(i, i + CHUNK_SIZE);
+      const promises = chunk.map(track => {
+        return DownloadService.downloadTrack(track).catch(e => {
+          console.warn('Batch download failed for track', track.id, e);
+        });
       });
-    });
+      await Promise.all(promises);
+    }
   }
 });
 

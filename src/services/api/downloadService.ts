@@ -69,9 +69,15 @@ export const DownloadService = {
           : `file://${uriToVerify}`;
           
         const file = new File(normalizedUri);
-        const { exists } = await file.info();
-        if (exists) {
+        const { exists, size } = await file.info();
+        if (exists && size >= 10240) {
           return normalizedUri;
+        } else if (exists) {
+          console.warn(`Local file exists but is corrupted (size: ${size}). Treating as not downloaded.`);
+          try { file.delete(); } catch (_) {}
+          if (reduxDispatch && reduxActions?.removeDownload) {
+            reduxDispatch(reduxActions.removeDownload(trackId));
+          }
         }
       }
     } catch (e) {
@@ -214,6 +220,16 @@ export const DownloadService = {
         activeResumables.delete(trackId);
         if (reduxDispatch && reduxActions?.clearDownloadProgress) {
           reduxDispatch(reduxActions.clearDownloadProgress(trackId));
+        }
+
+        // Try to delete the partially downloaded file to save space
+        const safeId = trackId.toString().replace(/[^a-zA-Z0-9]/g, '_');
+        const fileName = `track_${safeId}.mp3`;
+        const uriToDelete = new File(Paths.document, fileName).uri;
+        const file = new File(uriToDelete);
+        const { exists } = await file.info();
+        if (exists) {
+            await file.delete();
         }
       } catch (e) {
         console.warn('Failed to cancel download:', e);

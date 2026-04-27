@@ -159,7 +159,9 @@ class AudioPlayerService {
         store.dispatch(setIsPlaying(true));
       }
 
-      LibraryService.logPlay(track.id).catch(e => console.warn("Failed to log play:", e));
+      if (playerSource.uri && !playerSource.uri.startsWith('file://')) {
+        LibraryService.logPlay(track.id).catch(e => console.warn("Failed to log play:", e));
+      }
 
     } catch (e: any) {
       console.error("Audio Load Error:", e.message);

@@ -38,7 +38,6 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
     if (isDownloaded) {
       showAppBanner('Removing from offline library…', 'info');
       await DownloadService.removeDownload(track.id);
-      dispatch(removeDownloadAction(track.id));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       showAppBanner('Track removed from downloads.', 'success');
       return;
@@ -54,7 +53,6 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       showAppBanner('Starting download…', 'info');
-      dispatch(setDownloadProgress({ trackId: track.id, progress: 0, status: 'downloading' }));
       
       DownloadService.downloadTrack(track).catch(e => {
         console.warn('DownloadTrack failed:', e);
