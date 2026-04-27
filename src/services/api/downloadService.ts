@@ -12,7 +12,7 @@ import {
   DownloadedTrack
 } from '../../redux/store/downloads/downloadsSlice';
 import NetInfo from '@react-native-community/netinfo';
-import { Alert } from 'react-native';
+import { showAppBanner } from '../../components/OfflineBanner';
 
 const DOWNLOADS_KEY = 'offline_downloads';
 
@@ -77,14 +77,14 @@ export const DownloadService = {
       // 1. Network Check
       const netInfo = await NetInfo.fetch();
       if (!netInfo.isConnected) {
-        Alert.alert("Offline", "Please connect to the internet to download tracks.");
+        showAppBanner('Please connect to the internet to download tracks.', 'warning');
         return;
       }
 
       // 2. Storage Check (require at least 50MB)
       const freeStorage = Paths.availableDiskSpace;
       if (freeStorage < 50 * 1024 * 1024) {
-        Alert.alert("Storage Full", "You need at least 50MB of free space to download tracks.");
+        showAppBanner('You need at least 50MB of free space to download tracks.', 'warning');
         return;
       }
 

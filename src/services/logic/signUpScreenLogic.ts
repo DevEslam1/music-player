@@ -1,8 +1,8 @@
 import { useNavigation } from "@react-navigation/native";
 import { useState, useCallback } from "react";
-import { Alert } from "react-native";
 import { validateEmail, validatePassword } from "../../utils/validation";
 import { AuthService } from "../api/authService";
+import { showAppBanner } from "../../components/OfflineBanner";
 
 /**
  * Junior Developer Logic Tips:
@@ -22,17 +22,19 @@ export function signUpScreenLogic() {
 
   const handleSignUp = useCallback(async () => {
     if (!name || !email || !password) {
-      Alert.alert("Error", "Please fill in all fields.");
+      showAppBanner("Please fill in all fields.", "warning");
       return;
     }
 
-    if (validateEmail(email) !== null) {
-      Alert.alert("Invalid Email", `${validateEmail(email)}`);
+    const emailError = validateEmail(email);
+    if (emailError !== null) {
+      showAppBanner(emailError, "warning");
       return;
     }
 
-    if (validatePassword(password) !== null) {
-      Alert.alert("Weak Password", `${validatePassword(password)}`);
+    const passwordError = validatePassword(password);
+    if (passwordError !== null) {
+      showAppBanner(passwordError, "warning");
       return;
     }
 
@@ -43,7 +45,7 @@ export function signUpScreenLogic() {
         email: email,
         password: password,
       });
-      Alert.alert("Success", "Account created successfully! Please log in.");
+      showAppBanner("Account created! Please log in.", "success");
       navigation.navigate("Login");
     } catch (error: any) {
       const errorMessage =
@@ -52,7 +54,7 @@ export function signUpScreenLogic() {
           .flat()
           .join(", ") ||
         "Registration failed. Please try again.";
-      Alert.alert("Registration Failed", errorMessage);
+      showAppBanner(errorMessage, "error");
     } finally {
       setLoading(false);
     }

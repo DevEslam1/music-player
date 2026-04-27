@@ -1,13 +1,14 @@
 import React from 'react';
-import { TouchableOpacity, ActivityIndicator, StyleSheet, Alert, View, Text } from 'react-native';
+import { TouchableOpacity, ActivityIndicator, StyleSheet, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store/store';
 import { selectIsDownloaded, selectDownloadProgress } from '../redux/store/downloads/downloadsSlice';
 import { DownloadService } from '../services/api/downloadService';
 import { useAccentColor } from '../hooks/use-theme-color';
 import { Track } from '../types';
 import * as Haptics from 'expo-haptics';
+import { showAppBanner } from './OfflineBanner';
 
 interface DownloadButtonProps {
   track: Track;
@@ -15,47 +16,40 @@ interface DownloadButtonProps {
   color?: string;
 }
 
-export const DownloadButton: React.FC<DownloadButtonProps> = ({ 
-  track, 
-  size = 24, 
-  color: propColor 
+export const DownloadButton: React.FC<DownloadButtonProps> = ({
+  track,
+  size = 24,
+  color: propColor,
 }) => {
   const accentColor = useAccentColor();
   const color = propColor || accentColor;
   const isDownloaded = useSelector((state: RootState) => selectIsDownloaded(state, track.id));
   const downloadProgress = useSelector((state: RootState) => selectDownloadProgress(state, track.id));
-  
+
   const handlePress = async () => {
     if (isDownloaded) {
-      Alert.alert(
-        "Remove Download",
-        "Do you want to remove this track from your offline library?",
-        [
-          { text: "Cancel", style: "cancel" },
-          { 
-            text: "Remove", 
-            style: "destructive", 
-            onPress: async () => {
-              await DownloadService.removeDownload(track.id);
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            }
-          }
-        ]
-      );
+      // Remove directly with banner feedback instead of Alert
+      showAppBanner('Removing from offline library…', 'info');
+      await DownloadService.removeDownload(track.id);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showAppBanner('Track removed from downloads.', 'success');
       return;
     }
 
     if (downloadProgress?.status === 'downloading') {
       await DownloadService.cancelDownload(track.id);
+      showAppBanner('Download cancelled.', 'info');
       return;
     }
 
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      showAppBanner('Starting download…', 'info');
       await DownloadService.downloadTrack(track);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showAppBanner(`"${track.name}" downloaded!`, 'success');
     } catch (e: any) {
-      Alert.alert("Download Error", e.message);
+      showAppBanner(e.message || 'Download failed.', 'error');
     }
   };
 
@@ -75,10 +69,10 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
 
   return (
     <TouchableOpacity onPress={handlePress} style={styles.container}>
-      <Ionicons 
-        name={isDownloaded ? "checkmark-circle" : "cloud-download-outline"} 
-        size={size} 
-        color={isDownloaded ? "#22C55E" : color} 
+      <Ionicons
+        name={isDownloaded ? 'checkmark-circle' : 'cloud-download-outline'}
+        size={size}
+        color={isDownloaded ? '#22C55E' : color}
       />
     </TouchableOpacity>
   );
@@ -99,5 +93,5 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
     marginTop: 2,
-  }
+  },
 });

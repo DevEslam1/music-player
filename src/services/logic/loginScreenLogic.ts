@@ -8,10 +8,10 @@ import {
   selectAuthLoading,
 } from "../../redux/store/auth/authSlice";
 import { validateEmail, validatePassword } from "../../utils/validation";
-import { Alert } from "react-native";
 import { AuthService } from "../api/authService";
 import { AppDispatch } from "../../redux/store/store";
 import { clearAuthTokens, saveAuthTokens } from "../auth/session";
+import { showAppBanner } from "../../components/OfflineBanner";
 
 /**
  * Professional Junior Logic Note:
@@ -29,33 +29,31 @@ export function loginScreenLogic() {
   const isFormValid = email.trim().length > 0 && password.length >= 8;
 
   const handleLogin = useCallback(async () => {
-    if (validateEmail(email) !== null) {
-      Alert.alert("Invalid Email", `${validateEmail(email)}`);
+    const emailError = validateEmail(email);
+    if (emailError !== null) {
+      showAppBanner(emailError, "warning");
       return;
     }
 
-    if (validatePassword(password) !== null) {
-      Alert.alert("Weak Password", `${validatePassword(password)}`);
+    const passwordError = validatePassword(password);
+    if (passwordError !== null) {
+      showAppBanner(passwordError, "warning");
       return;
     }
 
     dispatch(loginStart());
     try {
-      // Clear previous tokens for a truly fresh session
       await clearAuthTokens();
-
       const data = await AuthService.login({ email, password });
       const { access, refresh } = data;
-
       await saveAuthTokens({ access, refresh });
-
       await dispatch(fetchProfile()).unwrap();
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.detail ||
         "Login failed. Please check your credentials.";
       dispatch(loginFailure(errorMessage));
-      Alert.alert("Login Failed", errorMessage);
+      showAppBanner(errorMessage, "error");
     }
   }, [email, password, dispatch]);
 

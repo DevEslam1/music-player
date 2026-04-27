@@ -18,7 +18,7 @@ export const CustomSplash = () => {
           <Image 
             source={require('../../assets/app-icon.png')} 
             style={styles.logo}
-            resizeMode="contain"
+            contentFit="contain"
           />
         </View>
       </View>

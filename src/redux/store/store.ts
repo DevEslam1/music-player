@@ -4,6 +4,7 @@ import themeReducer from "./theme/themeSlice";
 import playerReducer from "./player/playerSlice";
 import libraryReducer from "./library/librarySlice";
 import downloadsReducer from "./downloads/downloadsSlice";
+import uiReducer from "./ui/uiSlice";
 
 export const store = configureStore({
   reducer: { 
@@ -12,6 +13,7 @@ export const store = configureStore({
     player: playerReducer,
     library: libraryReducer,
     downloads: downloadsReducer,
+    ui: uiReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -86,7 +86,7 @@ const WelcomeScreen = () => {
           <Image 
             source={require('../../../assets/Spongpop.png')}
             style={styles.characterImage}
-            resizeMode="contain"
+            contentFit="contain"
           />
         </Animated.View>
 

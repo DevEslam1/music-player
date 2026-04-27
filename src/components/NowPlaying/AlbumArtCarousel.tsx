@@ -103,7 +103,7 @@ const CarouselItem = ({
           <Image
             source={{ uri: track.image || 'https://picsum.photos/400' }}
             style={[styles.albumArt, { width: coverSize, height: coverSize, borderRadius: 24 }]}
-            resizeMode="cover"
+            contentFit="cover"
           />
         </Animated.View>
       </Animated.View>

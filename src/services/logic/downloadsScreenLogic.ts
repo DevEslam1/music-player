@@ -1,17 +1,17 @@
 import { useCallback, useMemo } from "react";
 import { DownloadService } from "../api/downloadService";
 import { store } from "../../redux/store/store";
-import { setCurrentTrack, setQueue, setIsPlaying } from "../../redux/store/player/playerSlice";
+import { setCurrentTrack, setQueue } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../audio/AudioPlayerService";
-import { Alert } from "react-native";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store/store";
 import { Track } from "../../types";
+import { showAppBanner } from "../../components/OfflineBanner";
 
 export function downloadsScreenLogic() {
   const tracksRecord = useSelector((state: RootState) => state.downloads.tracks);
-  
-  // Transform Record to Array and sort by name (optional, but good for UX)
+
+  // Transform Record to Array and sort by name
   const downloadedTracks = useMemo(() => {
     return Object.values(tracksRecord).sort((a, b) => a.name.localeCompare(b.name));
   }, [tracksRecord]);
@@ -20,12 +20,11 @@ export function downloadsScreenLogic() {
     return downloadedTracks.reduce((acc, t) => acc + (t.size || 0), 0);
   }, [downloadedTracks]);
 
-  const loading = false; // No longer needed since Redux is hydrated on startup
+  const loading = false;
 
   const handlePlayTrack = useCallback(async (track: Track) => {
     store.dispatch(setQueue(downloadedTracks));
     store.dispatch(setCurrentTrack(track));
-    
     try {
       await audioPlayer.loadPlayTrack(track);
     } catch (e) {
@@ -34,47 +33,28 @@ export function downloadsScreenLogic() {
   }, [downloadedTracks]);
 
   const handleDeleteDownload = useCallback(async (trackId: string) => {
-    Alert.alert(
-      "Remove Download",
-      "Are you sure you want to delete this track from your device?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await DownloadService.removeDownload(trackId);
-            } catch (e: any) {
-              Alert.alert("Error", "Failed to remove download: " + e.message);
-            }
-          }
-        }
-      ]
-    );
+    // Confirm via banner then delete immediately; 
+    // For destructive confirmation we still show a brief info banner.
+    showAppBanner("Removing download…", "info");
+    try {
+      await DownloadService.removeDownload(trackId);
+      showAppBanner("Track removed from downloads.", "success");
+    } catch (e: any) {
+      showAppBanner("Failed to remove download: " + e.message, "error");
+    }
   }, []);
 
   const handleDeleteAll = useCallback(async () => {
     if (downloadedTracks.length === 0) return;
-    
-    Alert.alert(
-      "Delete All",
-      `Are you sure you want to delete all ${downloadedTracks.length} downloaded tracks?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete All", 
-          style: "destructive",
-          onPress: async () => {
-            await Promise.all(
-              downloadedTracks.map((track) =>
-                DownloadService.removeDownload(track.id),
-              ),
-            );
-          }
-        }
-      ]
-    );
+    showAppBanner(`Removing ${downloadedTracks.length} tracks…`, "info");
+    try {
+      await Promise.all(
+        downloadedTracks.map((track) => DownloadService.removeDownload(track.id))
+      );
+      showAppBanner("All downloads removed.", "success");
+    } catch (e: any) {
+      showAppBanner("Failed to delete all downloads.", "error");
+    }
   }, [downloadedTracks]);
 
   return {
@@ -83,6 +63,6 @@ export function downloadsScreenLogic() {
     handlePlayTrack,
     handleDeleteDownload,
     handleDeleteAll,
-    totalStorage
+    totalStorage,
   };
 }

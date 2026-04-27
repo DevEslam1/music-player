@@ -7,7 +7,7 @@ import { ScreenHeader } from "../../components/ScreenHeader";
 import { downloadsScreenLogic } from "../../services/logic/downloadsScreenLogic";
 import { Ionicons } from "@expo/vector-icons";
 import { DownloadButton } from "../../components/DownloadButton";
-import Swipeable from 'react-native-gesture-handler/Swipeable';
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 export default function DownloadsScreen() {
   const backgroundColor = useThemeColor({}, "background");
@@ -84,7 +84,7 @@ export default function DownloadsScreen() {
             />
           }
           renderItem={({ item }) => (
-            <Swipeable renderRightActions={() => renderRightActions(item.id)}>
+            <ReanimatedSwipeable renderRightActions={() => renderRightActions(item.id)}>
               <TouchableOpacity 
                 style={[styles.trackItem, { backgroundColor }]}
                 onPress={() => handlePlayTrack(item)}
@@ -103,7 +103,7 @@ export default function DownloadsScreen() {
 
                 <DownloadButton track={item} />
               </TouchableOpacity>
-            </Swipeable>
+            </ReanimatedSwipeable>
           )}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
