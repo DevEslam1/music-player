@@ -10,11 +10,11 @@ import { DownloadService } from "../api/downloadService";
 
 /**
  * Audio Player Service
- * Lock Screen Note (expo-audio 1.1.1):
- * - Only play/pause, seek-forward (+10s), and seek-backward (-10s) are supported natively.
+ * Lock Screen Note (Expo SDK 55):
+ * - Only play/pause, seek-forward (+10s), and seek-backward (-10s) are supported natively in expo-audio 55.
  * - Next/Previous track buttons are NOT available — the native MediaSession callback
- *   explicitly removes COMMAND_SEEK_TO_NEXT/PREVIOUS_MEDIA_ITEM.
- * - There are no remote control events (no nextTrackRequest, etc.) in this SDK version.
+ *   in expo-audio's Android implementation currently omits these actions.
+ * - AudioPlaylist API is available but currently lacks native lock screen integration.
  */
 
 const initAudioMode = async () => {
@@ -51,7 +51,7 @@ class AudioPlayerService {
 
     if (this.player) {
       try {
-        (this.player as any).setActiveForLockScreen(false);
+        this.player.setActiveForLockScreen(false);
         this.player.pause();
         this.player.release();
       } catch (e) {}
@@ -104,7 +104,7 @@ class AudioPlayerService {
       console.log("🎵 Final Playback URI:", playerSource.uri);
       const player = createAudioPlayer(playerSource);
 
-      // expo-audio 1.1.1 AudioMetadata only supports: title, artist, albumTitle, artworkUrl
+      // expo-audio 55 AudioMetadata only supports: title, artist, albumTitle, artworkUrl
       const metadata = {
         title: track.name,
         artist: track.artist,
@@ -112,9 +112,8 @@ class AudioPlayerService {
         artworkUrl: track.image || "https://picsum.photos/400",
       };
 
-      // expo-audio 1.1.1 AudioLockScreenOptions only supports showSeekForward and showSeekBackward.
+      // expo-audio 55 AudioLockScreenOptions only supports showSeekForward and showSeekBackward.
       // Next/Previous track buttons are NOT implemented in this version of the native library.
-      // The MediaSessionCallback explicitly removes COMMAND_SEEK_TO_NEXT/PREVIOUS_MEDIA_ITEM.
       const options = {
         showSeekForward: true,
         showSeekBackward: true,
