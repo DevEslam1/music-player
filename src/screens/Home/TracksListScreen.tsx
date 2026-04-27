@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAccentColor, useThemeColor } from "../../hooks/use-theme-color";
 import { Track } from "../../types";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
@@ -18,10 +19,11 @@ import { useDispatch } from "react-redux";
 import { setQueue } from "../../redux/store/player/playerSlice";
 import { AppDispatch } from "../../redux/store/store";
 import { searchSongs } from "../../services/api/api";
+import { MainStack } from "../../navigation/AppNavigator";
 
 export default function TracksListScreen() {
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const route = useRoute<RouteProp<MainStack, "TracksList">>();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
   const dispatch = useDispatch<AppDispatch>();
   const { title, tracks: initialTracks, query } = route.params;
 

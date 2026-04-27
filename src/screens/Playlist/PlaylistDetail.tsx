@@ -10,8 +10,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useAccentColor, useThemeColor } from "../../hooks/use-theme-color";
 import { LibraryService } from "../../services/api/libraryService";
 import { Track } from "../../types";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
@@ -19,10 +20,11 @@ import { useDispatch } from "react-redux";
 import { setQueue } from "../../redux/store/player/playerSlice";
 import { removeTrackFromPlaylistAction } from "../../redux/store/library/librarySlice";
 import { AppDispatch } from "../../redux/store/store";
+import { MainStack } from "../../navigation/AppNavigator";
 
 export default function PlaylistDetailScreen() {
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const route = useRoute<RouteProp<MainStack, "PlaylistDetail">>();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
   const dispatch = useDispatch<AppDispatch>();
   const { playlistId, name } = route.params;
 
@@ -31,6 +33,7 @@ export default function PlaylistDetailScreen() {
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
 
   useEffect(() => {
     fetchPlaylistTracks();
@@ -88,7 +91,6 @@ export default function PlaylistDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      {}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
           <Ionicons name="arrow-back" size={26} color={textColor} />
@@ -104,7 +106,7 @@ export default function PlaylistDetailScreen() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#B34A30" />
+          <ActivityIndicator size="large" color={accentColor} />
         </View>
       ) : tracks.length === 0 ? (
         <View style={styles.emptyContainer}>

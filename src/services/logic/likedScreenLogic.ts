@@ -9,10 +9,12 @@ import {
   toggleLikeSongAction,
 } from "../../redux/store/library/librarySlice";
 import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { MainStack } from "../../navigation/AppNavigator";
 
 export function likedScreenLogic() {
   const dispatch = useDispatch<AppDispatch>();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
   const likedSongs = useSelector((state: RootState) => state.library.likedSongs);
   const loading = useSelector(selectLikedSongsLoading);
   const [isEditMode, setIsEditMode] = React.useState(false);

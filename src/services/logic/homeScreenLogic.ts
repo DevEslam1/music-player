@@ -5,6 +5,8 @@ import { useDispatch } from "react-redux";
 import { setQueue } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../audio/AudioPlayerService";
 import { AppDispatch } from "../../redux/store/store";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { MainStack } from "../../navigation/AppNavigator";
 
 /**
  * Junior Developer Logic Note:
@@ -15,7 +17,7 @@ import { AppDispatch } from "../../redux/store/store";
 
 export function homeScreenLogic() {
   const dispatch = useDispatch<AppDispatch>();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
 
   const handlePlayTrack = useCallback(async (track: Track, queue: Track[]) => {
     dispatch(setQueue(queue));

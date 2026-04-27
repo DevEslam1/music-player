@@ -4,10 +4,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
-import { useSelector } from "react-redux";
-import { RootState } from "../../redux/store/store";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { MainStack } from "../../navigation/AppNavigator";
 
-const NotificationItem = ({ title, body, time, icon, color }: any) => {
+interface NotificationItemProps {
+  title: string;
+  body: string;
+  time: string;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  color: string;
+}
+
+const NotificationItem = ({ title, body, time, icon, color }: NotificationItemProps) => {
   const textColor = useThemeColor({}, "text");
   const surfaceColor = useThemeColor({}, "surface");
   
@@ -28,7 +36,7 @@ const NotificationItem = ({ title, body, time, icon, color }: any) => {
 };
 
 export default function NotificationsScreen() {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();

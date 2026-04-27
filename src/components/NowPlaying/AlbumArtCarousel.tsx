@@ -97,11 +97,11 @@ const CarouselItem = ({
       </View>
 
       {/* Main Artwork Container */}
-      <Animated.View style={[styles.albumArtWrapper, scrollAnimatedStyle, { zIndex: 10 }]}>
+      <Animated.View style={[styles.albumArtWrapper, scrollAnimatedStyle, { width: coverSize, height: coverSize, zIndex: 10 }]}>
         <Animated.View style={animatedImageStyle}>
           <Image
             source={{ uri: track.image || 'https://picsum.photos/400' }}
-            style={[styles.albumArt, { borderRadius: 24 }]}
+            style={[styles.albumArt, { width: coverSize, height: coverSize, borderRadius: 24 }]}
             resizeMode="cover"
           />
         </Animated.View>
@@ -143,7 +143,7 @@ export const AlbumArtCarousel = React.memo(({
   }, [currentIndex, itemWidth, queue.length]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { height: coverSize + 40 }]}>
       <Animated.FlatList
         ref={flatListRef as any}
         data={queue}
@@ -198,8 +198,6 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   albumArt: {
-    width: '100%',
-    height: '100%',
     borderRadius: 24,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',

@@ -1,13 +1,22 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from "react-native";
+import { CompositeNavigationProp, useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
-import { useSelector } from "react-redux";
-import { RootState } from "../../redux/store/store";
+import { DrawerNavigationProp } from "@react-navigation/drawer";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { MainStack } from "../../navigation/AppNavigator";
+import { drawerType } from "../../navigation/DrawerNavigator";
 
-const SupportItem = ({ icon, title, subtitle, onPress }: any) => {
+interface SupportItemProps {
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  title: string;
+  subtitle: string;
+  onPress: () => void;
+}
+
+const SupportItem = ({ icon, title, subtitle, onPress }: SupportItemProps) => {
   const textColor = useThemeColor({}, "text");
   const surfaceColor = useThemeColor({}, "surface");
   const accentColor = useAccentColor();
@@ -30,7 +39,12 @@ const SupportItem = ({ icon, title, subtitle, onPress }: any) => {
 };
 
 export default function SupportScreen() {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<
+    CompositeNavigationProp<
+      DrawerNavigationProp<drawerType>,
+      NativeStackNavigationProp<MainStack>
+    >
+  >();
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();

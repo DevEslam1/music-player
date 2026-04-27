@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store/store';
 import { useThemeColor, useAccentColor } from '../hooks/use-theme-color';
+import { PlaylistSummary } from '../types';
 
 const { height } = Dimensions.get('window');
 
@@ -31,9 +32,7 @@ export default function PlaylistPicker({ isVisible, onClose, onSelect }: Playlis
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
 
   
-  const overlayColor = 'rgba(0, 0, 0, 0.5)';
-
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = ({ item }: { item: PlaylistSummary }) => (
     <TouchableOpacity 
       style={[styles.item, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#F1F5F9' }]} 
       onPress={() => onSelect(item.id)}

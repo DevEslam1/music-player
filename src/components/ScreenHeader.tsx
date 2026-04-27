@@ -7,11 +7,13 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useThemeColor, useAccentColor } from "../hooks/use-theme-color";
+import { MainStack } from "../navigation/AppNavigator";
 
 type ScreenHeaderProps = {
   screenTitle?: string;
-  postIcon?: any;
+  postIcon?: React.ComponentProps<typeof Ionicons>["name"];
   onPostPress?: ((event: GestureResponderEvent) => void) | undefined;
 };
 
@@ -20,7 +22,7 @@ export function ScreenHeader({
   postIcon,
   onPostPress,
 }: ScreenHeaderProps) {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
 

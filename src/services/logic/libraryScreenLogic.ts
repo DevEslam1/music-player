@@ -8,6 +8,8 @@ import { searchSongs } from "../api/api";
 import { setQueue } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../audio/AudioPlayerService";
 import { addTrackToPlaylistAction } from "../../redux/store/library/librarySlice";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { MainStack } from "../../navigation/AppNavigator";
 
 export function libraryScreenLogic() {
   const [query, setQuery] = useState("");
@@ -15,10 +17,10 @@ export function libraryScreenLogic() {
   const [loading, setLoading] = useState(false);
   const [isPickerVisible, setIsPickerVisible] = useState(false);
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
   const dispatch = useDispatch<AppDispatch>();
 
-  const { likedSongs, playlists } = useSelector(
+  const { likedSongs } = useSelector(
     (state: RootState) => state.library,
   );
   const activeQuery = React.useRef<string>("");
