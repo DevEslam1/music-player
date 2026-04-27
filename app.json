@@ -2,7 +2,7 @@
   "expo": {
     "name": "GiG Player",
     "slug": "gig-player",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "light",
@@ -13,6 +13,7 @@
     },
     "ios": {
       "supportsTablet": true,
+      "buildNumber": "2.0.0",
       "infoPlist": {
         "UIBackgroundModes": [
           "audio"
@@ -34,7 +35,8 @@
         "android.permission.ACCESS_NETWORK_STATE"
       ],
       "predictiveBackGestureEnabled": false,
-      "package": "com.eslamm2500.musicplayer"
+      "package": "com.eslamm2500.musicplayer",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/app-icon.png"

@@ -24,7 +24,10 @@ import Animated, {
   useSharedValue, 
   useAnimatedStyle, 
   withSpring, 
-  withTiming 
+  withTiming,
+  withRepeat,
+  withSequence,
+  Easing,
 } from "react-native-reanimated";
 
 // Slicing these into smaller components for better performance and clean code! 
@@ -74,21 +77,38 @@ export default function NowPlayingScreen() {
 
   const pagerRef = useRef<PagerView>(null);
 
-  const scale = useSharedValue(1);
-  const shadowOpacity = useSharedValue(0.2);
+  // scale: starts at 0.9 for a subtle entrance effect
+  const scale = useSharedValue(0.9);
+  const shadowOpacity = useSharedValue(0.15);
+  const breathe = useSharedValue(0); // 0→1 breathing offset when playing
+  const glowIntensity = useSharedValue(0); // 0→1 drives the glow behind the artwork
 
   useEffect(() => {
     if (player.isPlaying) {
-      scale.value = withSpring(1.08, { damping: 10, stiffness: 80 });
-      shadowOpacity.value = withTiming(0.4);
+      // Bounce into playing state — bouncier spring than before
+      scale.value = withSpring(1.12, { damping: 8, stiffness: 65 });
+      shadowOpacity.value = withTiming(0.55, { duration: 400 });
+      glowIntensity.value = withTiming(1, { duration: 600 });
+      // Gentle breathe: ±1.5% scale oscillation every 2.4s
+      breathe.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: 2400, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        false
+      );
     } else {
-      scale.value = withSpring(1, { damping: 15, stiffness: 100 });
-      shadowOpacity.value = withTiming(0.2);
+      // Shrink slightly when paused — makes the playing state feel much more alive
+      scale.value = withSpring(0.93, { damping: 14, stiffness: 100 });
+      shadowOpacity.value = withTiming(0.15, { duration: 400 });
+      glowIntensity.value = withTiming(0, { duration: 400 });
+      breathe.value = withTiming(0, { duration: 300 });
     }
   }, [player.isPlaying]);
 
   const animatedImageStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    transform: [{ scale: scale.value + breathe.value * 0.015 }],
     shadowOpacity: shadowOpacity.value,
   }));
 
@@ -96,6 +116,8 @@ export default function NowPlayingScreen() {
     ? player.queue.findIndex(t => t.id === player.currentTrack?.id) 
     : 0;
   const initialPageIndex = currentIndex !== -1 ? currentIndex : 0;
+  const canGoPrevious = currentIndex > 0;
+  const canGoNext = currentIndex < player.queue.length - 1;
 
   useEffect(() => {
     if (player.currentTrack && pagerRef.current && player.queue.length > 0) {
@@ -178,6 +200,7 @@ export default function NowPlayingScreen() {
           initialPageIndex={initialPageIndex}
           onPageSelected={onPageSelected}
           animatedImageStyle={animatedImageStyle}
+          glowIntensity={glowIntensity}
         />
 
         {/* 2. Track Meta Info (Title, Artist, Like, Playlist, Download) */}
@@ -196,6 +219,8 @@ export default function NowPlayingScreen() {
           isPlaying={player.isPlaying}
           isShuffled={player.isShuffled}
           repeatMode={player.repeatMode}
+          canGoNext={canGoNext}
+          canGoPrevious={canGoPrevious}
           onToggleShuffle={onToggleShuffle}
           onToggleRepeat={onToggleRepeat}
           onPlayPause={onPlayPause}
@@ -225,6 +250,7 @@ export default function NowPlayingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#1a1a2e',
   },
   contentContainer: {
     flex: 1,

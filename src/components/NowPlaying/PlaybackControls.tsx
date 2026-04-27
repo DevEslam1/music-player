@@ -13,6 +13,8 @@ interface PlaybackControlsProps {
   isPlaying: boolean;
   isShuffled: boolean;
   repeatMode: 'off' | 'queue' | 'track';
+  canGoNext: boolean;
+  canGoPrevious: boolean;
   onToggleShuffle: () => void;
   onToggleRepeat: () => void;
   onPlayPause: () => void;
@@ -25,6 +27,8 @@ export const PlaybackControls = React.memo(({
   isPlaying,
   isShuffled,
   repeatMode,
+  canGoNext,
+  canGoPrevious,
   onToggleShuffle,
   onToggleRepeat,
   onPlayPause,
@@ -32,6 +36,9 @@ export const PlaybackControls = React.memo(({
   onNext,
   textColor
 }: PlaybackControlsProps) => {
+  // Repeat-queue/track overrides edge disabling — shuffle always allows next
+  const prevEnabled = canGoPrevious || repeatMode === 'queue' || isShuffled;
+  const nextEnabled = canGoNext || repeatMode === 'queue' || repeatMode === 'track' || isShuffled;
   return (
     <View>
       {/* Secondary Controls (Shuffle/Repeat) */}
@@ -81,9 +88,14 @@ export const PlaybackControls = React.memo(({
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             onPrevious();
           }}
-          style={styles.controlBtn}
+          style={[styles.controlBtn, !prevEnabled && styles.disabledBtn]}
+          disabled={!prevEnabled}
         >
-          <Ionicons name="play-skip-back-outline" size={32} color={textColor} />
+          <Ionicons
+            name="play-skip-back-outline"
+            size={32}
+            color={prevEnabled ? textColor : `${textColor}44`}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -101,9 +113,14 @@ export const PlaybackControls = React.memo(({
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             onNext();
           }}
-          style={styles.controlBtn}
+          style={[styles.controlBtn, !nextEnabled && styles.disabledBtn]}
+          disabled={!nextEnabled}
         >
-          <Ionicons name="play-skip-forward-outline" size={32} color={textColor} />
+          <Ionicons
+            name="play-skip-forward-outline"
+            size={32}
+            color={nextEnabled ? textColor : `${textColor}44`}
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -140,6 +157,9 @@ const styles = StyleSheet.create({
   },
   controlBtn: {
     padding: 16,
+  },
+  disabledBtn: {
+    opacity: 0.4,
   },
   playPauseBtn: {
     width: 80,

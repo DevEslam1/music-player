@@ -1,18 +1,22 @@
 import React from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, Image } from 'react-native';
 import PagerView from 'react-native-pager-view';
-import Animated from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, SharedValue } from 'react-native-reanimated';
 import { Track } from '../../types';
 
 const { width } = Dimensions.get('window');
 
+// Cover is 85% of screen width — larger and more immersive than before
+const COVER_SIZE = width * 0.85;
+
 /**
- * Hi there! I'm a Junior developer sub-component. 
- * I handle the swipable album art carousel using PagerView.
- * 
- * Logic:
- * - We map over the queue and show an image for each track.
- * - We use Animated.Image so we can scale it up when music is playing!
+ * 3-layer structure (unchanged from bug fixes):
+ *   Animated.View  → scale animation, NO overflow:hidden (zoom not clipped)
+ *   Inner View     → overflow:hidden + borderRadius (clips image cleanly)
+ *   Image          → the actual artwork
+ *
+ * NEW: A 4th layer — an Animated glow view sits BEHIND the artwork and
+ * fades in/out with glowIntensity (0→1) when the track starts/stops playing.
  */
 
 interface AlbumArtCarouselProps {
@@ -22,7 +26,36 @@ interface AlbumArtCarouselProps {
   initialPageIndex: number;
   onPageSelected: (e: any) => void;
   animatedImageStyle: any;
+  glowIntensity: SharedValue<number>;
 }
+
+const AlbumArtPage = React.memo(({
+  track,
+  animatedImageStyle,
+  glowStyle,
+}: {
+  track: Track;
+  animatedImageStyle: any;
+  glowStyle: any;
+}) => (
+  <View style={styles.page}>
+    {/* Warm glow behind the artwork — fades in when playing */}
+    <Animated.View style={[styles.glow, glowStyle]} />
+
+    {/* Layer 1: Animated.View — scale animation + shadow. NO overflow:hidden */}
+    <Animated.View style={[styles.albumArtShadow, animatedImageStyle]}>
+      {/* Layer 2: clips image corners without cutting the outer scale */}
+      <View style={styles.albumArtClip}>
+        {/* Layer 3: the actual cover art */}
+        <Image
+          source={{ uri: track.image || 'https://picsum.photos/400' }}
+          style={styles.albumArt}
+          resizeMode="cover"
+        />
+      </View>
+    </Animated.View>
+  </View>
+));
 
 export const AlbumArtCarousel = React.memo(({
   queue,
@@ -30,8 +63,15 @@ export const AlbumArtCarousel = React.memo(({
   pagerRef,
   initialPageIndex,
   onPageSelected,
-  animatedImageStyle
+  animatedImageStyle,
+  glowIntensity,
 }: AlbumArtCarouselProps) => {
+  // Animated style for the glow — driven by glowIntensity (0→1)
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: glowIntensity.value * 0.55,
+    transform: [{ scale: 0.85 + glowIntensity.value * 0.15 }],
+  }));
+
   return (
     <View style={styles.carouselContainer}>
       {queue.length > 0 ? (
@@ -42,54 +82,74 @@ export const AlbumArtCarousel = React.memo(({
           onPageSelected={onPageSelected}
         >
           {queue.map((track, index) => (
-            <View key={`${track.id}-${index}`} style={styles.page}>
-              <View style={styles.albumArtShadow}>
-                <Animated.Image
-                  source={{ uri: track.image || 'https://picsum.photos/400' }}
-                  style={[styles.albumArt, animatedImageStyle]}
-                />
-              </View>
-            </View>
+            <AlbumArtPage
+              key={`${track.id}-${index}`}
+              track={track}
+              animatedImageStyle={animatedImageStyle}
+              glowStyle={glowStyle}
+            />
           ))}
         </PagerView>
       ) : (
-        <View style={styles.page}>
-          <View style={styles.albumArtShadow}>
-            <Animated.Image
-              source={{ uri: currentTrack.image || 'https://picsum.photos/400' }}
-              style={[styles.albumArt, animatedImageStyle]}
-            />
-          </View>
-        </View>
+        <AlbumArtPage
+          track={currentTrack}
+          animatedImageStyle={animatedImageStyle}
+          glowStyle={glowStyle}
+        />
       )}
     </View>
   );
 });
 
 const styles = StyleSheet.create({
+  // Container is slightly taller than COVER_SIZE to give the glow room
   carouselContainer: {
-    height: width * 0.85,
-    marginBottom: 20,
+    height: COVER_SIZE + 32,
+    marginBottom: 12,
   },
   pagerView: {
     flex: 1,
   },
   page: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  albumArtShadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.3,
-    shadowRadius: 18,
-    elevation: 20,
-    backgroundColor: '#000',
-    borderRadius: 24,
+
+  // Glow: a large blurred circle behind the artwork.
+  // We simulate blur with a very large borderRadius and lower opacity.
+  glow: {
+    position: 'absolute',
+    width: COVER_SIZE * 1.1,
+    height: COVER_SIZE * 1.1,
+    borderRadius: COVER_SIZE * 0.55,
+    backgroundColor: '#B34A30',
   },
+
+  // Layer 1: handles scale animation + drop shadow
+  // backgroundColor matches app dark bg so any corner bleed is invisible
+  // NO overflow:hidden → scale expands freely
+  albumArtShadow: {
+    shadowColor: '#B34A30',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.4,
+    shadowRadius: 28,
+    elevation: 24,
+    backgroundColor: '#1a1a2e',
+    borderRadius: 28,
+  },
+
+  // Layer 2: clips the image to rounded corners
+  albumArtClip: {
+    width: COVER_SIZE,
+    height: COVER_SIZE,
+    borderRadius: 28,
+    overflow: 'hidden',
+  },
+
+  // Layer 3: the artwork itself
   albumArt: {
-    width: width * 0.8,
-    height: width * 0.8,
-    borderRadius: 24,
+    width: COVER_SIZE,
+    height: COVER_SIZE,
   },
 });
