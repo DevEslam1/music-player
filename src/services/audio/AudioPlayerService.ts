@@ -2,10 +2,10 @@ import { createAudioPlayer, AudioPlayer, setAudioModeAsync } from "expo-audio";
 import { Track } from "../../types";
 import { store } from "../../redux/store/store";
 import { setIsPlaying, setProgress, setCurrentTrack, setPlaybackError } from "../../redux/store/player/playerSlice";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LibraryService } from "../api/libraryService";
 import { Platform } from "react-native";
 import { DownloadService } from "../api/downloadService";
+import { getAccessToken } from "../auth/session";
 
 /**
  * Audio Player Service
@@ -35,6 +35,7 @@ class AudioPlayerService {
   private player: AudioPlayer | null = null;
   private currentLoadingTrackId: string | null = null;
   private subscriptions: { remove: () => void }[] = [];
+  private lastProgressDispatch = 0;
 
   private constructor() {}
 
@@ -62,8 +63,9 @@ class AudioPlayerService {
 
     try {
       store.dispatch(setCurrentTrack(track));
+      this.lastProgressDispatch = 0;
       
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getAccessToken();
       const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
       await initAudioMode();
@@ -128,12 +130,17 @@ class AudioPlayerService {
           // Fallback duration: previews are always 30s max. The full Spotify duration
           // (track.duration) is incorrect for preview files, so cap it at 30000ms.
           const previewFallbackMs = Math.min((track.duration || 30000), 30000);
-          store.dispatch(setProgress({
-            position: (status.currentTime || 0) * 1000,
-            duration: (status.duration && status.duration > 1)
-              ? status.duration * 1000
-              : previewFallbackMs,
-          }));
+          const now = Date.now();
+
+          if (now - this.lastProgressDispatch >= 500 || status.didJustFinish) {
+            store.dispatch(setProgress({
+              position: (status.currentTime || 0) * 1000,
+              duration: (status.duration && status.duration > 1)
+                ? status.duration * 1000
+                : previewFallbackMs,
+            }));
+            this.lastProgressDispatch = now;
+          }
         }
 
         if (status.didJustFinish) {
@@ -142,6 +149,8 @@ class AudioPlayerService {
       }));
 
       if (Platform.OS === 'android') {
+        // expo-audio can race play() immediately after load on Android; keep the delay
+        // until the upstream playback-start issue is resolved in the SDK/runtime.
         await new Promise(resolve => setTimeout(resolve, 500));
       }
       

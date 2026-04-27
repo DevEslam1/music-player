@@ -11,7 +11,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { OfflineBanner } from "./src/components/OfflineBanner";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-
+import { ErrorBoundary } from "./src/components/ErrorBoundary";
+import { AppBootstrap } from "./src/components/AppBootstrap";
 
 function RootContent() {
   const [currentRoute, setCurrentRoute] = useState<string | undefined>();
@@ -34,21 +35,19 @@ function RootContent() {
   );
 }
 
-import { DownloadService } from "./src/services/api/downloadService";
-
 export default function App() {
-  React.useEffect(() => {
-    DownloadService.init();
-  }, []);
-
   return (
     <Provider store={store}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
-          <AuthInitializer>
-            <OfflineBanner />
-            <RootContent />
-          </AuthInitializer>
+          <AppBootstrap>
+            <AuthInitializer>
+              <OfflineBanner />
+              <ErrorBoundary>
+                <RootContent />
+              </ErrorBoundary>
+            </AuthInitializer>
+          </AppBootstrap>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </Provider>

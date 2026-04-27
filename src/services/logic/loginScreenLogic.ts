@@ -2,15 +2,16 @@ import { useNavigation } from "@react-navigation/native";
 import { useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  fetchProfile,
   loginFailure,
   loginStart,
-  loginSuccess,
   selectAuthLoading,
 } from "../../redux/store/auth/authSlice";
 import { validateEmail, validatePassword } from "../../utils/validation";
 import { Alert } from "react-native";
 import { AuthService } from "../api/authService";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AppDispatch } from "../../redux/store/store";
+import { clearAuthTokens, saveAuthTokens } from "../auth/session";
 
 /**
  * Professional Junior Logic Note:
@@ -20,7 +21,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export function loginScreenLogic() {
   const navigation = useNavigation<any>();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const isLoading = useSelector(selectAuthLoading);
@@ -41,16 +42,14 @@ export function loginScreenLogic() {
     dispatch(loginStart());
     try {
       // Clear previous tokens for a truly fresh session
-      await AsyncStorage.removeItem("access_token");
-      await AsyncStorage.removeItem("refresh_token");
+      await clearAuthTokens();
 
       const data = await AuthService.login({ email, password });
       const { access, refresh } = data;
 
-      await AsyncStorage.setItem("access_token", access);
-      await AsyncStorage.setItem("refresh_token", refresh);
+      await saveAuthTokens({ access, refresh });
 
-      dispatch(loginSuccess({ email }));
+      await dispatch(fetchProfile()).unwrap();
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.detail ||

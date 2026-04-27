@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../redux/store/store";
-import { logout, fetchProfile } from "../../redux/store/auth/authSlice";
+import { logoutAction, fetchProfile } from "../../redux/store/auth/authSlice";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { useNavigation } from "@react-navigation/native";
 
@@ -23,7 +23,7 @@ export default function ProfileScreen() {
 
   React.useEffect(() => {
     dispatch(fetchProfile());
-  }, []);
+  }, [dispatch]);
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -90,7 +90,7 @@ export default function ProfileScreen() {
 
         <TouchableOpacity 
           style={[styles.logoutButton, { backgroundColor: accentColor, shadowColor: accentColor }]}
-          onPress={() => dispatch(logout())}
+          onPress={() => dispatch(logoutAction())}
         >
           <Ionicons name="log-out-outline" size={20} color="#fff" />
           <Text style={styles.logoutText}>Log Out</Text>

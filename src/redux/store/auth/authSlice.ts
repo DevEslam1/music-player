@@ -1,8 +1,13 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { AuthService } from "../../../services/api/authService";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { User } from "../../../types";
+import { clearAuthTokens } from "../../../services/auth/session";
 
-export const fetchProfile = createAsyncThunk(
+export const fetchProfile = createAsyncThunk<
+  User,
+  void,
+  { rejectValue: string }
+>(
   "auth/fetchProfile",
   async (_, { rejectWithValue }) => {
     try {
@@ -16,8 +21,20 @@ export const fetchProfile = createAsyncThunk(
   },
 );
 
+export const logoutAction = createAsyncThunk<
+  void,
+  void,
+  { rejectValue: string }
+>("auth/logout", async (_, { rejectWithValue }) => {
+  try {
+    await clearAuthTokens();
+  } catch (error) {
+    return rejectWithValue("Failed to clear the session");
+  }
+});
+
 interface AuthState {
-  currentUser: any;
+  currentUser: User | null;
   loading: boolean;
   failed: string | null;
   isLoggedIn: boolean;
@@ -40,7 +57,7 @@ const authSlice = createSlice({
       state.loading = true;
       state.failed = null;
     },
-    loginSuccess: (state, action: PayloadAction<any>) => {
+    loginSuccess: (state, action: PayloadAction<User>) => {
       state.loading = false;
       state.isLoggedIn = true;
       state.currentUser = action.payload;
@@ -49,10 +66,10 @@ const authSlice = createSlice({
       state.loading = false;
       state.failed = action.payload;
     },
-    logout: (state) => {
+    logoutCompleted: (state) => {
       state.isLoggedIn = false;
       state.currentUser = null;
-      AsyncStorage.multiRemove(["access_token", "refresh_token"]);
+      state.loading = false;
     },
     setFirstLaunch: (state, action: PayloadAction<boolean>) => {
       state.isFirstLaunch = action.payload;
@@ -71,11 +88,28 @@ const authSlice = createSlice({
       .addCase(fetchProfile.rejected, (state, action) => {
         state.loading = false;
         state.failed = action.payload as string;
+      })
+      .addCase(logoutAction.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(logoutAction.fulfilled, (state) => {
+        state.isLoggedIn = false;
+        state.currentUser = null;
+        state.loading = false;
+      })
+      .addCase(logoutAction.rejected, (state, action) => {
+        state.loading = false;
+        state.failed = action.payload as string;
       });
   },
 });
 
-export const { loginStart, loginSuccess, loginFailure, logout, setFirstLaunch } =
-  authSlice.actions;
+export const {
+  loginStart,
+  loginSuccess,
+  loginFailure,
+  logoutCompleted,
+  setFirstLaunch,
+} = authSlice.actions;
 export const selectAuthLoading = (state: any) => state.auth.loading;
 export default authSlice.reducer;

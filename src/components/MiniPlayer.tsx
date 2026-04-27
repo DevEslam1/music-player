@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image, Platform } from "react-native";
-import { useSelector } from "react-redux";
+import { shallowEqual, useSelector } from "react-redux";
 import { RootState } from "../redux/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import { audioPlayer } from "../services/audio/AudioPlayerService";
@@ -8,15 +8,20 @@ import { useNavigation } from "@react-navigation/native";
 import { useAccentColor, useThemeColor } from "../hooks/use-theme-color";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-export const MiniPlayer = () => {
-  const { currentTrack, isPlaying, positionMillis, durationMillis } = useSelector(
-    (state: RootState) => state.player
+const MiniPlayerInner = () => {
+  const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
+  const isPlaying = useSelector((state: RootState) => state.player.isPlaying);
+  const { positionMillis, durationMillis } = useSelector(
+    (state: RootState) => ({
+      positionMillis: state.player.positionMillis,
+      durationMillis: state.player.durationMillis,
+    }),
+    shallowEqual,
   );
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
   
-  const backgroundColor = useThemeColor({}, "surface");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
 
@@ -83,6 +88,8 @@ export const MiniPlayer = () => {
     </View>
   );
 };
+
+export const MiniPlayer = React.memo(MiniPlayerInner);
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -154,6 +161,5 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 });
-
 
 

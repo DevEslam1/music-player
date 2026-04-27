@@ -1,10 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { 
-  DrawerContentScrollView, 
-  DrawerItemList,
-  DrawerContentComponentProps 
-} from "@react-navigation/drawer";
+import { DrawerContentComponentProps } from "@react-navigation/drawer";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store/store";
@@ -56,7 +52,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
         />
         <DrawerItem 
           icon="search-outline" 
-          label="Search" 
+          label="Library" 
           textColor={textColor}
           onPress={() => props.navigation.navigate("Library")} 
         />

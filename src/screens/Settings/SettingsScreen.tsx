@@ -8,30 +8,20 @@ import { RootState } from "../../redux/store/store";
 import { toggleTheme, setAccentColor } from "../../redux/store/theme/themeSlice";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { ACCENT_COLORS } from "../../constants/theme";
-
-const SettingItem = ({ icon, label, children, onPress }: any) => {
-  const textColor = useThemeColor({}, "text");
-  const accentColor = useAccentColor();
-  return (
-    <TouchableOpacity style={styles.item} onPress={onPress} disabled={!onPress}>
-      <View style={styles.itemLeft}>
-        <Ionicons name={icon} size={22} color={accentColor} style={styles.icon} />
-        <Text style={[styles.label, { color: textColor }]}>{label}</Text>
-      </View>
-      {children}
-    </TouchableOpacity>
-  );
-};
+import Constants from "expo-constants";
+import { AppDispatch } from "../../redux/store/store";
+import { SettingItem } from "../../components/settings/SettingItem";
 
 export default function SettingsScreen() {
   const navigation = useNavigation<any>();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
   
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const surfaceColor = useThemeColor({}, "surface");
   const accentColor = useAccentColor();
+  const appVersion = Constants.expoConfig?.version ?? "2.0.0";
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
@@ -108,7 +98,7 @@ export default function SettingsScreen() {
         <View style={[styles.section, { backgroundColor: surfaceColor }]}>
           <Text style={[styles.sectionTitle, { color: accentColor }]}>About</Text>
           <SettingItem icon="information-circle-outline" label="Version">
-            <Text style={styles.valueText}>1.0.0</Text>
+            <Text style={styles.valueText}>{appVersion}</Text>
           </SettingItem>
           <SettingItem 
             icon="document-text-outline" 
@@ -187,24 +177,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
-  },
-  item: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 12,
-  },
-  itemLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  icon: {
-    marginRight: 16,
-    width: 24,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "500",
   },
   itemRight: {
     flexDirection: "row",

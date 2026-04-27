@@ -5,6 +5,13 @@ import { fetchProfile, setFirstLaunch } from '../redux/store/auth/authSlice';
 import { AppDispatch } from '../redux/store/store';
 import { CustomSplash } from './CustomSplash';
 import { useState } from 'react';
+import {
+  setAccentColor,
+  setDarkMode,
+  setThemeHydrated,
+} from '../redux/store/theme/themeSlice';
+import { loadThemePreferences } from '../services/storage/themePreferences';
+import { getAccessToken } from '../services/auth/session';
 
 interface AuthInitializerProps {
   children: React.ReactNode;
@@ -17,6 +24,16 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) =>
   useEffect(() => {
     const initAuth = async () => {
       try {
+        try {
+          const savedTheme = await loadThemePreferences();
+          if (savedTheme) {
+            dispatch(setDarkMode(savedTheme.isDarkMode));
+            dispatch(setAccentColor(savedTheme.accentColor));
+          }
+        } finally {
+          dispatch(setThemeHydrated(true));
+        }
+
         // Check for first launch
         const firstLaunch = await AsyncStorage.getItem("@is_first_launch");
         if (firstLaunch === null) {
@@ -25,7 +42,7 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) =>
           dispatch(setFirstLaunch(false));
         }
 
-        const token = await AsyncStorage.getItem("access_token");
+        const token = await getAccessToken();
         if (token) {
           await dispatch(fetchProfile()).unwrap();
         }

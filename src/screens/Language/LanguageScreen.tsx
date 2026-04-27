@@ -3,50 +3,17 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
-import { useSelector } from "react-redux";
-import { RootState } from "../../redux/store/store";
-
-const LanguageItem = ({ label, isSelected, comingSoon, onPress }: any) => {
-  const textColor = useThemeColor({}, "text");
-  const surfaceColor = useThemeColor({}, "surface");
-  const accentColor = useAccentColor();
-  
-  return (
-    <TouchableOpacity 
-      style={[
-        styles.langItem, 
-        { backgroundColor: surfaceColor },
-        isSelected && [styles.selectedItem, { borderColor: accentColor }]
-      ]} 
-      onPress={onPress}
-      disabled={comingSoon}
-    >
-      <View style={styles.langInfo}>
-        <Text style={[
-          styles.langLabel, 
-          { color: textColor },
-          comingSoon && { opacity: 0.5 }
-        ]}>
-          {label}
-        </Text>
-        {comingSoon && (
-          <View style={styles.comingSoonBadge}>
-            <Text style={styles.comingSoonText}>Coming Soon</Text>
-          </View>
-        )}
-      </View>
-      {isSelected && (
-        <Ionicons name="checkmark-circle" size={24} color={accentColor} />
-      )}
-    </TouchableOpacity>
-  );
-};
+import { useThemeColor } from "../../hooks/use-theme-color";
+import { LanguageItem } from "../../components/language/LanguageItem";
 
 export default function LanguageScreen() {
   const navigation = useNavigation<any>();
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const mutedTextColor = useThemeColor(
+    { light: "#94A3B8", dark: "#94A3B8" },
+    "text",
+  );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
@@ -59,21 +26,13 @@ export default function LanguageScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.description}>
+        <Text style={[styles.description, { color: mutedTextColor }]}>
           Select your preferred language for the app interface.
         </Text>
 
         <View style={styles.list}>
-          <LanguageItem 
-            label="English" 
-            isSelected={true} 
-            onPress={() => {}} 
-          />
-          <LanguageItem 
-            label="Arabic (العربية)" 
-            comingSoon={true} 
-            onPress={() => {}} 
-          />
+          <LanguageItem label="English" isSelected={true} onPress={() => {}} />
+          <LanguageItem label="Arabic" comingSoon={true} onPress={() => {}} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -104,44 +63,10 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    color: "#94A3B8",
     marginBottom: 32,
     marginTop: 10,
   },
   list: {
     gap: 16,
-  },
-  langItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 20,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: "transparent",
-  },
-  selectedItem: {
-    // Border color is set dynamically in the component
-  },
-  langInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  langLabel: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  comingSoonBadge: {
-    backgroundColor: "rgba(148, 163, 184, 0.1)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  comingSoonText: {
-    fontSize: 10,
-    color: "#94A3B8",
-    fontWeight: "bold",
-    textTransform: "uppercase",
   },
 });

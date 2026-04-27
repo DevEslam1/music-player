@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { CustomTextInput } from "../../components/auth/CustomTextInput";
 import { CustomButton } from "../../components/CustomButton";
 import { loginScreenLogic } from "../../services/logic/loginScreenLogic";
+import { useAccentColor, useThemeColor } from "../../hooks/use-theme-color";
 
 // Reusable Header
 import { AuthHeader } from "../../components/auth/AuthHeader";
@@ -27,10 +28,25 @@ export default function LoginScreen() {
   } = loginScreenLogic();
 
   const navigation = useNavigation<any>();
+  const backgroundColor = useThemeColor({}, "background");
+  const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
+  const mutedTextColor = useThemeColor(
+    { light: "#64748B", dark: "#94A3B8" },
+    "text",
+  );
+  const cardColor = useThemeColor(
+    { light: "#FCE8E2", dark: "rgba(179, 74, 48, 0.18)" },
+    "surface",
+  );
+  const dividerColor = useThemeColor(
+    { light: "#E2E8F0", dark: "rgba(148, 163, 184, 0.2)" },
+    "surface",
+  );
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       {/* Centered Auth Header */}
@@ -43,18 +59,18 @@ export default function LoginScreen() {
       <View style={styles.loginCard}>
         {/* Log In Title Row */}
         <View style={styles.loginTitleRow}>
-          <View style={styles.iconBox}>
-            <Ionicons name="log-in-outline" size={20} color="#B34A30" />
+          <View style={[styles.iconBox, { backgroundColor: cardColor }]}>
+            <Ionicons name="log-in-outline" size={20} color={accentColor} />
           </View>
           <View style={styles.loginTitleText}>
-            <Text style={styles.loginTitle}>Log In</Text>
-            <Text style={styles.loginSubtitle}>
+            <Text style={[styles.loginTitle, { color: textColor }]}>Log In</Text>
+            <Text style={[styles.loginSubtitle, { color: mutedTextColor }]}>
               Enter Your Credentials to continue
             </Text>
           </View>
         </View>
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: dividerColor }]} />
 
         <CustomTextInput
           label="Email"
@@ -85,9 +101,11 @@ export default function LoginScreen() {
         />
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
+          <Text style={[styles.footerText, { color: mutedTextColor }]}>
+            Don't have an account?{" "}
+          </Text>
           <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
-            <Text style={styles.signUpLink}>Sign Up</Text>
+            <Text style={[styles.signUpLink, { color: accentColor }]}>Sign Up</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -98,7 +116,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
   },
   loginCard: {
     flex: 1,
@@ -113,7 +130,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: "#FCE8E2",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -124,15 +140,12 @@ const styles = StyleSheet.create({
   loginTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#0F172A",
   },
   loginSubtitle: {
     fontSize: 12,
-    color: "#64748B",
   },
   divider: {
     height: 1,
-    backgroundColor: "#E2E8F0",
     marginBottom: 32,
   },
   footer: {
@@ -143,11 +156,9 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    color: "#64748B",
   },
   signUpLink: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#B34A30",
   },
 });
