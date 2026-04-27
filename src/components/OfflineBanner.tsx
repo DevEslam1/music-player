@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import NetInfo from '@react-native-community/netinfo';
 import Animated, { 
@@ -16,18 +16,45 @@ export const OfflineBanner = () => {
   const [isOffline, setIsOffline] = useState(false);
   const insets = useSafeAreaInsets();
   const hasCurrentTrack = useSelector((state: RootState) => !!state.player.currentTrack);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  
+  const { width: screenWidth } = useWindowDimensions();
   const translateY = useSharedValue(-200);
+  const bannerLeft = useSharedValue(20);
+  const bannerRight = useSharedValue(20);
   const fabTranslateY = useSharedValue(-100);
 
   useEffect(() => {
+    let collapseTimer: NodeJS.Timeout;
     const unsubscribe = NetInfo.addEventListener(state => {
       const offline = state.isConnected === false || state.isInternetReachable === false;
       setIsOffline(offline);
-      translateY.value = offline ? insets.top + 10 : -200;
+      
+      if (offline) {
+        translateY.value = insets.top + 10;
+        setIsCollapsed(false);
+        bannerLeft.value = 20;
+        bannerRight.value = 20;
+        
+        collapseTimer = setTimeout(() => {
+          setIsCollapsed(true);
+          bannerRight.value = 55; // Next to search icon
+          bannerLeft.value = screenWidth - 55 - 42; // Collapsed width 42
+        }, 5000);
+      } else {
+        translateY.value = -200;
+        setIsCollapsed(false);
+        bannerLeft.value = 20;
+        bannerRight.value = 20;
+        if (collapseTimer) clearTimeout(collapseTimer);
+      }
     });
 
-    return () => unsubscribe();
-  }, [insets.top]);
+    return () => {
+      unsubscribe();
+      if (collapseTimer) clearTimeout(collapseTimer);
+    };
+  }, [insets.top, screenWidth]);
 
   useEffect(() => {
     // Position FAB above MiniPlayer if a track is loaded
@@ -39,6 +66,13 @@ export const OfflineBanner = () => {
 
   const animatedStyle = useAnimatedStyle(() => ({
     top: withSpring(translateY.value, { damping: 15, stiffness: 100 }),
+    left: withSpring(bannerLeft.value),
+    right: withSpring(bannerRight.value),
+    height: 42,
+    borderRadius: isCollapsed ? 21 : 30,
+    paddingHorizontal: withSpring(isCollapsed ? 0 : 16),
+    justifyContent: 'center',
+    alignItems: 'center',
   }));
 
   const fabAnimatedStyle = useAnimatedStyle(() => ({
@@ -49,10 +83,10 @@ export const OfflineBanner = () => {
     <>
       <Animated.View style={[styles.container, animatedStyle]} pointerEvents="none">
         <View style={styles.content}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="cloud-offline" size={16} color="#FFF" />
+          <View style={[styles.iconCircle, isCollapsed && { backgroundColor: 'transparent', width: '100%' }]}>
+            <Ionicons name="cloud-offline" size={isCollapsed ? 20 : 16} color="#FFF" />
           </View>
-          <Text style={styles.text}>Connection Lost • Working Offline</Text>
+          {!isCollapsed && <Text style={styles.text}>Connection Lost • Working Offline</Text>}
         </View>
       </Animated.View>
 

@@ -17,9 +17,12 @@ A premium, high-performance music player app built with **React Native**, **Expo
   - **Extra-Large Covers**: Immersive 85% width artwork with soft, high-quality corner rounding.
   - **"Aura Glow"**: A dynamic, pulsing color halo behind the cover art that adapts to the app's accent theme.
   - **Breathing Animations**: Rhythmic scale pulsations that bring the interface "to life" during active playback.
-- ⏬ **Offline Mode**:
+- ⏬ **Robust Offline Mode (V2.0 Refined)**:
   - **Local Caching**: Download your favorite tracks directly to your device via `expo-file-system`.
-  - **No-Connection Playback**: Automatically falls back to local files when the internet is unavailable.
+  - **Smart Validation**: 3-stage validation process (HTTP 200 checks, Auth Header injection, and 10KB minimum file-size guards) to prevent corrupted or unauthorized files from bloating storage.
+  - **Connection-Aware Playback**: Automatically falls back to local files when the internet is unavailable with zero latency.
+  - **Intelligent Status Banner**: A top-level indicator that appears on connection loss, auto-collapsing into a subtle status icon near the search bar after 5 seconds to keep the UI clean.
+  - **Reactive Offline Shortcut**: A dynamic Floating Action Button (FAB) for the Downloads Library that only appears when offline and intelligently shifts its position to stay above the music player controls.
 - 💅 **Premium High-Fidelity UI**: 
   - **Glassmorphism**: Translucent, blurred MiniPlayer and Now Playing overlays for a modern, OS-integrated feel.
   - **Immersive Backgrounds**: Dynamic, blurred album art backgrounds that adapt to the current track.
@@ -63,9 +66,9 @@ A premium, high-performance music player app built with **React Native**, **Expo
 | **State**      | Redux Toolkit (Async Thunks for Backend Sync)         |
 | **Animations**  | React Native Reanimated 4 (Pulse & Breathe)           |
 | **Audio**      | Expo-Audio (Foreground/Background & Offline)          |
-| **Networking** | Axios (w/ JWT Interceptors)                           |
+| **Networking** | Axios (w/ JWT Interceptors & Adaptive Headers)        |
 | **Navigation** | React Navigation (Native Stack + Custom Drawer)       |
-| **Storage**    | Expo FileSystem (Offline Track Management)            |
+| **Storage**    | Expo FileSystem (Paths API & Strict Validation)       |
 
 ---
 
