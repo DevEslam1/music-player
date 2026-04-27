@@ -1,12 +1,12 @@
 import React, { useRef, useEffect } from 'react';
-import { View, StyleSheet, Dimensions, Image, FlatList } from 'react-native';
+import { View, StyleSheet, Dimensions, Image, FlatList, Platform } from 'react-native';
 import Animated, { 
   useAnimatedStyle, 
   useSharedValue, 
   useAnimatedScrollHandler,
   interpolate,
   Extrapolate,
-  scrollTo
+  SharedValue
 } from 'react-native-reanimated';
 import { Track } from '../../types';
 
@@ -22,10 +22,26 @@ interface AlbumArtCarouselProps {
   currentTrack: Track;
   onTrackChange: (index: number) => void;
   currentIndex: number;
+  animatedImageStyle?: any;
+  glowIntensity?: SharedValue<number>;
 }
 
-const CarouselItem = ({ track, index, scrollX }: { track: Track; index: number; scrollX: Animated.SharedValue<number> }) => {
-  const animatedStyle = useAnimatedStyle(() => {
+const CarouselItem = ({ 
+  track, 
+  index, 
+  scrollX, 
+  animatedImageStyle,
+  glowIntensity,
+  accentColor 
+}: { 
+  track: Track; 
+  index: number; 
+  scrollX: SharedValue<number>;
+  animatedImageStyle?: any;
+  glowIntensity?: SharedValue<number>;
+  accentColor: string;
+}) => {
+  const scrollAnimatedStyle = useAnimatedStyle(() => {
     const inputRange = [
       (index - 1) * ITEM_WIDTH,
       index * ITEM_WIDTH,
@@ -52,25 +68,61 @@ const CarouselItem = ({ track, index, scrollX }: { track: Track; index: number; 
     };
   });
 
+  const glowStyle = useAnimatedStyle(() => {
+    if (!glowIntensity) return { opacity: 0 };
+    
+    // Only show glow if this is the active-ish item
+    const distance = Math.abs(scrollX.value - (index * ITEM_WIDTH));
+    const opacityMult = interpolate(distance, [0, ITEM_WIDTH / 2], [1, 0], Extrapolate.CLAMP);
+
+    return {
+      opacity: glowIntensity.value * 0.4 * opacityMult,
+      transform: [{ scale: 1.15 }],
+    };
+  });
+
   return (
     <View style={[styles.itemContainer, { width: ITEM_WIDTH }]}>
-      <Animated.View style={[styles.albumArtWrapper, animatedStyle]}>
-        <Image
+      {/* Background layer for the glow */}
+      <View 
+        style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', zIndex: -1 }]}
+        pointerEvents="none"
+      >
+        <Animated.Image 
           source={{ uri: track.image || 'https://picsum.photos/400' }}
-          style={styles.albumArt}
-          resizeMode="cover"
+          style={[
+            styles.glowBackground, 
+            glowStyle
+          ]}
+          blurRadius={Platform.OS === 'ios' ? 60 : 30}
         />
+      </View>
+
+      {/* Main Artwork Container */}
+      <Animated.View style={[styles.albumArtWrapper, scrollAnimatedStyle, { zIndex: 10 }]}>
+        <Animated.View style={animatedImageStyle}>
+          <Image
+            source={{ uri: track.image || 'https://picsum.photos/400' }}
+            style={styles.albumArt}
+            resizeMode="cover"
+          />
+        </Animated.View>
       </Animated.View>
     </View>
   );
 };
 
+import { useAccentColor } from '../../hooks/use-theme-color';
+
 export const AlbumArtCarousel = React.memo(({
   queue,
   currentTrack,
   onTrackChange,
-  currentIndex
+  currentIndex,
+  animatedImageStyle,
+  glowIntensity
 }: AlbumArtCarouselProps) => {
+  const accentColor = useAccentColor();
   const scrollX = useSharedValue(0);
   const flatListRef = useRef<FlatList>(null);
 
@@ -113,7 +165,14 @@ export const AlbumArtCarousel = React.memo(({
           }
         }}
         renderItem={({ item, index }) => (
-          <CarouselItem track={item} index={index} scrollX={scrollX} />
+          <CarouselItem 
+            track={item} 
+            index={index} 
+            scrollX={scrollX} 
+            animatedImageStyle={index === currentIndex ? animatedImageStyle : undefined}
+            glowIntensity={index === currentIndex ? glowIntensity : undefined}
+            accentColor={accentColor}
+          />
         )}
       />
     </View>
@@ -146,5 +205,13 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  glowBackground: {
+    position: 'absolute',
+    width: COVER_SIZE,
+    height: COVER_SIZE,
+    borderRadius: COVER_SIZE,
+    opacity: 0,
+    zIndex: -1, // Ensure it's behind the cover
   },
 });

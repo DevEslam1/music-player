@@ -68,7 +68,7 @@ export default function NowPlayingScreen() {
   useEffect(() => {
     if (player.isPlaying) {
       // Bounce into playing state — bouncier spring than before
-      scale.value = withSpring(1.5, { damping: 12, stiffness: 50 });
+      scale.value = withSpring(1.08, { damping: 12, stiffness: 50 });
       shadowOpacity.value = withTiming(0.55, { duration: 400 });
       glowIntensity.value = withTiming(1, { duration: 600 });
       // Gentle breathe: ±1.5% scale oscillation every 2.4s
@@ -138,14 +138,33 @@ export default function NowPlayingScreen() {
   if (!player.currentTrack) return null;
 
   return (
-    <View style={styles.container}>
-      {/* Background with Theme Support */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor }]} />
+    <View style={[styles.container, { backgroundColor }]}>
+      {/* Blurred Background */}
+      <View style={StyleSheet.absoluteFill}>
+        {player.currentTrack.image ? (
+          <Image 
+            source={{ uri: player.currentTrack.image }} 
+            style={StyleSheet.absoluteFill}
+            blurRadius={Platform.OS === 'ios' ? 80 : 30} 
+          />
+        ) : (
+          <View style={[StyleSheet.absoluteFill, { backgroundColor }]} />
+        )}
+        <View 
+          style={[
+            StyleSheet.absoluteFill, 
+            { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.4)' }
+          ]} 
+        />
+      </View>
 
       <SafeAreaView style={styles.contentContainer}>
         {/* Header Overlay */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
+          <TouchableOpacity 
+            onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Drawer')} 
+            style={styles.headerButton}
+          >
             <Ionicons name="arrow-back" size={26} color={textColor} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: textColor }]}>Playing Now</Text>
@@ -158,6 +177,8 @@ export default function NowPlayingScreen() {
           currentTrack={player.currentTrack}
           currentIndex={currentIndex}
           onTrackChange={onTrackChange}
+          animatedImageStyle={animatedImageStyle}
+          glowIntensity={glowIntensity}
         />
 
         {/* 2. Track Meta Info (Title, Artist, Like, Playlist, Download) */}
