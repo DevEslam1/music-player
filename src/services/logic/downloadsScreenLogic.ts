@@ -1,45 +1,35 @@
-import { useState, useCallback, useEffect } from "react";
-import { DownloadService, DownloadedTrack } from "../api/downloadService";
+import { useCallback, useMemo } from "react";
+import { DownloadService } from "../api/downloadService";
 import { store } from "../../redux/store/store";
 import { setCurrentTrack, setQueue, setIsPlaying } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../audio/AudioPlayerService";
 import { Alert } from "react-native";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store/store";
+import { Track } from "../../types";
 
 export function downloadsScreenLogic() {
-  const [downloadedTracks, setDownloadedTracks] = useState<DownloadedTrack[]>([]);
-  const [loading, setLoading] = useState(true);
+  const tracksRecord = useSelector((state: RootState) => state.downloads.tracks);
+  
+  // Transform Record to Array and sort by name (optional, but good for UX)
+  const downloadedTracks = useMemo(() => {
+    return Object.values(tracksRecord).sort((a, b) => a.name.localeCompare(b.name));
+  }, [tracksRecord]);
 
-  // Re-fetch downloaded tracks when the global Redux state changes (i.e. someone removed/added a download)
-  const downloadedTrackIds = useSelector((state: RootState) => state.downloads.downloadedTrackIds);
+  const totalStorage = useMemo(() => {
+    return downloadedTracks.reduce((acc, t) => acc + (t.size || 0), 0);
+  }, [downloadedTracks]);
 
-  const fetchDownloads = useCallback(async () => {
-    setLoading(true);
-    try {
-      const tracks = await DownloadService.getDownloadedTracks();
-      setDownloadedTracks(tracks);
-    } catch (e) {
-      console.error("Failed to load downloads:", e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const loading = false; // No longer needed since Redux is hydrated on startup
 
-  useEffect(() => {
-    fetchDownloads();
-  }, [downloadedTrackIds, fetchDownloads]);
-
-  const handlePlayTrack = useCallback(async (track: DownloadedTrack) => {
+  const handlePlayTrack = useCallback(async (track: Track) => {
     store.dispatch(setQueue(downloadedTracks));
     store.dispatch(setCurrentTrack(track));
-    store.dispatch(setIsPlaying(true));
-
+    
     try {
       await audioPlayer.loadPlayTrack(track);
     } catch (e) {
       console.error("Failed to play track:", e);
-      store.dispatch(setIsPlaying(false));
     }
   }, [downloadedTracks]);
 
@@ -53,17 +43,44 @@ export function downloadsScreenLogic() {
           text: "Delete", 
           style: "destructive",
           onPress: async () => {
-            await DownloadService.removeDownload(trackId);
+            try {
+              await DownloadService.removeDownload(trackId);
+            } catch (e: any) {
+              Alert.alert("Error", "Failed to remove download: " + e.message);
+            }
           }
         }
       ]
     );
   }, []);
 
+  const handleDeleteAll = useCallback(async () => {
+    if (downloadedTracks.length === 0) return;
+    
+    Alert.alert(
+      "Delete All",
+      `Are you sure you want to delete all ${downloadedTracks.length} downloaded tracks?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete All", 
+          style: "destructive",
+          onPress: async () => {
+            for (const track of downloadedTracks) {
+              await DownloadService.removeDownload(track.id);
+            }
+          }
+        }
+      ]
+    );
+  }, [downloadedTracks]);
+
   return {
     downloadedTracks,
     loading,
     handlePlayTrack,
-    handleDeleteDownload
+    handleDeleteDownload,
+    handleDeleteAll,
+    totalStorage
   };
 }

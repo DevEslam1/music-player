@@ -2,6 +2,7 @@ import React from "react";
 import { TouchableOpacity, Image, View, Text, StyleSheet } from "react-native";
 import { Track } from "../../types";
 import { Ionicons } from "@expo/vector-icons";
+import { DownloadButton } from "../DownloadButton";
 
 const SuggestionItemInner = ({
   track,
@@ -31,7 +32,10 @@ const SuggestionItemInner = ({
           {track.artist}
         </Text>
       </View>
-      <Ionicons name="play-circle-outline" size={28} color="#B34A30" />
+      <View style={styles.actions}>
+        <DownloadButton track={track} size={18} />
+        <Ionicons name="play-circle-outline" size={28} color="#B34A30" />
+      </View>
     </TouchableOpacity>
   );
 };
@@ -67,4 +71,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#94A3B8",
   },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  }
 });

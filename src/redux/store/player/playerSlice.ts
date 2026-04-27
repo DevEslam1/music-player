@@ -9,6 +9,7 @@ interface PlayerState {
   durationMillis: number;
   isShuffled: boolean;
   repeatMode: 'off' | 'track' | 'queue';
+  error: string | null;
 }
 
 const initialState: PlayerState = {
@@ -19,6 +20,7 @@ const initialState: PlayerState = {
   durationMillis: 0,
   isShuffled: false,
   repeatMode: 'off',
+  error: null,
 };
 
 const playerSlice = createSlice({
@@ -27,6 +29,7 @@ const playerSlice = createSlice({
   reducers: {
     setCurrentTrack: (state, action: PayloadAction<Track | null>) => {
       state.currentTrack = action.payload;
+      state.error = null; // Clear error when track changes
     },
     setQueue: (state, action: PayloadAction<Track[]>) => {
       state.queue = action.payload;
@@ -45,9 +48,21 @@ const playerSlice = createSlice({
       if (state.repeatMode === 'off') state.repeatMode = 'track';
       else if (state.repeatMode === 'track') state.repeatMode = 'queue';
       else state.repeatMode = 'off';
+    },
+    setPlaybackError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+      state.isPlaying = false;
     }
   },
 });
 
-export const { setCurrentTrack, setQueue, setIsPlaying, setProgress, toggleShuffle, toggleRepeat } = playerSlice.actions;
+export const { 
+  setCurrentTrack, 
+  setQueue, 
+  setIsPlaying, 
+  setProgress, 
+  toggleShuffle, 
+  toggleRepeat,
+  setPlaybackError
+} = playerSlice.actions;
 export default playerSlice.reducer;

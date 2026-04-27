@@ -87,15 +87,15 @@ android {
     buildToolsVersion = rootProject.ext.buildToolsVersion
     compileSdk = rootProject.ext.compileSdkVersion
 
-    namespace = 'com.eslamm2500.musicplayer'
+    namespace = "com.eslamm2500.musicplayer"
     defaultConfig {
-        applicationId = 'com.eslamm2500.musicplayer'
+        applicationId = "com.eslamm2500.musicplayer"
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
         versionCode = 2
         versionName = "2.0.0"
 
-        buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
+        buildConfigField("String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\"")
     }
     signingConfigs {
         debug {

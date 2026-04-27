@@ -10,6 +10,7 @@ import {
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { OfflineBanner } from "./src/components/OfflineBanner";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export const navigationRef = createNavigationContainerRef();
 
@@ -43,12 +44,14 @@ export default function App() {
 
   return (
     <Provider store={store}>
-      <SafeAreaProvider>
-        <AuthInitializer>
-          <OfflineBanner />
-          <RootContent />
-        </AuthInitializer>
-      </SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <AuthInitializer>
+            <OfflineBanner />
+            <RootContent />
+          </AuthInitializer>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
     </Provider>
   );
 }

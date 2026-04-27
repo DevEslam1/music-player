@@ -1,11 +1,10 @@
 import { createAudioPlayer, AudioPlayer, setAudioModeAsync } from "expo-audio";
 import { Track } from "../../types";
 import { store } from "../../redux/store/store";
-import { setIsPlaying, setProgress, setCurrentTrack } from "../../redux/store/player/playerSlice";
+import { setIsPlaying, setProgress, setCurrentTrack, setPlaybackError } from "../../redux/store/player/playerSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LibraryService } from "../api/libraryService";
-import { Platform, Alert } from "react-native";
-import * as FileSystem from 'expo-file-system';
+import { Platform } from "react-native";
 import { DownloadService } from "../api/downloadService";
 
 /**
@@ -75,25 +74,20 @@ class AudioPlayerService {
         headers,
       };
 
-      // Check if we have a locally downloaded version of this track!
+      // Check if we have a locally downloaded version of this track.
+      // getLocalUri() already verifies the file exists on disk — trust its result directly.
+      // A second FileSystem.getInfoAsync call here used a different module import
+      // (expo-file-system vs expo-file-system/legacy), which caused inconsistent URI
+      // resolution and made the local check silently fail, falling back to streaming (broken offline).
       try {
         const localUri = await DownloadService.getLocalUri(track.id);
         if (localUri) {
-          console.log("📂 OFFLINE MODE: Found local file at", localUri);
-          // expo-audio on Android requires a properly formatted file:// URI
-          const formattedLocalUri = localUri.startsWith('file://') ? localUri : `file://${localUri}`;
-          const fileInfo = await FileSystem.getInfoAsync(formattedLocalUri);
-          
-          if (fileInfo.exists) {
-            // Local playback: use a plain uri with NO headers — headers cause errors on local files
-            playerSource.uri = formattedLocalUri;
-            delete playerSource.headers;
-            console.log("✅ OFFLINE MODE: Local file verified. Playing:", formattedLocalUri);
-          } else {
-            console.log("⚠️ OFFLINE MODE: Metadata found but file is missing from disk. Streaming instead.");
-            if (playerSource.uri) playerSource.uri = playerSource.uri.replace(/^http:\/\//i, 'https://');
-          }
+          // Local playback: no headers — headers cause errors on file:// URIs
+          playerSource.uri = localUri;
+          delete playerSource.headers;
+          console.log("📂 OFFLINE MODE: Playing local file:", localUri);
         } else if (playerSource.uri) {
+          // No local file — stream (enforce HTTPS)
           playerSource.uri = playerSource.uri.replace(/^http:\/\//i, 'https://');
         }
       } catch(e) {
@@ -160,8 +154,7 @@ class AudioPlayerService {
 
     } catch (e: any) {
       console.error("Audio Load Error:", e.message);
-      Alert.alert("Audio Error", `${e.message}\n\nURL: ${track.previewUrl}`);
-      store.dispatch(setIsPlaying(false));
+      store.dispatch(setPlaybackError(e.message));
     }
   }
 

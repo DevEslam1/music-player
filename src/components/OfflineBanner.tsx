@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import NetInfo from '@react-native-community/netinfo';
 import Animated, { 
@@ -8,38 +8,68 @@ import Animated, {
   withSpring, 
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { navigationRef } from '../../App';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store/store';
 
 export const OfflineBanner = () => {
   const [isOffline, setIsOffline] = useState(false);
   const insets = useSafeAreaInsets();
-  
-  
+  const hasCurrentTrack = useSelector((state: RootState) => !!state.player.currentTrack);
   const translateY = useSharedValue(-200);
+  const fabTranslateY = useSharedValue(-100);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       const offline = state.isConnected === false || state.isInternetReachable === false;
       setIsOffline(offline);
-      
       translateY.value = offline ? insets.top + 10 : -200;
     });
 
     return () => unsubscribe();
   }, [insets.top]);
 
+  useEffect(() => {
+    // Position FAB above MiniPlayer if a track is loaded
+    // MiniPlayer height is 72, positioned at insets.bottom + 10
+    // So its top is at insets.bottom + 82. We place FAB at +95 to have a small gap.
+    const playerOffset = hasCurrentTrack ? 85 : 0;
+    fabTranslateY.value = isOffline ? insets.bottom + 20 + playerOffset : -100;
+  }, [insets.bottom, hasCurrentTrack, isOffline]);
+
   const animatedStyle = useAnimatedStyle(() => ({
     top: withSpring(translateY.value, { damping: 15, stiffness: 100 }),
   }));
 
+  const fabAnimatedStyle = useAnimatedStyle(() => ({
+    bottom: withSpring(fabTranslateY.value, { damping: 15, stiffness: 100 }),
+  }));
+
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
-      <View style={styles.content}>
-        <View style={styles.iconCircle}>
-          <Ionicons name="cloud-offline" size={16} color="#FFF" />
+    <>
+      <Animated.View style={[styles.container, animatedStyle]} pointerEvents="none">
+        <View style={styles.content}>
+          <View style={styles.iconCircle}>
+            <Ionicons name="cloud-offline" size={16} color="#FFF" />
+          </View>
+          <Text style={styles.text}>Connection Lost • Working Offline</Text>
         </View>
-        <Text style={styles.text}>Connection Lost • Working Offline</Text>
-      </View>
-    </Animated.View>
+      </Animated.View>
+
+      <Animated.View style={[styles.fabContainer, fabAnimatedStyle]}>
+        <TouchableOpacity 
+          style={styles.fab}
+          activeOpacity={0.8}
+          onPress={() => {
+            if (navigationRef.isReady()) {
+              (navigationRef as any).navigate('Downloads');
+            }
+          }}
+        >
+          <Ionicons name="download" size={24} color="#FFF" />
+        </TouchableOpacity>
+      </Animated.View>
+    </>
   );
 };
 
@@ -80,5 +110,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.3,
+  },
+  fabContainer: {
+    position: 'absolute',
+    right: 20,
+    zIndex: 10000,
+  },
+  fab: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1DB954',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    shadowColor: '#1DB954',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
 });

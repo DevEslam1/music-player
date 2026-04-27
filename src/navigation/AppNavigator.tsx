@@ -42,7 +42,7 @@ const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
 
   return (
     <View style={styles.container}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator id="MainStack" screenOptions={{ headerShown: false }}>
         {!isLoggedIn ? (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />

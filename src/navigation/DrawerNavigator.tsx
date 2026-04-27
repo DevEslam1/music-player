@@ -46,6 +46,7 @@ const DrawerNavigator = ({ lightColor, darkColor }: DrawerItemProps) => {
   return (
     <View style={{ flex: 1 }}>
       <Drawer.Navigator
+        id="LeftDrawer"
         drawerContent={(props) => <CustomDrawerContent {...props} />}
         screenOptions={{
           headerShown: false,

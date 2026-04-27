@@ -10,6 +10,7 @@ import {
 import { Track } from "../../types";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColor } from "../../hooks/use-theme-color";
+import { DownloadButton } from "../DownloadButton";
 
 type SearchItemProps = {
   onPlayTrack?: ((event: GestureResponderEvent) => void) | undefined;
@@ -56,6 +57,7 @@ const SearchItemInner = ({
         </View>
       </View>
       <View style={styles.cardActions}>
+        <DownloadButton track={item} size={22} />
         <TouchableOpacity onPress={onOpenPicker} style={styles.actionBtn}>
           <Ionicons name="add-circle-outline" size={26} color={textColor} />
         </TouchableOpacity>

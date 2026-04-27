@@ -56,24 +56,9 @@ export default function NowPlayingScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
 
-  const downloadedTrackIds = useSelector((state: RootState) => state.downloads.downloadedTrackIds);
-
   const isLiked = player.currentTrack 
     ? likedSongs.some(t => t.id === player.currentTrack?.id) 
     : false;
-
-  const isDownloaded = player.currentTrack
-    ? downloadedTrackIds.includes(player.currentTrack.id)
-    : false;
-
-  const onToggleDownload = useCallback(async () => {
-    if (!player.currentTrack) return;
-    if (isDownloaded) {
-      await DownloadService.removeDownload(player.currentTrack.id);
-    } else {
-      await DownloadService.downloadTrack(player.currentTrack);
-    }
-  }, [player.currentTrack, isDownloaded]);
 
   const pagerRef = useRef<PagerView>(null);
 
@@ -207,10 +192,8 @@ export default function NowPlayingScreen() {
         <TrackMetaInfo 
           track={player.currentTrack}
           isLiked={isLiked}
-          isDownloaded={isDownloaded}
           onToggleLike={onToggleLike}
           onAddToPlaylist={() => setIsPickerVisible(true)}
-          onToggleDownload={onToggleDownload}
           textColor={textColor}
         />
 
