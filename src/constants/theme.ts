@@ -52,3 +52,11 @@ export const Fonts = Platform.select({
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
+export const ACCENT_COLORS = [
+  { name: "GiG Red", color: "#B34A30" },
+  { name: "Ocean Blue", color: "#1F6AC4" },
+  { name: "Forest Green", color: "#1F8B4D" },
+  { name: "Royal Purple", color: "#7C3AED" },
+  { name: "Golden Amber", color: "#D97706" },
+  { name: "Midnight", color: "#334155" },
+];

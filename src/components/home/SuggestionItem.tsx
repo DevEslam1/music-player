@@ -2,7 +2,8 @@ import React from "react";
 import { TouchableOpacity, Image, View, Text, StyleSheet } from "react-native";
 import { Track } from "../../types";
 import { Ionicons } from "@expo/vector-icons";
-import { DownloadButton } from "../DownloadButton";
+
+import { useAccentColor } from "../../hooks/use-theme-color";
 
 const SuggestionItemInner = ({
   track,
@@ -13,6 +14,7 @@ const SuggestionItemInner = ({
   onPress: () => void;
   textColor: string;
 }) => {
+  const accentColor = useAccentColor();
   return (
     <TouchableOpacity style={styles.suggestionItem} onPress={onPress}>
       <Image
@@ -33,8 +35,7 @@ const SuggestionItemInner = ({
         </Text>
       </View>
       <View style={styles.actions}>
-        <DownloadButton track={track} size={18} />
-        <Ionicons name="play-circle-outline" size={28} color="#B34A30" />
+        <Ionicons name="play-circle-outline" size={28} color={accentColor} />
       </View>
     </TouchableOpacity>
   );

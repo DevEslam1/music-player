@@ -12,7 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store/store';
-import { useThemeColor } from '../hooks/use-theme-color';
+import { useThemeColor, useAccentColor } from '../hooks/use-theme-color';
 
 const { height } = Dimensions.get('window');
 
@@ -27,6 +27,7 @@ export default function PlaylistPicker({ isVisible, onClose, onSelect }: Playlis
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const surfaceColor = useThemeColor({}, 'surface');
+  const accentColor = useAccentColor();
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
 
   
@@ -37,8 +38,8 @@ export default function PlaylistPicker({ isVisible, onClose, onSelect }: Playlis
       style={[styles.item, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#F1F5F9' }]} 
       onPress={() => onSelect(item.id)}
     >
-      <View style={styles.iconContainer}>
-        <Ionicons name="apps-outline" size={24} color="#B34A30" />
+      <View style={[styles.iconContainer, { backgroundColor: accentColor + '15' }]}>
+        <Ionicons name="apps-outline" size={24} color={accentColor} />
       </View>
       <View style={styles.info}>
         <Text style={[styles.name, { color: textColor }]}>{item.name}</Text>

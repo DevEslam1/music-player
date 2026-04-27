@@ -5,7 +5,7 @@ import { RootState } from "../redux/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import { audioPlayer } from "../services/audio/AudioPlayerService";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColor } from "../hooks/use-theme-color";
+import { useAccentColor, useThemeColor } from "../hooks/use-theme-color";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export const MiniPlayer = () => {
@@ -18,6 +18,7 @@ export const MiniPlayer = () => {
   
   const backgroundColor = useThemeColor({}, "surface");
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
 
   if (!currentTrack) {
     return null;
@@ -39,8 +40,20 @@ export const MiniPlayer = () => {
         ]}
         onPress={() => navigation.navigate("NowPlaying")}
       >
-        <View style={styles.progressBarBackground}>
-          <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
+        <View style={[styles.progressBarBackground, { backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0,0,0,0.05)' }]}>
+          <View 
+            style={[
+              styles.progressBarFill, 
+              { 
+                width: `${progressPercent}%`,
+                backgroundColor: accentColor,
+                shadowColor: accentColor,
+                shadowOpacity: 0.8,
+                shadowRadius: 4,
+                shadowOffset: { width: 0, height: 0 },
+              }
+            ]} 
+          />
         </View>
         <View style={styles.content}>
           <Image
@@ -59,7 +72,7 @@ export const MiniPlayer = () => {
           </View>
           <View style={styles.controls}>
             <TouchableOpacity onPress={() => audioPlayer.playPause()} style={styles.playBtn}>
-              <Ionicons name={isPlaying ? "pause" : "play"} size={26} color={textColor} />
+              <Ionicons name={isPlaying ? "pause" : "play"} size={26} color={accentColor} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => audioPlayer.playNext()} style={styles.nextBtn}>
               <Ionicons name="play-skip-forward" size={22} color={textColor} />
@@ -97,11 +110,6 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: "100%",
-    backgroundColor: "#B34A30",
-    shadowColor: "#B34A30",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
   },
   content: {
     flex: 1,

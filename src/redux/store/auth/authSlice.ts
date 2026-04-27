@@ -21,6 +21,7 @@ interface AuthState {
   loading: boolean;
   failed: string | null;
   isLoggedIn: boolean;
+  isFirstLaunch: boolean | null; // null means checking
 }
 
 const initialState: AuthState = {
@@ -28,6 +29,7 @@ const initialState: AuthState = {
   loading: false,
   failed: null,
   isLoggedIn: false,
+  isFirstLaunch: null,
 };
 
 const authSlice = createSlice({
@@ -52,6 +54,9 @@ const authSlice = createSlice({
       state.currentUser = null;
       AsyncStorage.multiRemove(["access_token", "refresh_token"]);
     },
+    setFirstLaunch: (state, action: PayloadAction<boolean>) => {
+      state.isFirstLaunch = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -70,7 +75,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { loginStart, loginSuccess, loginFailure, logout } =
+export const { loginStart, loginSuccess, loginFailure, logout, setFirstLaunch } =
   authSlice.actions;
 export const selectAuthLoading = (state: any) => state.auth.loading;
 export default authSlice.reducer;

@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { Colors } from "../constants/theme";
+import { useThemeColor, useAccentColor } from "../hooks/use-theme-color";
 
 type ScreenHeaderProps = {
   screenTitle?: string;
@@ -21,22 +21,25 @@ export function ScreenHeader({
   onPostPress,
 }: ScreenHeaderProps) {
   const navigation = useNavigation<any>();
+  const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
+
   return (
     <View style={styles.header}>
       <TouchableOpacity
         onPress={() => navigation.goBack()}
         style={styles.headerButton}
       >
-        <Ionicons name="arrow-back" size={26} color={Colors.light.text} />
+        <Ionicons name="arrow-back" size={26} color={textColor} />
       </TouchableOpacity>
       {screenTitle && (
-        <Text style={[styles.headerTitle, { color: Colors.light.text }]}>
+        <Text style={[styles.headerTitle, { color: textColor }]}>
           {screenTitle}
         </Text>
       )}
       {postIcon ? (
         <TouchableOpacity onPress={onPostPress} style={styles.headerButton}>
-          <Ionicons name={postIcon} size={26} color={Colors.light.text} />
+          <Ionicons name={postIcon} size={26} color={accentColor} />
         </TouchableOpacity>
       ) : (
         <View style={styles.headerButton} />

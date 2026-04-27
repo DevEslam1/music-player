@@ -20,3 +20,6 @@ export function useThemeColor(
     return Colors[theme][colorName];
   }
 }
+export function useAccentColor() {
+  return useSelector((state: RootState) => state.theme.accentColor);
+}

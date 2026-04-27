@@ -19,12 +19,15 @@ interface ProgressBarProps {
   textColor: string;
 }
 
+import { useAccentColor } from '../../hooks/use-theme-color';
+
 export const ProgressBar = React.memo(({
   positionMillis,
   durationMillis,
   onSeek,
   textColor
 }: ProgressBarProps) => {
+  const accentColor = useAccentColor();
   
   const formatTime = (millis: number) => {
     const totalSeconds = Math.floor(millis / 1000);
@@ -52,9 +55,9 @@ export const ProgressBar = React.memo(({
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           onSeek(val);
         }}
-        minimumTrackTintColor="#B34A30"
+        minimumTrackTintColor={accentColor}
         maximumTrackTintColor="#CBD5E1"
-        thumbTintColor="#B34A30"
+        thumbTintColor={accentColor}
       />
     </View>
   );

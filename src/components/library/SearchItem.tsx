@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Track } from "../../types";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { DownloadButton } from "../DownloadButton";
 
 type SearchItemProps = {
@@ -26,6 +26,7 @@ const SearchItemInner = ({
   isLiked = false,
 }: SearchItemProps) => {
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPlayTrack}>
@@ -47,7 +48,7 @@ const SearchItemInner = ({
             <Ionicons
               name="heart"
               size={14}
-              color="#B34A30"
+              color={accentColor}
               style={{ marginRight: 4 }}
             />
           )}
@@ -62,7 +63,7 @@ const SearchItemInner = ({
           <Ionicons name="add-circle-outline" size={26} color={textColor} />
         </TouchableOpacity>
         <TouchableOpacity onPress={onPlayTrack}>
-          <Ionicons name="play-circle-outline" size={32} color="#B34A30" />
+          <Ionicons name="play-circle-outline" size={32} color={accentColor} />
         </TouchableOpacity>
       </View>
     </TouchableOpacity>

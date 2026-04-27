@@ -4,8 +4,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
+import { useAccentColor } from '../hooks/use-theme-color';
+
 export const CustomSplash = () => {
   const insets = useSafeAreaInsets();
+  const accentColor = useAccentColor();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -19,7 +22,7 @@ export const CustomSplash = () => {
         </View>
       </View>
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#B34A30" />
+        <ActivityIndicator size="large" color={accentColor} />
       </View>
     </View>
   );

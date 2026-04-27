@@ -6,6 +6,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+import { useAccentColor } from "../hooks/use-theme-color";
+
 export type CustomButtonProps = {
   onPress: () => void;
   isDisabled?: boolean;
@@ -19,9 +21,15 @@ export function CustomButton({
   label,
   loading = false,
 }: CustomButtonProps) {
+  const accentColor = useAccentColor();
+
   return (
     <TouchableOpacity
-      style={[styles.button, (isDisabled || loading) && styles.buttonDisabled]}
+      style={[
+        styles.button, 
+        { backgroundColor: accentColor, shadowColor: accentColor },
+        (isDisabled || loading) && styles.buttonDisabled
+      ]}
       onPress={onPress}
       disabled={isDisabled}
     >
@@ -45,13 +53,11 @@ export function CustomButton({
 const styles = StyleSheet.create({
   button: {
     flexDirection: "row",
-    backgroundColor: "#B34A30",
     height: 56,
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 24,
-    shadowColor: "#B34A30",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

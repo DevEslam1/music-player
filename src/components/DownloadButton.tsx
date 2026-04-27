@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../redux/store/store';
 import { selectIsDownloaded, selectDownloadProgress } from '../redux/store/downloads/downloadsSlice';
 import { DownloadService } from '../services/api/downloadService';
+import { useAccentColor } from '../hooks/use-theme-color';
 import { Track } from '../types';
 import * as Haptics from 'expo-haptics';
 
@@ -17,8 +18,10 @@ interface DownloadButtonProps {
 export const DownloadButton: React.FC<DownloadButtonProps> = ({ 
   track, 
   size = 24, 
-  color = "#B34A30" 
+  color: propColor 
 }) => {
+  const accentColor = useAccentColor();
+  const color = propColor || accentColor;
   const isDownloaded = useSelector((state: RootState) => selectIsDownloaded(state, track.id));
   const downloadProgress = useSelector((state: RootState) => selectDownloadProgress(state, track.id));
   

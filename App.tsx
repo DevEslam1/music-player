@@ -4,15 +4,14 @@ import { Provider, useSelector } from "react-redux";
 import { AuthInitializer } from "./src/components/AuthInitializer";
 import { store, RootState } from "./src/redux/store/store";
 import { 
-  NavigationContainer, 
-  createNavigationContainerRef 
+  NavigationContainer 
 } from "@react-navigation/native";
+import { navigationRef } from "./src/navigation/navigationUtils";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { OfflineBanner } from "./src/components/OfflineBanner";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-export const navigationRef = createNavigationContainerRef();
 
 function RootContent() {
   const [currentRoute, setCurrentRoute] = useState<string | undefined>();

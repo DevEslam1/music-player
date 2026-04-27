@@ -19,7 +19,6 @@ import { toggleShuffle, toggleRepeat } from "../../redux/store/player/playerSlic
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import PlaylistPicker from "../../components/PlaylistPicker";
 import { DownloadService } from "../../services/api/downloadService";
-import PagerView from "react-native-pager-view";
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -56,11 +55,9 @@ export default function NowPlayingScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
 
-  const isLiked = player.currentTrack 
-    ? likedSongs.some(t => t.id === player.currentTrack?.id) 
-    : false;
-
-  const pagerRef = useRef<PagerView>(null);
+  const currentIndex = player.currentTrack && player.queue.length > 0 
+    ? player.queue.findIndex(t => t.id === player.currentTrack?.id) 
+    : 0;
 
   // scale: starts at 0.9 for a subtle entrance effect
   const scale = useSharedValue(0.9);
@@ -71,7 +68,7 @@ export default function NowPlayingScreen() {
   useEffect(() => {
     if (player.isPlaying) {
       // Bounce into playing state — bouncier spring than before
-      scale.value = withSpring(1.12, { damping: 8, stiffness: 65 });
+      scale.value = withSpring(1.5, { damping: 12, stiffness: 50 });
       shadowOpacity.value = withTiming(0.55, { duration: 400 });
       glowIntensity.value = withTiming(1, { duration: 600 });
       // Gentle breathe: ±1.5% scale oscillation every 2.4s
@@ -97,30 +94,20 @@ export default function NowPlayingScreen() {
     shadowOpacity: shadowOpacity.value,
   }));
 
-  const currentIndex = player.currentTrack && player.queue.length > 0 
-    ? player.queue.findIndex(t => t.id === player.currentTrack?.id) 
-    : 0;
-  const initialPageIndex = currentIndex !== -1 ? currentIndex : 0;
-  const canGoPrevious = currentIndex > 0;
-  const canGoNext = currentIndex < player.queue.length - 1;
-
-  useEffect(() => {
-    if (player.currentTrack && pagerRef.current && player.queue.length > 0) {
-      const idx = player.queue.findIndex(t => t.id === player.currentTrack?.id);
-      if (idx !== -1) {
-        pagerRef.current.setPage(idx);
-      }
-    }
-  }, [player.currentTrack, player.queue]);
-
-  const onPageSelected = useCallback(async (e: any) => {
-    const newIdx = e.nativeEvent.position;
+  const onTrackChange = useCallback(async (newIdx: number) => {
     if (player.queue.length === 0 || !player.queue[newIdx]) return;
     const track = player.queue[newIdx];
     if (track && track.id !== player.currentTrack?.id) {
       await audioPlayer.loadPlayTrack(track);
     }
-  }, [player.queue, player.currentTrack]);
+  }, [player.queue, player.currentTrack, audioPlayer]);
+
+  const isLiked = player.currentTrack 
+    ? likedSongs.some(t => t.id === player.currentTrack?.id) 
+    : false;
+
+  const canGoPrevious = currentIndex > 0;
+  const canGoNext = currentIndex < player.queue.length - 1;
 
   const handleSeek = useCallback((value: number) => {
     audioPlayer.seek(value);
@@ -152,20 +139,8 @@ export default function NowPlayingScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Background Image with Blur */}
-      <View style={StyleSheet.absoluteFill}>
-         <Image 
-          source={{ uri: player.currentTrack.image || "https://picsum.photos/400" }} 
-          style={StyleSheet.absoluteFill}
-          blurRadius={Platform.OS === 'ios' ? 70 : 20} 
-        />
-        <View 
-          style={[
-            StyleSheet.absoluteFill, 
-            { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)' }
-          ]} 
-        />
-      </View>
+      {/* Background with Theme Support */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor }]} />
 
       <SafeAreaView style={styles.contentContainer}>
         {/* Header Overlay */}
@@ -181,11 +156,8 @@ export default function NowPlayingScreen() {
         <AlbumArtCarousel 
           queue={player.queue}
           currentTrack={player.currentTrack}
-          pagerRef={pagerRef}
-          initialPageIndex={initialPageIndex}
-          onPageSelected={onPageSelected}
-          animatedImageStyle={animatedImageStyle}
-          glowIntensity={glowIntensity}
+          currentIndex={currentIndex}
+          onTrackChange={onTrackChange}
         />
 
         {/* 2. Track Meta Info (Title, Artist, Like, Playlist, Download) */}

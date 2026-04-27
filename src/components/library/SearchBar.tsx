@@ -16,6 +16,8 @@ type SearchBarProps = {
   onSearchPress: ((event: GestureResponderEvent) => void) | undefined;
 };
 
+import { useAccentColor } from "../../hooks/use-theme-color";
+
 export function SearchBar({
   query,
   onChangeText,
@@ -24,6 +26,7 @@ export function SearchBar({
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const inputBg = useThemeColor({}, "inputBackground");
+  const accentColor = useAccentColor();
   const placeholderColor = useSelector(
     (state: RootState) => state.theme.isDarkMode,
   )
@@ -44,6 +47,7 @@ export function SearchBar({
         value={query}
         onChangeText={onChangeText}
         autoFocus={true}
+        selectionColor={accentColor}
       />
       {query.length > 0 && (
         <TouchableOpacity onPress={onSearchPress}>

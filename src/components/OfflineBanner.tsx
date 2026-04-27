@@ -8,14 +8,16 @@ import Animated, {
   withSpring, 
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { navigationRef } from '../../App';
+import { navigationRef } from '../navigation/navigationUtils';
 import { useSelector } from 'react-redux';
+import { useAccentColor } from '../hooks/use-theme-color';
 import { RootState } from '../redux/store/store';
 
 export const OfflineBanner = () => {
   const [isOffline, setIsOffline] = useState(false);
   const insets = useSafeAreaInsets();
   const hasCurrentTrack = useSelector((state: RootState) => !!state.player.currentTrack);
+  const accentColor = useAccentColor();
   const [isCollapsed, setIsCollapsed] = useState(false);
   
   const { width: screenWidth } = useWindowDimensions();
@@ -81,7 +83,14 @@ export const OfflineBanner = () => {
 
   return (
     <>
-      <Animated.View style={[styles.container, animatedStyle]} pointerEvents="none">
+      <Animated.View 
+        style={[
+          styles.container, 
+          { backgroundColor: `${accentColor}F2` }, // High opacity version of accent
+          animatedStyle
+        ]} 
+        pointerEvents="none"
+      >
         <View style={styles.content}>
           <View style={[styles.iconCircle, isCollapsed && { backgroundColor: 'transparent', width: '100%' }]}>
             <Ionicons name="cloud-offline" size={isCollapsed ? 20 : 16} color="#FFF" />
@@ -92,7 +101,7 @@ export const OfflineBanner = () => {
 
       <Animated.View style={[styles.fabContainer, fabAnimatedStyle]}>
         <TouchableOpacity 
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: accentColor, shadowColor: accentColor }]}
           activeOpacity={0.8}
           onPress={() => {
             if (navigationRef.isReady()) {
@@ -112,7 +121,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     right: 20,
-    backgroundColor: 'rgba(239, 68, 68, 0.95)', 
+    backgroundColor: 'rgba(179, 74, 48, 0.95)', // Matching #B34A30 with opacity
     zIndex: 9999,
     borderRadius: 30,
     paddingHorizontal: 16,
@@ -135,7 +144,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -153,11 +162,9 @@ const styles = StyleSheet.create({
   fab: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1DB954',
     width: 60,
     height: 60,
     borderRadius: 30,
-    shadowColor: '#1DB954',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 12,

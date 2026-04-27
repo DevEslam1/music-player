@@ -11,6 +11,7 @@ import TermsScreen from "../screens/Legal/TermsScreen";
 import NotificationsScreen from "../screens/Notifications/NotificationsScreen";
 import SupportScreen from "../screens/Support/SupportScreen";
 import DrawerNavigator from "./DrawerNavigator";
+import { WelcomeScreen } from "../screens/Auth";
 import { MiniPlayer } from "../components/MiniPlayer";
 
 import { useSelector } from "react-redux";
@@ -27,6 +28,7 @@ export type MainStack = {
   Notifications: undefined;
   Support: undefined;
   Drawer: undefined;
+  Welcome: undefined;
 };
 
 const Stack = createNativeStackNavigator<MainStack>();
@@ -38,12 +40,19 @@ interface AppNavigatorProps {
 const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   // Hide miniplayer during auth, now playing, or when route is not yet determined
-  const hideMiniPlayer = !currentRoute || ["Login", "SignUp", "NowPlaying"].includes(currentRoute);
+  const hideMiniPlayer = !currentRoute || ["Login", "SignUp", "NowPlaying", "Welcome"].includes(currentRoute);
+  const isFirstLaunch = useSelector((state: RootState) => state.auth.isFirstLaunch);
 
   return (
     <View style={styles.container}>
-      <Stack.Navigator id="MainStack" screenOptions={{ headerShown: false }}>
-        {!isLoggedIn ? (
+      <Stack.Navigator 
+        id="MainStack" 
+        screenOptions={{ headerShown: false }}
+        initialRouteName={isFirstLaunch ? "Welcome" : (isLoggedIn ? "Drawer" : "Login")}
+      >
+        {isFirstLaunch ? (
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        ) : !isLoggedIn ? (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="SignUp" component={SignUpScreen} />

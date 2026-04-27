@@ -3,20 +3,21 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store/store";
 
 const LanguageItem = ({ label, isSelected, comingSoon, onPress }: any) => {
   const textColor = useThemeColor({}, "text");
   const surfaceColor = useThemeColor({}, "surface");
+  const accentColor = useAccentColor();
   
   return (
     <TouchableOpacity 
       style={[
         styles.langItem, 
         { backgroundColor: surfaceColor },
-        isSelected && styles.selectedItem
+        isSelected && [styles.selectedItem, { borderColor: accentColor }]
       ]} 
       onPress={onPress}
       disabled={comingSoon}
@@ -36,7 +37,7 @@ const LanguageItem = ({ label, isSelected, comingSoon, onPress }: any) => {
         )}
       </View>
       {isSelected && (
-        <Ionicons name="checkmark-circle" size={24} color="#B34A30" />
+        <Ionicons name="checkmark-circle" size={24} color={accentColor} />
       )}
     </TouchableOpacity>
   );
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   selectedItem: {
-    borderColor: "#B34A30",
+    // Border color is set dynamically in the component
   },
   langInfo: {
     flexDirection: "row",

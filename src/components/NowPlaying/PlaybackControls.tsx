@@ -23,6 +23,8 @@ interface PlaybackControlsProps {
   textColor: string;
 }
 
+import { useAccentColor } from '../../hooks/use-theme-color';
+
 export const PlaybackControls = React.memo(({
   isPlaying,
   isShuffled,
@@ -36,6 +38,7 @@ export const PlaybackControls = React.memo(({
   onNext,
   textColor
 }: PlaybackControlsProps) => {
+  const accentColor = useAccentColor();
   // Repeat-queue/track overrides edge disabling — shuffle always allows next
   const prevEnabled = canGoPrevious || repeatMode === 'queue' || isShuffled;
   const nextEnabled = canGoNext || repeatMode === 'queue' || repeatMode === 'track' || isShuffled;
@@ -55,10 +58,10 @@ export const PlaybackControls = React.memo(({
             <Ionicons
               name={repeatMode === 'track' ? 'repeat' : 'repeat-outline'}
               size={20}
-              color={repeatMode !== 'off' ? '#B34A30' : textColor}
+              color={repeatMode !== 'off' ? accentColor : textColor}
             />
             {repeatMode !== 'off' && (
-              <Text style={styles.modeLabel}>
+              <Text style={[styles.modeLabel, { color: accentColor }]}>
                 {repeatMode === 'track' ? '1' : 'All'}
               </Text>
             )}
@@ -74,9 +77,9 @@ export const PlaybackControls = React.memo(({
             <Ionicons
               name="shuffle-outline"
               size={20}
-              color={isShuffled ? '#B34A30' : textColor}
+              color={isShuffled ? accentColor : textColor}
             />
-            {isShuffled && <Text style={styles.modeLabel}>On</Text>}
+            {isShuffled && <Text style={[styles.modeLabel, { color: accentColor }]}>On</Text>}
           </TouchableOpacity>
         </View>
       </View>
@@ -103,7 +106,7 @@ export const PlaybackControls = React.memo(({
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
             onPlayPause();
           }}
-          style={styles.playPauseBtn}
+          style={[styles.playPauseBtn, { backgroundColor: accentColor, shadowColor: accentColor }]}
         >
           <Ionicons name={isPlaying ? 'pause' : 'play'} size={44} color="#FFF" />
         </TouchableOpacity>
@@ -145,7 +148,6 @@ const styles = StyleSheet.create({
   },
   modeLabel: {
     fontSize: 8,
-    color: '#B34A30',
     fontWeight: 'bold',
     marginTop: 2,
   },
@@ -165,11 +167,9 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#B34A30',
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 32,
-    shadowColor: '#B34A30',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 12,

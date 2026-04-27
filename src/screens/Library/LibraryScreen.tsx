@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Text, StyleSheet, FlatList, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { SearchBar } from "../../components/library/SearchBar";
 import { SearchItem } from "../../components/library/SearchItem";
 import PlaylistPicker from "../../components/PlaylistPicker";
@@ -13,6 +13,7 @@ export default function LibraryScreen() {
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
 
   const {
     query,
@@ -66,7 +67,7 @@ export default function LibraryScreen() {
       {loading ? (
         <ActivityIndicator
           size="large"
-          color="#B34A30"
+          color={accentColor}
           style={{ marginTop: 40 }}
         />
       ) : (

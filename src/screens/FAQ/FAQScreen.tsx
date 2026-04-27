@@ -12,11 +12,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 
 
 
-const FAQItem = ({ question, answer, textColor }: { question: string, answer: string, textColor: string }) => {
+const FAQItem = ({ question, answer, textColor, accentColor }: { question: string, answer: string, textColor: string, accentColor: string }) => {
   const [expanded, setExpanded] = useState(false);
 
   const toggleExpand = () => {
@@ -31,7 +31,7 @@ const FAQItem = ({ question, answer, textColor }: { question: string, answer: st
         <Ionicons 
           name={expanded ? "chevron-up" : "chevron-down"} 
           size={20} 
-          color="#B34A30" 
+          color={accentColor} 
         />
       </TouchableOpacity>
       {expanded && (
@@ -47,6 +47,7 @@ export default function FAQScreen() {
   const navigation = useNavigation<any>();
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
 
   const faqs = [
     {
@@ -86,7 +87,7 @@ export default function FAQScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.subtitle}>Frequently Asked Questions</Text>
+        <Text style={[styles.subtitle, { color: accentColor }]}>Frequently Asked Questions</Text>
         <Text style={[styles.description, { color: textColor + '99' }]}>
           Find quick answers to common questions about using GiG Player.
         </Text>
@@ -98,14 +99,15 @@ export default function FAQScreen() {
               question={faq.question}
               answer={faq.answer}
               textColor={textColor}
+              accentColor={accentColor}
             />
           ))}
         </View>
 
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: textColor + '99' }]}>Still need help?</Text>
-          <TouchableOpacity style={styles.contactButton}>
-            <Text style={styles.contactButtonText}>Contact Support</Text>
+          <TouchableOpacity style={[styles.contactButton, { borderColor: accentColor }]}>
+            <Text style={[styles.contactButtonText, { color: accentColor }]}>Contact Support</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -136,7 +138,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#B34A30",
     marginBottom: 8,
   },
   description: {
@@ -192,10 +193,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 25,
     borderWidth: 2,
-    borderColor: '#B34A30',
   },
   contactButtonText: {
-    color: '#B34A30',
     fontSize: 16,
     fontWeight: 'bold',
   },

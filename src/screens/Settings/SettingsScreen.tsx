@@ -5,15 +5,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store/store";
-import { toggleTheme } from "../../redux/store/theme/themeSlice";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { toggleTheme, setAccentColor } from "../../redux/store/theme/themeSlice";
+import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
+import { ACCENT_COLORS } from "../../constants/theme";
 
 const SettingItem = ({ icon, label, children, onPress }: any) => {
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
   return (
     <TouchableOpacity style={styles.item} onPress={onPress} disabled={!onPress}>
       <View style={styles.itemLeft}>
-        <Ionicons name={icon} size={22} color="#B34A30" style={styles.icon} />
+        <Ionicons name={icon} size={22} color={accentColor} style={styles.icon} />
         <Text style={[styles.label, { color: textColor }]}>{label}</Text>
       </View>
       {children}
@@ -29,6 +31,7 @@ export default function SettingsScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const surfaceColor = useThemeColor({}, "surface");
+  const accentColor = useAccentColor();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
@@ -42,14 +45,36 @@ export default function SettingsScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.section, { backgroundColor: surfaceColor }]}>
-          <Text style={styles.sectionTitle}>Appearance</Text>
+          <Text style={[styles.sectionTitle, { color: accentColor }]}>Appearance</Text>
           <SettingItem icon="moon-outline" label="Dark Mode">
             <Switch 
               value={isDarkMode} 
               onValueChange={() => { dispatch(toggleTheme()); }} 
-              trackColor={{ false: "#CBD5E1", true: "#B34A30" }}
+              trackColor={{ false: "#CBD5E1", true: accentColor }}
             />
           </SettingItem>
+          
+          <View style={styles.colorPickerContainer}>
+            <Text style={[styles.colorPickerLabel, { color: textColor }]}>Theme Color</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.colorRow}>
+              {ACCENT_COLORS.map((item) => (
+                <TouchableOpacity
+                  key={item.color}
+                  onPress={() => dispatch(setAccentColor(item.color))}
+                  style={[
+                    styles.colorCircle,
+                    { backgroundColor: item.color },
+                    accentColor === item.color && styles.activeColorCircle
+                  ]}
+                >
+                  {accentColor === item.color && (
+                    <Ionicons name="checkmark" size={16} color="#FFF" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
           <SettingItem 
             icon="globe-outline" 
             label="Language" 
@@ -63,7 +88,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: surfaceColor }]}>
-          <Text style={styles.sectionTitle}>Support</Text>
+          <Text style={[styles.sectionTitle, { color: accentColor }]}>Support</Text>
           <SettingItem 
             icon="chatbubble-outline" 
             label="Contact Us" 
@@ -81,7 +106,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: surfaceColor }]}>
-          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={[styles.sectionTitle, { color: accentColor }]}>About</Text>
           <SettingItem icon="information-circle-outline" label="Version">
             <Text style={styles.valueText}>1.0.0</Text>
           </SettingItem>
@@ -128,10 +153,40 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: "bold",
-    color: "#B34A30",
     textTransform: "uppercase",
     marginBottom: 12,
     letterSpacing: 1,
+  },
+  colorPickerContainer: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
+  },
+  colorPickerLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  colorRow: {
+    flexDirection: "row",
+  },
+  colorCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  activeColorCircle: {
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.8)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   item: {
     flexDirection: "row",

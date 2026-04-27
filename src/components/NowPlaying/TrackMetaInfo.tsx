@@ -21,6 +21,8 @@ interface TrackMetaInfoProps {
   textColor: string;
 }
 
+import { useAccentColor } from '../../hooks/use-theme-color';
+
 export const TrackMetaInfo = React.memo(({
   track,
   isLiked,
@@ -28,8 +30,13 @@ export const TrackMetaInfo = React.memo(({
   onAddToPlaylist,
   textColor
 }: TrackMetaInfoProps) => {
+  const accentColor = useAccentColor();
   return (
     <View style={styles.infoRow}>
+      <View style={styles.leftActions}>
+        <DownloadButton track={track} size={26} color={textColor} />
+      </View>
+
       <View style={styles.textStack}>
         <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>
           {track.name}
@@ -40,8 +47,6 @@ export const TrackMetaInfo = React.memo(({
       </View>
 
       <View style={styles.actionsBox}>
-        <DownloadButton track={track} size={26} color={textColor} />
-
         <TouchableOpacity
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -61,7 +66,7 @@ export const TrackMetaInfo = React.memo(({
           <Ionicons
             name={isLiked ? 'heart' : 'heart-outline'}
             size={26}
-            color={isLiked ? '#B34A30' : textColor}
+            color={isLiked ? accentColor : textColor}
           />
         </TouchableOpacity>
       </View>
@@ -79,8 +84,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   textStack: {
+    flex: 1,
     alignItems: 'center',
-    paddingHorizontal: 54,
+    paddingHorizontal: 40,
   },
   title: {
     fontSize: 24,
@@ -92,6 +98,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#A0AEC0',
     textAlign: 'center',
+  },
+  leftActions: {
+    position: 'absolute',
+    left: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   actionsBox: {
     position: 'absolute',

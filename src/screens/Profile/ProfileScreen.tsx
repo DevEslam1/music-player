@@ -12,7 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../redux/store/store";
 import { logout, fetchProfile } from "../../redux/store/auth/authSlice";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { useNavigation } from "@react-navigation/native";
 
 export default function ProfileScreen() {
@@ -27,9 +27,9 @@ export default function ProfileScreen() {
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
 
-  
   const cardBg = isDarkMode ? "rgba(255, 255, 255, 0.05)" : "#F1F5F9";
 
   return (
@@ -46,8 +46,8 @@ export default function ProfileScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.profileHeader}>
-          <View style={styles.avatarContainer}>
-             <Ionicons name="person" size={50} color="#B34A30" />
+          <View style={[styles.avatarContainer, { borderColor: accentColor, backgroundColor: accentColor + '10' }]}>
+             <Ionicons name="person" size={50} color={accentColor} />
           </View>
           <Text style={[styles.userName, { color: textColor }]}>{currentUser?.email?.split('@')[0] || "User Name"}</Text>
           <Text style={styles.userEmail}>{currentUser?.email || "user@example.com"}</Text>
@@ -89,7 +89,7 @@ export default function ProfileScreen() {
         </View>
 
         <TouchableOpacity 
-          style={styles.logoutButton}
+          style={[styles.logoutButton, { backgroundColor: accentColor, shadowColor: accentColor }]}
           onPress={() => dispatch(logout())}
         >
           <Ionicons name="log-out-outline" size={20} color="#fff" />
@@ -128,12 +128,10 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#FAF0EE',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
     borderWidth: 4,
-    borderColor: '#B34A30',
   },
   userName: {
     fontSize: 24,
@@ -188,12 +186,10 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     flexDirection: 'row',
-    backgroundColor: '#B34A30',
     paddingHorizontal: 40,
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: 'center',
-    shadowColor: "#B34A30",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

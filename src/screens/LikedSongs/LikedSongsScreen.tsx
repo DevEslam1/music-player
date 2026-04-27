@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { fetchLikedSongs } from "../../redux/store/library/librarySlice";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { LikedSongCard } from "../../components/liked/LikedSongCard";
@@ -31,6 +31,7 @@ export default function LikedSongsScreen() {
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
@@ -43,7 +44,7 @@ export default function LikedSongsScreen() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#B34A30" />
+          <ActivityIndicator size="large" color={accentColor} />
         </View>
       ) : likedSongs.length === 0 ? (
         <View style={styles.emptyContainer}>

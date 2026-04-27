@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../redux/store/store";
 import { fetchPlaylists, createPlaylistAction, deletePlaylistAction } from "../../redux/store/library/librarySlice";
@@ -29,6 +29,7 @@ export default function PlaylistScreen() {
   const cardBg = useThemeColor({}, "surface");
   const inputBg = useThemeColor({}, "inputBackground");
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
+  const accentColor = useAccentColor();
 
   const [isCreating, setIsCreating] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
@@ -51,7 +52,7 @@ export default function PlaylistScreen() {
         onPress={() => navigation.navigate("PlaylistDetail", { playlistId: item.id, name: item.name })}
       >
         <View style={[styles.iconContainer, { backgroundColor: inputBg }]}>
-          <Ionicons name="folder-outline" size={30} color="#B34A30" />
+          <Ionicons name="folder-outline" size={30} color={accentColor} />
         </View>
         <View style={styles.cardInfo}>
           <Text style={[styles.cardTitle, { color: textColor }]}>{item.name}</Text>
@@ -69,7 +70,6 @@ export default function PlaylistScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      {}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.headerButton}>
           <Ionicons name="menu-outline" size={28} color={textColor} />
@@ -81,39 +81,38 @@ export default function PlaylistScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {}
         {isCreating && (
           <View style={[styles.createForm, { backgroundColor: inputBg }]}>
             <Text style={[styles.formTitle, { color: textColor }]}>New Playlist</Text>
             <TextInput
-              style={[styles.input, { color: textColor, borderBottomColor: textColor + '20' }]}
+              style={[styles.input, { color: textColor, borderBottomColor: accentColor }]}
               placeholder="Give it a name..."
               placeholderTextColor="#94A3B8"
               value={newPlaylistName}
               onChangeText={setNewPlaylistName}
               autoFocus
+              selectionColor={accentColor}
             />
             <View style={styles.createFormActions}>
-              <TouchableOpacity onPress={handleCreate} style={styles.btnPrimary}>
+              <TouchableOpacity onPress={handleCreate} style={[styles.btnPrimary, { backgroundColor: accentColor }]}>
                 <Text style={{ color: "#FFF", fontWeight: "bold" }}>Create Now</Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
 
-        {}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#B34A30" />
+            <ActivityIndicator size="large" color={accentColor} />
           </View>
         ) : playlists.length === 0 && !isCreating ? (
           <View style={styles.emptyContainer}>
             <View style={[styles.emptyIconCircle, { backgroundColor: inputBg }]}>
-              <Ionicons name="musical-notes-outline" size={50} color="#B34A30" />
+              <Ionicons name="musical-notes-outline" size={50} color={accentColor} />
             </View>
             <Text style={[styles.emptyText, { color: textColor }]}>Your music is waiting</Text>
             <Text style={styles.emptySubtext}>Create specialized playlists for your moods or workout sessions.</Text>
-            <TouchableOpacity style={styles.createFirstBtn} onPress={() => setIsCreating(true)}>
+            <TouchableOpacity style={[styles.createFirstBtn, { backgroundColor: accentColor }]} onPress={() => setIsCreating(true)}>
               <Text style={styles.createFirstText}>Create First Playlist</Text>
             </TouchableOpacity>
           </View>

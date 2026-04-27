@@ -1,3 +1,4 @@
+import React from "react";
 import {
   View,
   StyleSheet,
@@ -6,6 +7,9 @@ import {
   type TextInputProps,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useAccentColor } from "../../hooks/use-theme-color";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store/store";
 
 export type CustomTextInputProps = TextInputProps & {
   placeholder: string;
@@ -30,13 +34,22 @@ export function CustomTextInput({
   secureEntry = false,
   onChangeText,
 }: CustomTextInputProps) {
+  const accentColor = useAccentColor();
+  const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
+
   return (
     <View style={styles.inputContainer}>
       <View style={styles.labelRow}>
-        <Text style={styles.label}>{label}</Text>
+        <Text style={[styles.label, { color: isDarkMode ? '#F1F5F9' : '#0F172A' }]}>{label}</Text>
         {withGreenDt && <View style={styles.greenDot} />}
       </View>
-      <View style={styles.inputWrapper}>
+      <View style={[
+        styles.inputWrapper, 
+        { 
+          borderColor: accentColor,
+          backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#FAF5F4' 
+        }
+      ]}>
         <Ionicons
           name={iconName}
           size={20}
@@ -44,7 +57,7 @@ export function CustomTextInput({
           style={styles.inputIcon}
         />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: isDarkMode ? '#F8FAFC' : '#0F172A' }]}
           placeholder={placeholder}
           placeholderTextColor="#A0AEC0"
           keyboardType={keyboardType}
@@ -52,6 +65,7 @@ export function CustomTextInput({
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={secureEntry}
+          selectionColor={accentColor}
         />
       </View>
     </View>

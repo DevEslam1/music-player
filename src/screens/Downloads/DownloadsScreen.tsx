@@ -1,7 +1,7 @@
 import React from "react";
 import { Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Image, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { downloadsScreenLogic } from "../../services/logic/downloadsScreenLogic";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,6 +11,7 @@ import Swipeable from 'react-native-gesture-handler/Swipeable';
 export default function DownloadsScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
 
   const {
     downloadedTracks,
@@ -51,8 +52,8 @@ export default function DownloadsScreen() {
 
       {downloadedTracks.length > 0 && (
         <View style={styles.storageCard}>
-          <View style={styles.storageIconWrapper}>
-            <Ionicons name="stats-chart" size={20} color="#B34A30" />
+          <View style={[styles.storageIconWrapper, { backgroundColor: accentColor + '15' }]}>
+            <Ionicons name="stats-chart" size={20} color={accentColor} />
           </View>
           <View>
             <Text style={[styles.storageTitle, { color: textColor }]}>Storage Used</Text>
@@ -62,7 +63,7 @@ export default function DownloadsScreen() {
       )}
 
       {loading ? (
-        <ActivityIndicator size="large" color="#B34A30" style={{ marginTop: 40 }} />
+        <ActivityIndicator size="large" color={accentColor} style={{ marginTop: 40 }} />
       ) : (
         <FlatList
           data={downloadedTracks}
@@ -92,9 +93,9 @@ export default function DownloadsScreen() {
           )}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconCircle}>
-                <Ionicons name="cloud-offline-outline" size={48} color="#B34A30" />
-              </View>
+            <View style={[styles.emptyIconCircle, { backgroundColor: accentColor + '10' }]}>
+              <Ionicons name="cloud-offline-outline" size={48} color={accentColor} />
+            </View>
               <Text style={[styles.emptyText, { color: textColor }]}>
                 No tracks downloaded
               </Text>

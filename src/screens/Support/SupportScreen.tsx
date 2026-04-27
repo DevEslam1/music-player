@@ -3,21 +3,22 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from "r
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store/store";
 
 const SupportItem = ({ icon, title, subtitle, onPress }: any) => {
   const textColor = useThemeColor({}, "text");
   const surfaceColor = useThemeColor({}, "surface");
+  const accentColor = useAccentColor();
   
   return (
     <TouchableOpacity 
       style={[styles.itemCard, { backgroundColor: surfaceColor }]} 
       onPress={onPress}
     >
-      <View style={styles.itemIcon}>
-        <Ionicons name={icon} size={24} color="#B34A30" />
+      <View style={[styles.itemIcon, { backgroundColor: accentColor + '15' }]}>
+        <Ionicons name={icon} size={24} color={accentColor} />
       </View>
       <View style={styles.itemText}>
         <Text style={[styles.itemTitle, { color: textColor }]}>{title}</Text>
@@ -32,6 +33,7 @@ export default function SupportScreen() {
   const navigation = useNavigation<any>();
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
 
   const handleContactSupport = () => {
     Linking.openURL('mailto:support@musicplayer.com');
@@ -49,7 +51,7 @@ export default function SupportScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.heroSection}>
-          <View style={styles.heroBadge}>
+          <View style={[styles.heroBadge, { backgroundColor: accentColor, shadowColor: accentColor }]}>
             <Ionicons name="headset" size={40} color="#fff" />
           </View>
           <Text style={[styles.heroTitle, { color: textColor }]}>How can we help?</Text>
@@ -83,7 +85,7 @@ export default function SupportScreen() {
           />
         </View>
 
-        <TouchableOpacity style={styles.liveChatButton}>
+        <TouchableOpacity style={[styles.liveChatButton, { backgroundColor: accentColor, shadowColor: accentColor }]}>
           <Ionicons name="chatbubbles" size={20} color="#fff" />
           <Text style={styles.liveChatText}>Start Live Chat</Text>
         </TouchableOpacity>
@@ -123,11 +125,9 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 24,
-    backgroundColor: "#B34A30",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
-    shadowColor: "#B34A30",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 15,
@@ -158,7 +158,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: "rgba(179, 74, 48, 0.1)",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -177,13 +176,11 @@ const styles = StyleSheet.create({
   },
   liveChatButton: {
     flexDirection: "row",
-    backgroundColor: "#B34A30",
     paddingVertical: 18,
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
     gap: 10,
-    shadowColor: "#B34A30",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

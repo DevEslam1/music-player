@@ -34,6 +34,8 @@ import { EmptyFavorite } from "../../components/home/EmptyFavorite";
  * Slicing makes code much easier to maintain and faster to render! 🚀
  */
 
+import { useAccentColor } from "../../hooks/use-theme-color";
+
 export default function HomeScreen() {
   const {
     recommended,
@@ -54,6 +56,7 @@ export default function HomeScreen() {
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
 
   useEffect(() => {
     let isMounted = true;
@@ -135,7 +138,7 @@ export default function HomeScreen() {
               query: "Jazz"
             })}
           >
-            <Text style={styles.seeAll}>See all</Text>
+            <Text style={[styles.seeAll, { color: accentColor }]}>See all</Text>
           </TouchableOpacity>
         </View>
 

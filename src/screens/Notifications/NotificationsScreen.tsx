@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store/store";
 
@@ -31,6 +31,7 @@ export default function NotificationsScreen() {
   const navigation = useNavigation<any>();
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
@@ -40,7 +41,7 @@ export default function NotificationsScreen() {
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: textColor }]}>Notifications</Text>
         <TouchableOpacity style={styles.clearBtn}>
-          <Text style={styles.clearText}>Clear</Text>
+          <Text style={[styles.clearText, { color: accentColor }]}>Clear</Text>
         </TouchableOpacity>
       </View>
 
@@ -52,7 +53,7 @@ export default function NotificationsScreen() {
           body="Amr Diab just released his new album 'Makanak'. Listen now!"
           time="2h ago"
           icon="musical-notes"
-          color="#B34A30"
+          color={accentColor}
         />
 
         <NotificationItem 
@@ -100,7 +101,6 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   clearText: {
-    color: "#B34A30",
     fontWeight: "600",
   },
   content: {
