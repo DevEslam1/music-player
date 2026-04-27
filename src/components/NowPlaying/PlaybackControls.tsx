@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useAccentColor } from '../../hooks/use-theme-color';
 
 /**
  * Junior Dev Comment:
@@ -22,8 +23,6 @@ interface PlaybackControlsProps {
   onNext: () => void;
   textColor: string;
 }
-
-import { useAccentColor } from '../../hooks/use-theme-color';
 
 export const PlaybackControls = React.memo(({
   isPlaying,

@@ -4,15 +4,17 @@ import React from "react";
 import { Track } from "../../types";
 import { setQueue } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../audio/AudioPlayerService";
-import { toggleLikeSongAction } from "../../redux/store/library/librarySlice";
+import {
+  selectLikedSongsLoading,
+  toggleLikeSongAction,
+} from "../../redux/store/library/librarySlice";
 import { useNavigation } from "@react-navigation/native";
 
 export function likedScreenLogic() {
   const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<any>();
-  const { likedSongs, loading } = useSelector(
-    (state: RootState) => state.library,
-  );
+  const likedSongs = useSelector((state: RootState) => state.library.likedSongs);
+  const loading = useSelector(selectLikedSongsLoading);
   const [isEditMode, setIsEditMode] = React.useState(false);
 
   const handlePlay = async (track: Track) => {

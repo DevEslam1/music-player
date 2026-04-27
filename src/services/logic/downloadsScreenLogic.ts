@@ -66,9 +66,11 @@ export function downloadsScreenLogic() {
           text: "Delete All", 
           style: "destructive",
           onPress: async () => {
-            for (const track of downloadedTracks) {
-              await DownloadService.removeDownload(track.id);
-            }
+            await Promise.all(
+              downloadedTracks.map((track) =>
+                DownloadService.removeDownload(track.id),
+              ),
+            );
           }
         }
       ]

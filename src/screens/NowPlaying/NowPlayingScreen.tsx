@@ -100,7 +100,7 @@ export default function NowPlayingScreen() {
     if (track && track.id !== player.currentTrack?.id) {
       await audioPlayer.loadPlayTrack(track);
     }
-  }, [player.queue, player.currentTrack, audioPlayer]);
+  }, [player.queue, player.currentTrack]);
 
   const isLiked = player.currentTrack 
     ? likedSongs.some(t => t.id === player.currentTrack?.id) 

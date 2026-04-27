@@ -8,14 +8,13 @@ import NowPlayingScreen from "../screens/NowPlaying/NowPlayingScreen";
 import PlaylistDetailScreen from "../screens/Playlist/PlaylistDetail";
 import TracksListScreen from "../screens/Home/TracksListScreen";
 import TermsScreen from "../screens/Legal/TermsScreen";
-import NotificationsScreen from "../screens/Notifications/NotificationsScreen";
-import SupportScreen from "../screens/Support/SupportScreen";
 import DrawerNavigator from "./DrawerNavigator";
 import { WelcomeScreen } from "../screens/Auth";
 import { MiniPlayer } from "../components/MiniPlayer";
 
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store/store";
+import { Track } from "../types";
 
 export type MainStack = {
   Login: undefined;
@@ -23,10 +22,8 @@ export type MainStack = {
   Library: undefined;
   NowPlaying: undefined;
   PlaylistDetail: { playlistId: string; name: string };
-  TracksList: { title: string; tracks: any[] };
+  TracksList: { title: string; tracks: Track[]; query?: string };
   TermsOfService: undefined;
-  Notifications: undefined;
-  Support: undefined;
   Drawer: undefined;
   Welcome: undefined;
 };
@@ -65,8 +62,6 @@ const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
             <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
             <Stack.Screen name="TracksList" component={TracksListScreen} />
             <Stack.Screen name="TermsOfService" component={TermsScreen} />
-            <Stack.Screen name="Notifications" component={NotificationsScreen} />
-            <Stack.Screen name="Support" component={SupportScreen} />
           </>
         )}
       </Stack.Navigator>

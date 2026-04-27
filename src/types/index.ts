@@ -15,6 +15,14 @@ export interface Playlist {
   tracks: Track[];
 }
 
+export interface PlaylistSummary {
+  id: string;
+  name: string;
+  description?: string | null;
+  track_count?: number;
+  tracks?: Track[];
+}
+
 export interface User {
   id: string;
   email: string;

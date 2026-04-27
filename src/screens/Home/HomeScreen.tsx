@@ -8,11 +8,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColor } from "../../hooks/use-theme-color";
-import { searchSongs, getRecommendedSongs } from "../../services/api/api";
+import { useAccentColor, useThemeColor } from "../../hooks/use-theme-color";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../redux/store/store";
 import {
+  fetchHomeFeed,
   fetchLikedSongs,
   fetchPlaylists,
 } from "../../redux/store/library/librarySlice";
@@ -34,59 +34,43 @@ import { EmptyFavorite } from "../../components/home/EmptyFavorite";
  * Slicing makes code much easier to maintain and faster to render! 🚀
  */
 
-import { useAccentColor } from "../../hooks/use-theme-color";
-
 export default function HomeScreen() {
-  const {
-    recommended,
-    setRecommended,
-    suggestions,
-    setSuggestions,
-    fullSuggestions,
-    setFullSuggestions,
-    loading,
-    setLoading,
-    handlePlayTrack,
-  } = homeScreenLogic();
+  const { handlePlayTrack } = homeScreenLogic();
   
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
 
-  const { likedSongs } = useSelector((state: RootState) => state.library);
+  const {
+    likedSongs,
+    likedSongsLastFetchedAt,
+    playlistsLastFetchedAt,
+    homeFeed,
+    loadingStates,
+  } = useSelector((state: RootState) => state.library);
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
+  const loading =
+    loadingStates.homeFeed === "loading" && homeFeed.recommended.length === 0;
 
   useEffect(() => {
-    let isMounted = true;
-    const fetchHomeData = async () => {
-      try {
-        dispatch(fetchLikedSongs());
-        dispatch(fetchPlaylists());
+    if (!likedSongsLastFetchedAt && loadingStates.likedSongs !== "loading") {
+      dispatch(fetchLikedSongs());
+    }
 
-        const topTracks = await getRecommendedSongs();
-        const suggestionTracks = await searchSongs("Jazz");
-        
-        if (isMounted) {
-          setRecommended(topTracks.slice(0, 5));
-          setSuggestions(suggestionTracks.slice(0, 6));
-          setFullSuggestions(suggestionTracks);
-          
-          // Small delay for the shimmer effect to feel smooth
-          setTimeout(() => {
-            if (isMounted) setLoading(false);
-          }, 800);
-        }
-      } catch (e) {
-        if (isMounted) setLoading(false);
-      }
-    };
-    fetchHomeData();
-    return () => {
-      isMounted = false;
-    };
-  }, [dispatch, setRecommended, setSuggestions, setFullSuggestions, setLoading]);
+    if (!playlistsLastFetchedAt && loadingStates.playlists !== "loading") {
+      dispatch(fetchPlaylists());
+    }
+
+    dispatch(fetchHomeFeed());
+  }, [
+    dispatch,
+    likedSongsLastFetchedAt,
+    loadingStates.likedSongs,
+    loadingStates.playlists,
+    playlistsLastFetchedAt,
+  ]);
 
   // Memoized handlers for child components
   const onOpenDrawer = useCallback(() => navigation.openDrawer(), [navigation]);
@@ -112,7 +96,7 @@ export default function HomeScreen() {
         {/* Horizontal Recommended List */}
         <TrackList
           label="Recommended for you"
-          trackList={recommended}
+          trackList={homeFeed.recommended}
           handlePlayTrack={handlePlayTrack}
         />
 
@@ -134,7 +118,7 @@ export default function HomeScreen() {
           <TouchableOpacity 
             onPress={() => navigation.navigate("TracksList", { 
               title: "Suggestions", 
-              tracks: fullSuggestions,
+              tracks: homeFeed.fullSuggestions,
               query: "Jazz"
             })}
           >
@@ -144,12 +128,12 @@ export default function HomeScreen() {
 
         {/* Vertical Suggestion List */}
         <View style={styles.verticalList}>
-          {suggestions.map((item) => (
+          {homeFeed.suggestions.map((item) => (
             <SuggestionItem
               key={item.id}
               track={item}
               textColor={textColor}
-              onPress={() => handlePlayTrack(item, suggestions)}
+              onPress={() => handlePlayTrack(item, homeFeed.fullSuggestions)}
             />
           ))}
         </View>
@@ -179,7 +163,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   seeAll: {
-    color: "#B34A30",
     fontSize: 14,
     fontWeight: "600",
   },

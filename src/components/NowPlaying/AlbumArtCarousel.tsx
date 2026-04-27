@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, StyleSheet, Dimensions, Image, FlatList, Platform } from 'react-native';
+import { View, StyleSheet, Image, FlatList, Platform, useWindowDimensions } from 'react-native';
 import Animated, { 
   useAnimatedStyle, 
   useSharedValue, 
@@ -9,14 +9,9 @@ import Animated, {
   SharedValue
 } from 'react-native-reanimated';
 import { Track } from '../../types';
-
-const { width } = Dimensions.get('window');
+import { useAccentColor } from '../../hooks/use-theme-color';
 
 // Carousel Dimensions
-const ITEM_WIDTH = width * 0.72;
-const ITEM_SPACING = (width - ITEM_WIDTH) / 2;
-const COVER_SIZE = ITEM_WIDTH;
-
 interface AlbumArtCarouselProps {
   queue: Track[];
   currentTrack: Track;
@@ -32,20 +27,22 @@ const CarouselItem = ({
   scrollX, 
   animatedImageStyle,
   glowIntensity,
-  accentColor 
+  itemWidth,
+  coverSize,
 }: { 
   track: Track; 
   index: number; 
   scrollX: SharedValue<number>;
   animatedImageStyle?: any;
   glowIntensity?: SharedValue<number>;
-  accentColor: string;
+  itemWidth: number;
+  coverSize: number;
 }) => {
   const scrollAnimatedStyle = useAnimatedStyle(() => {
     const inputRange = [
-      (index - 1) * ITEM_WIDTH,
-      index * ITEM_WIDTH,
-      (index + 1) * ITEM_WIDTH,
+      (index - 1) * itemWidth,
+      index * itemWidth,
+      (index + 1) * itemWidth,
     ];
 
     const scale = interpolate(
@@ -72,8 +69,8 @@ const CarouselItem = ({
     if (!glowIntensity) return { opacity: 0 };
     
     // Only show glow if this is the active-ish item
-    const distance = Math.abs(scrollX.value - (index * ITEM_WIDTH));
-    const opacityMult = interpolate(distance, [0, ITEM_WIDTH / 2], [1, 0], Extrapolate.CLAMP);
+    const distance = Math.abs(scrollX.value - (index * itemWidth));
+    const opacityMult = interpolate(distance, [0, itemWidth / 2], [1, 0], Extrapolate.CLAMP);
 
     return {
       opacity: glowIntensity.value * 0.4 * opacityMult,
@@ -82,7 +79,7 @@ const CarouselItem = ({
   });
 
   return (
-    <View style={[styles.itemContainer, { width: ITEM_WIDTH }]}>
+    <View style={[styles.itemContainer, { width: itemWidth }]}>
       {/* Background layer for the glow */}
       <View 
         style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', zIndex: -1 }]}
@@ -92,7 +89,8 @@ const CarouselItem = ({
           source={{ uri: track.image || 'https://picsum.photos/400' }}
           style={[
             styles.glowBackground, 
-            glowStyle
+            glowStyle,
+            { width: coverSize, height: coverSize, borderRadius: coverSize }
           ]}
           blurRadius={Platform.OS === 'ios' ? 60 : 30}
         />
@@ -103,7 +101,7 @@ const CarouselItem = ({
         <Animated.View style={animatedImageStyle}>
           <Image
             source={{ uri: track.image || 'https://picsum.photos/400' }}
-            style={styles.albumArt}
+            style={[styles.albumArt, { borderRadius: 24 }]}
             resizeMode="cover"
           />
         </Animated.View>
@@ -111,8 +109,6 @@ const CarouselItem = ({
     </View>
   );
 };
-
-import { useAccentColor } from '../../hooks/use-theme-color';
 
 export const AlbumArtCarousel = React.memo(({
   queue,
@@ -123,6 +119,10 @@ export const AlbumArtCarousel = React.memo(({
   glowIntensity
 }: AlbumArtCarouselProps) => {
   const accentColor = useAccentColor();
+  const { width } = useWindowDimensions();
+  const itemWidth = width * 0.72;
+  const itemSpacing = (width - itemWidth) / 2;
+  const coverSize = itemWidth;
   const scrollX = useSharedValue(0);
   const flatListRef = useRef<FlatList>(null);
 
@@ -136,11 +136,11 @@ export const AlbumArtCarousel = React.memo(({
   useEffect(() => {
     if (flatListRef.current && queue.length > 0) {
       flatListRef.current.scrollToOffset({
-        offset: currentIndex * ITEM_WIDTH,
+        offset: currentIndex * itemWidth,
         animated: true,
       });
     }
-  }, [currentIndex, queue.length]);
+  }, [currentIndex, itemWidth, queue.length]);
 
   return (
     <View style={styles.container}>
@@ -150,16 +150,16 @@ export const AlbumArtCarousel = React.memo(({
         keyExtractor={(item, index) => `${item.id}-${index}`}
         horizontal
         showsHorizontalScrollIndicator={false}
-        snapToInterval={ITEM_WIDTH}
+        snapToInterval={itemWidth}
         decelerationRate="fast"
         contentContainerStyle={{
-          paddingHorizontal: ITEM_SPACING,
+          paddingHorizontal: itemSpacing,
           alignItems: 'center',
         }}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         onMomentumScrollEnd={(e) => {
-          const newIndex = Math.round(e.nativeEvent.contentOffset.x / ITEM_WIDTH);
+          const newIndex = Math.round(e.nativeEvent.contentOffset.x / itemWidth);
           if (newIndex !== currentIndex) {
             onTrackChange(newIndex);
           }
@@ -171,7 +171,8 @@ export const AlbumArtCarousel = React.memo(({
             scrollX={scrollX} 
             animatedImageStyle={index === currentIndex ? animatedImageStyle : undefined}
             glowIntensity={index === currentIndex ? glowIntensity : undefined}
-            accentColor={accentColor}
+            itemWidth={itemWidth}
+            coverSize={coverSize}
           />
         )}
       />
@@ -181,7 +182,6 @@ export const AlbumArtCarousel = React.memo(({
 
 const styles = StyleSheet.create({
   container: {
-    height: width * 0.9,
     marginVertical: 20,
   },
   itemContainer: {
@@ -189,8 +189,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   albumArtWrapper: {
-    width: COVER_SIZE,
-    height: COVER_SIZE,
     borderRadius: 24,
     // Shadow
     shadowColor: '#000',
@@ -208,9 +206,6 @@ const styles = StyleSheet.create({
   },
   glowBackground: {
     position: 'absolute',
-    width: COVER_SIZE,
-    height: COVER_SIZE,
-    borderRadius: COVER_SIZE,
     opacity: 0,
     zIndex: -1, // Ensure it's behind the cover
   },

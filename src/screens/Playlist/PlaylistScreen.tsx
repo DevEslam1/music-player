@@ -16,13 +16,21 @@ import { useNavigation } from "@react-navigation/native";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../redux/store/store";
-import { fetchPlaylists, createPlaylistAction, deletePlaylistAction } from "../../redux/store/library/librarySlice";
-import { Playlist } from "../../types";
+import {
+  fetchPlaylists,
+  createPlaylistAction,
+  deletePlaylistAction,
+  selectPlaylistsLoading,
+} from "../../redux/store/library/librarySlice";
+import { PlaylistSummary } from "../../types";
 
 export default function PlaylistScreen() {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
-  const { playlists, loading } = useSelector((state: RootState) => state.library);
+  const { playlists, playlistsLastFetchedAt } = useSelector(
+    (state: RootState) => state.library,
+  );
+  const loading = useSelector(selectPlaylistsLoading);
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -35,8 +43,10 @@ export default function PlaylistScreen() {
   const [newPlaylistName, setNewPlaylistName] = useState("");
 
   React.useEffect(() => {
-    dispatch(fetchPlaylists());
-  }, []);
+    if (!playlistsLastFetchedAt) {
+      dispatch(fetchPlaylists());
+    }
+  }, [dispatch, playlistsLastFetchedAt]);
 
   const handleCreate = () => {
     if (newPlaylistName.trim() === "") return;
@@ -45,7 +55,7 @@ export default function PlaylistScreen() {
     setIsCreating(false);
   };
 
-  const renderItem = ({ item }: { item: Playlist }) => (
+  const renderItem = ({ item }: { item: PlaylistSummary }) => (
     <View style={[styles.card, { borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}>
       <TouchableOpacity 
         style={styles.cardMain}

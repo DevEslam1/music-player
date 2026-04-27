@@ -110,9 +110,6 @@ export default function DownloadsScreen() {
   );
 }
 
-// Add to imports at top:
-// import { DownloadButton } from "../../components/DownloadButton";
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

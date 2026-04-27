@@ -10,8 +10,6 @@ import LanguageScreen from "../screens/Language/LanguageScreen";
 import NotificationsScreen from "../screens/Notifications/NotificationsScreen";
 import SupportScreen from "../screens/Support/SupportScreen";
 import { useThemeColor } from "../hooks/use-theme-color";
-import { Ionicons } from "@expo/vector-icons";
-import { View } from "react-native";
 import { CustomDrawerContent } from "../components/CustomDrawerContent";
 
 import DownloadsScreen from "../screens/Downloads/DownloadsScreen";
@@ -44,31 +42,29 @@ const DrawerNavigator = ({ lightColor, darkColor }: DrawerItemProps) => {
   );
 
   return (
-    <View style={{ flex: 1 }}>
-      <Drawer.Navigator
-        id="LeftDrawer"
-        drawerContent={(props) => <CustomDrawerContent {...props} />}
-        screenOptions={{
-          headerShown: false,
-          drawerStyle: {
-            backgroundColor: backgroundColor,
-            width: "75%",
-          },
-        }}
-      >
-        <Drawer.Screen name="Home" component={HomeScreen} />
-        <Drawer.Screen name="LikedSongs" component={LikedSongsScreen} />
-        <Drawer.Screen name="Playlist" component={PlaylistScreen} />
-        <Drawer.Screen name="Downloads" component={DownloadsScreen} />
-        <Drawer.Screen name="Profile" component={ProfileScreen} />
-        <Drawer.Screen name="FAQ" component={FAQScreen} />
-        <Drawer.Screen name="Settings" component={SettingsScreen} />
-        <Drawer.Screen name="Contact" component={ContactScreen} />
-        <Drawer.Screen name="Language" component={LanguageScreen} />
-        <Drawer.Screen name="Notifications" component={NotificationsScreen} />
-        <Drawer.Screen name="Support" component={SupportScreen} />
-      </Drawer.Navigator>
-    </View>
+    <Drawer.Navigator
+      id="LeftDrawer"
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
+      screenOptions={{
+        headerShown: false,
+        drawerStyle: {
+          backgroundColor: backgroundColor,
+          width: "75%",
+        },
+      }}
+    >
+      <Drawer.Screen name="Home" component={HomeScreen} />
+      <Drawer.Screen name="LikedSongs" component={LikedSongsScreen} />
+      <Drawer.Screen name="Playlist" component={PlaylistScreen} />
+      <Drawer.Screen name="Downloads" component={DownloadsScreen} />
+      <Drawer.Screen name="Profile" component={ProfileScreen} />
+      <Drawer.Screen name="FAQ" component={FAQScreen} />
+      <Drawer.Screen name="Settings" component={SettingsScreen} />
+      <Drawer.Screen name="Contact" component={ContactScreen} />
+      <Drawer.Screen name="Language" component={LanguageScreen} />
+      <Drawer.Screen name="Notifications" component={NotificationsScreen} />
+      <Drawer.Screen name="Support" component={SupportScreen} />
+    </Drawer.Navigator>
   );
 };
 

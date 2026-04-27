@@ -10,6 +10,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { fetchLikedSongs } from "../../redux/store/library/librarySlice";
+import { RootState } from "../../redux/store/store";
+import { useSelector } from "react-redux";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { LikedSongCard } from "../../components/liked/LikedSongCard";
 import { likedScreenLogic } from "../../services/logic/likedScreenLogic";
@@ -24,10 +26,15 @@ export default function LikedSongsScreen() {
     handlePlay,
     handleRemove,
   } = likedScreenLogic();
+  const likedSongsLastFetchedAt = useSelector(
+    (state: RootState) => state.library.likedSongsLastFetchedAt,
+  );
 
   React.useEffect(() => {
-    dispatch(fetchLikedSongs());
-  }, []);
+    if (!likedSongsLastFetchedAt) {
+      dispatch(fetchLikedSongs());
+    }
+  }, [dispatch, likedSongsLastFetchedAt]);
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");

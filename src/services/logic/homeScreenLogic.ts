@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { Track } from "../../types";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import { setQueue } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../audio/AudioPlayerService";
+import { AppDispatch } from "../../redux/store/store";
 
 /**
  * Junior Developer Logic Note:
@@ -13,11 +14,7 @@ import { audioPlayer } from "../audio/AudioPlayerService";
  */
 
 export function homeScreenLogic() {
-  const [recommended, setRecommended] = useState<Track[]>([]);
-  const [suggestions, setSuggestions] = useState<Track[]>([]);
-  const [fullSuggestions, setFullSuggestions] = useState<Track[]>([]);
-  const [loading, setLoading] = useState(true);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<any>();
 
   const handlePlayTrack = useCallback(async (track: Track, queue: Track[]) => {
@@ -27,14 +24,6 @@ export function homeScreenLogic() {
   }, [dispatch, navigation]);
 
   return {
-    recommended,
-    setRecommended,
-    suggestions,
-    setSuggestions,
-    fullSuggestions,
-    setFullSuggestions,
-    loading,
-    setLoading,
     handlePlayTrack,
   };
 }
