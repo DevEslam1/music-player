@@ -10,6 +10,7 @@ export interface BannerState {
 
 interface UIState {
   banner: BannerState;
+  isDrawerOpen: boolean;
 }
 
 const initialState: UIState = {
@@ -18,6 +19,7 @@ const initialState: UIState = {
     message: "",
     type: "info",
   },
+  isDrawerOpen: false,
 };
 
 const uiSlice = createSlice({
@@ -35,8 +37,11 @@ const uiSlice = createSlice({
     hideBanner: (state) => {
       state.banner.visible = false;
     },
+    setDrawerOpen: (state, action: PayloadAction<boolean>) => {
+      state.isDrawerOpen = action.payload;
+    },
   },
 });
 
-export const { showBanner, hideBanner } = uiSlice.actions;
+export const { showBanner, hideBanner, setDrawerOpen } = uiSlice.actions;
 export default uiSlice.reducer;

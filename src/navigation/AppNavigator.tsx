@@ -40,8 +40,9 @@ interface AppNavigatorProps {
 
 const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const isDrawerOpen = useSelector((state: RootState) => state.ui.isDrawerOpen);
   // Hide miniplayer during auth, now playing, or when route is not yet determined
-  const hideMiniPlayer = !currentRoute || ["Login", "SignUp", "NowPlaying", "Welcome"].includes(currentRoute);
+  const hideMiniPlayer = isDrawerOpen || !currentRoute || ["Login", "SignUp", "NowPlaying", "Welcome"].includes(currentRoute);
   const isFirstLaunch = useSelector((state: RootState) => state.auth.isFirstLaunch);
 
   // Fix 6: Determine initial route but always register all screens unconditionally.

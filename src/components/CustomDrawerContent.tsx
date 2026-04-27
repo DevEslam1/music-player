@@ -1,10 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { DrawerContentComponentProps } from "@react-navigation/drawer";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { DrawerContentComponentProps, useDrawerStatus } from "@react-navigation/drawer";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store/store";
 import { toggleTheme } from "../redux/store/theme/themeSlice";
+import { setDrawerOpen } from "../redux/store/ui/uiSlice";
 import { useThemeColor } from "../hooks/use-theme-color";
 
 interface DrawerItemProps {
@@ -24,6 +25,11 @@ const DrawerItem = ({ icon, label, onPress, textColor }: DrawerItemProps) => (
 export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const dispatch = useDispatch();
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
+  const isDrawerOpen = useDrawerStatus() === 'open';
+  
+  React.useEffect(() => {
+    dispatch(setDrawerOpen(isDrawerOpen));
+  }, [isDrawerOpen, dispatch]);
   
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -43,7 +49,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
         <DrawerItem 
           icon="home-outline" 
           label="Home" 
@@ -107,7 +113,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           textColor={textColor}
           onPress={() => props.navigation.navigate("Settings")} 
         />
-      </View>
+      </ScrollView>
     </View>
   );
 };
