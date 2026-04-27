@@ -1,14 +1,14 @@
 import { useCallback, useMemo } from "react";
 import { DownloadService } from "../api/downloadService";
 import { store } from "../../redux/store/store";
-import { setCurrentTrack, setQueue } from "../../redux/store/player/playerSlice";
+import { setQueue } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../audio/AudioPlayerService";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store/store";
 import { Track } from "../../types";
 import { showAppBanner } from "../../components/OfflineBanner";
 
-export function downloadsScreenLogic() {
+export function useDownloadsScreenLogic() {
   const tracksRecord = useSelector((state: RootState) => state.downloads.tracks);
 
   // Transform Record to Array and sort by name
@@ -24,7 +24,8 @@ export function downloadsScreenLogic() {
 
   const handlePlayTrack = useCallback(async (track: Track) => {
     store.dispatch(setQueue(downloadedTracks));
-    store.dispatch(setCurrentTrack(track));
+    // Fix 3: Removed redundant setCurrentTrack dispatch —
+    // audioPlayer.loadPlayTrack already dispatches it internally.
     try {
       await audioPlayer.loadPlayTrack(track);
     } catch (e) {

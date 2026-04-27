@@ -19,7 +19,7 @@ import {
 } from "../../redux/store/library/librarySlice";
 import { SuggestionItem } from "../../components/home/SuggestionItem";
 import { TrackList } from "../../components/home/TrackList";
-import { homeScreenLogic } from "../../services/logic/homeScreenLogic";
+import { useHomeScreenLogic } from "../../services/logic/homeScreenLogic";
 import { HomeSkeleton } from "../../components/home/HomeSkeleton";
 
 // Smaller, reusable components for a cleaner codebase! 
@@ -36,7 +36,7 @@ import { EmptyFavorite } from "../../components/home/EmptyFavorite";
  */
 
 export default function HomeScreen() {
-  const { handlePlayTrack } = homeScreenLogic();
+  const { handlePlayTrack } = useHomeScreenLogic();
   
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();

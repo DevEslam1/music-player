@@ -2,6 +2,7 @@ import { Paths, File } from 'expo-file-system';
 import * as FileSystemLegacy from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Track } from '../../types';
+import { getAccessToken } from '../auth/session';
 // We use type imports which are erased at runtime and don't cause require cycles
 import type { DownloadedTrack } from '../../redux/store/downloads/downloadsSlice';
 import NetInfo from '@react-native-community/netinfo';
@@ -119,7 +120,7 @@ export const DownloadService = {
         }));
       }
 
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getAccessToken();
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       // Create resumable download using legacy API (for progress support)

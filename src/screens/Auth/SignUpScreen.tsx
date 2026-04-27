@@ -10,7 +10,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { CustomTextInput } from "../../components/auth/CustomTextInput";
 import { CustomButton } from "../../components/CustomButton";
-import { signUpScreenLogic } from "../../services/logic/signUpScreenLogic";
+import { useSignUpScreenLogic } from "../../services/logic/signUpScreenLogic";
 import { useAccentColor, useThemeColor } from "../../hooks/use-theme-color";
 
 // Slicing components for cleaner code!
@@ -33,7 +33,7 @@ export default function SignUpScreen() {
     loading,
     isFormValid,
     handleSignUp,
-  } = signUpScreenLogic();
+  } = useSignUpScreenLogic();
 
   const navigation = useNavigation<any>();
   const backgroundColor = useThemeColor({}, "background");

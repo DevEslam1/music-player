@@ -21,7 +21,8 @@ A full-featured music streaming and offline playback app built with React Native
 - Shuffle mode
 
 ### 📥 Offline / Downloads
-- Download any track to local device storage
+- **Bulk Download everything** via one-tap toggles on lists/playlists
+- Download any individual track to local device storage
 - Automatic fallback to local file when offline
 - Download progress indicator (percentage)
 - Cancel active downloads
@@ -225,6 +226,9 @@ Axios interceptors silently refresh expired access tokens using the stored refre
 
 ### Gesture-First Mini Player
 The mini player uses `react-native-gesture-handler`'s `Gesture.Pan()` API composed with `Gesture.Simultaneous()` so swipe-to-change-track and long-press-to-scrub can coexist without conflict, both running on the UI thread via Reanimated shared values.
+
+### Runtime Dependency Injection
+To prevent Metro bundler `Require cycle` loops that cause sporadic `undefined` errors (e.g. from circular imports like `components -> store -> slice -> service -> components`), services such as `DownloadService` leverage run-time dependency injection (`injectRedux`), initialized safely inside `AppBootstrap`.
 
 ---
 

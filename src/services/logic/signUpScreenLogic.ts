@@ -10,7 +10,7 @@ import { showAppBanner } from "../../components/OfflineBanner";
  * on every keystroke. It saves memory and makes the UI smoother! ✨
  */
 
-export function signUpScreenLogic() {
+export function useSignUpScreenLogic() {
   const navigation = useNavigation<any>();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

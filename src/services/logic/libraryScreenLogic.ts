@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Track } from "../../types";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,7 +11,7 @@ import { addTrackToPlaylistAction } from "../../redux/store/library/librarySlice
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MainStack } from "../../navigation/AppNavigator";
 
-export function libraryScreenLogic() {
+export function useLibraryScreenLogic() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ export function libraryScreenLogic() {
 
   const fetchResults = async (searchQuery: string) => {
     activeQuery.current = searchQuery;
-
+    setLoading(true); // Fix 2: show spinner while fetching
 
     const localLiked = likedSongs.filter(
       (s) =>
@@ -35,13 +35,10 @@ export function libraryScreenLogic() {
         s.artist.toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
-
     try {
       const remoteTracks = await searchSongs(searchQuery);
 
-
       if (activeQuery.current !== searchQuery) return;
-
 
       const combined = [...localLiked];
       remoteTracks.forEach((rt) => {

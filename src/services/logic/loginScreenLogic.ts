@@ -19,7 +19,7 @@ import { showAppBanner } from "../../components/OfflineBanner";
  * This keeps the UI snappy during text input changes! 
  */
 
-export function loginScreenLogic() {
+export function useLoginScreenLogic() {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
   const [email, setEmail] = useState("");

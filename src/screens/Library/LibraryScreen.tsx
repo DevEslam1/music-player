@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { RootState, AppDispatch } from "../../redux/store/store";
-import { libraryScreenLogic } from "../../services/logic/libraryScreenLogic";
+import { useLibraryScreenLogic } from "../../services/logic/libraryScreenLogic";
 import { SearchBar } from "../../components/library/SearchBar";
 import { SearchItem } from "../../components/library/SearchItem";
 import PlaylistPicker from "../../components/PlaylistPicker";
@@ -32,7 +32,7 @@ export default function LibraryScreen() {
     setIsPickerVisible,
     handleAddToPlaylist,
     likedSongs,
-  } = libraryScreenLogic();
+  } = useLibraryScreenLogic();
   
   const dispatch = useDispatch<AppDispatch>();
   const autoDownloadEnabled = useSelector(

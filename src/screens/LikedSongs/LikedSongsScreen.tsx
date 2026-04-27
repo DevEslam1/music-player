@@ -17,7 +17,7 @@ import { RootState } from "../../redux/store/store";
 import { useSelector, useDispatch } from "react-redux";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { LikedSongCard } from "../../components/liked/LikedSongCard";
-import { likedScreenLogic } from "../../services/logic/likedScreenLogic";
+import { useLikedScreenLogic } from "../../services/logic/likedScreenLogic";
 import { setAutoDownloadEnabled, batchDownloadTracksAction } from "../../redux/store/downloads/downloadsSlice";
 
 export default function LikedSongsScreen() {
@@ -29,7 +29,7 @@ export default function LikedSongsScreen() {
     setIsEditMode,
     handlePlay,
     handleRemove,
-  } = likedScreenLogic();
+  } = useLikedScreenLogic();
 
   const navigation = useNavigation<any>();
   const autoDownloadEnabled = useSelector(

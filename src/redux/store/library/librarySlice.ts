@@ -4,7 +4,7 @@ import { LibraryService } from "../../../services/api/libraryService";
 import { getRecommendedSongs, searchSongs } from "../../../services/api/api";
 import { DownloadService } from "../../../services/api/downloadService";
 import { RootState } from "../store";
-import { upsertDownload, setDownloadProgress, clearDownloadProgress } from "../downloads/downloadsSlice";
+
 
 const HOME_FEED_TTL_MS = 5 * 60 * 1000;
 
@@ -57,11 +57,11 @@ export const toggleLikeSongAction = createAsyncThunk<
     await LibraryService.toggleLike(track.id);
     
     // Auto-download logic
+    // Auto-download on like: DownloadService.downloadTrack owns progress reporting
     const state = getState();
     const isLiked = state.library.likedSongs.some(t => t.id === track.id);
     // If it *wasn't* liked before (so it is now being liked) and auto-download is on
     if (!isLiked && state.downloads.autoDownloadEnabled) {
-      dispatch(setDownloadProgress({ trackId: track.id, progress: 0, status: 'downloading' }));
       DownloadService.downloadTrack(track).catch(e => {
         console.warn('Auto-download failed', e);
       });

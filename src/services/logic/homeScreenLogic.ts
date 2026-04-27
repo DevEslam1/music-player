@@ -15,7 +15,7 @@ import { MainStack } from "../../navigation/AppNavigator";
  * every single time the screen refreshes. Efficiency! ⚡
  */
 
-export function homeScreenLogic() {
+export function useHomeScreenLogic() {
   const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
 

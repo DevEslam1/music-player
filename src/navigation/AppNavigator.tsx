@@ -44,32 +44,30 @@ const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
   const hideMiniPlayer = !currentRoute || ["Login", "SignUp", "NowPlaying", "Welcome"].includes(currentRoute);
   const isFirstLaunch = useSelector((state: RootState) => state.auth.isFirstLaunch);
 
+  // Fix 6: Determine initial route but always register all screens unconditionally.
+  // This prevents "screen does not exist" errors during auth state transitions.
+  const initialRouteName = isFirstLaunch ? "Welcome" : (isLoggedIn ? "Drawer" : "Login");
+
   return (
     <View style={styles.container}>
       <Stack.Navigator 
         id="MainStack" 
         screenOptions={{ headerShown: false }}
-        initialRouteName={isFirstLaunch ? "Welcome" : (isLoggedIn ? "Drawer" : "Login")}
+        initialRouteName={initialRouteName}
       >
-        {isFirstLaunch ? (
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
-        ) : !isLoggedIn ? (
-          <>
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="SignUp" component={SignUpScreen} />
-          </>
-        ) : (
-          <>
-            <Stack.Screen name="Drawer" component={DrawerNavigator} />
-            <Stack.Screen name="Library" component={LibraryScreen} />
-            <Stack.Screen name="NowPlaying" component={NowPlayingScreen} />
-            <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
-            <Stack.Screen name="TracksList" component={TracksListScreen} />
-            <Stack.Screen name="TermsOfService" component={TermsScreen} />
-            <Stack.Screen name="Notifications" component={NotificationsScreen} />
-            <Stack.Screen name="Support" component={SupportScreen} />
-          </>
-        )}
+        {/* Auth screens */}
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
+        {/* Main app screens */}
+        <Stack.Screen name="Drawer" component={DrawerNavigator} />
+        <Stack.Screen name="Library" component={LibraryScreen} />
+        <Stack.Screen name="NowPlaying" component={NowPlayingScreen} />
+        <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
+        <Stack.Screen name="TracksList" component={TracksListScreen} />
+        <Stack.Screen name="TermsOfService" component={TermsScreen} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
+        <Stack.Screen name="Support" component={SupportScreen} />
       </Stack.Navigator>
       {!hideMiniPlayer && <MiniPlayer />}
     </View>

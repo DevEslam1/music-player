@@ -4,7 +4,7 @@ import { Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, View, 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { ScreenHeader } from "../../components/ScreenHeader";
-import { downloadsScreenLogic } from "../../services/logic/downloadsScreenLogic";
+import { useDownloadsScreenLogic } from "../../services/logic/downloadsScreenLogic";
 import { Ionicons } from "@expo/vector-icons";
 import { DownloadButton } from "../../components/DownloadButton";
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
@@ -23,7 +23,7 @@ export default function DownloadsScreen() {
     handleDeleteDownload,
     handleDeleteAll,
     totalStorage
-  } = downloadsScreenLogic();
+  } = useDownloadsScreenLogic();
 
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(() => {

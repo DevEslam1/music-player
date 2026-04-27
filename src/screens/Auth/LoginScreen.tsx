@@ -10,7 +10,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { CustomTextInput } from "../../components/auth/CustomTextInput";
 import { CustomButton } from "../../components/CustomButton";
-import { loginScreenLogic } from "../../services/logic/loginScreenLogic";
+import { useLoginScreenLogic } from "../../services/logic/loginScreenLogic";
 import { useAccentColor, useThemeColor } from "../../hooks/use-theme-color";
 
 // Reusable Header
@@ -25,7 +25,7 @@ export default function LoginScreen() {
     isLoading,
     isFormValid,
     handleLogin,
-  } = loginScreenLogic();
+  } = useLoginScreenLogic();
 
   const navigation = useNavigation<any>();
   const backgroundColor = useThemeColor({}, "background");
