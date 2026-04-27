@@ -235,12 +235,14 @@ const MiniPlayerInner = () => {
   );
 };
 
+import type { SharedValue } from "react-native-reanimated";
+
 // ─── Arrow hints that fade in as the user drags ────────────────────────────────
 function SwipeHintArrows({
   translateX,
   accentColor,
 }: {
-  translateX: Animated.SharedValue<number>;
+  translateX: SharedValue<number>;
   accentColor: string;
 }) {
   const leftStyle = useAnimatedStyle(() => ({
