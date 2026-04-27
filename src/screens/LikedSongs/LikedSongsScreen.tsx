@@ -46,6 +46,12 @@ export default function LikedSongsScreen() {
     }
   }, [dispatch, likedSongsLastFetchedAt]);
 
+  React.useEffect(() => {
+    if (autoDownloadEnabled && likedSongs.length > 0) {
+      dispatch(batchDownloadTracksAction(likedSongs));
+    }
+  }, [likedSongs, autoDownloadEnabled, dispatch]);
+
   const [refreshing, setRefreshing] = React.useState(false);
 
   const onRefresh = React.useCallback(async () => {
@@ -73,9 +79,8 @@ export default function LikedSongsScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity 
               onPress={() => {
-                const newValue = !autoDownloadEnabled;
-                dispatch(setAutoDownloadEnabled(newValue));
-                if (newValue) {
+                dispatch(setAutoDownloadEnabled(true));
+                if (likedSongs.length > 0) {
                   dispatch(batchDownloadTracksAction(likedSongs));
                 }
               }}

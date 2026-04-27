@@ -69,9 +69,8 @@ export default function LibraryScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity 
               onPress={() => {
-                const newValue = !autoDownloadEnabled;
-                dispatch(setAutoDownloadEnabled(newValue));
-                if (newValue && results?.length > 0) {
+                dispatch(setAutoDownloadEnabled(true));
+                if (results?.length > 0) {
                   dispatch(batchDownloadTracksAction(results));
                 }
               }}

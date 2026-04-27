@@ -105,7 +105,10 @@ export default function PlaylistScreen() {
         rightComponent={
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity 
-              onPress={() => dispatch(setAutoDownloadEnabled(!autoDownloadEnabled))}
+              onPress={() => {
+                dispatch(setAutoDownloadEnabled(true));
+                // TODO: Batch download all playlist tracks if possible?
+              }}
               style={{ marginRight: 15, padding: 4 }}
             >
               <Ionicons 
