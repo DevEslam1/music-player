@@ -1,112 +1,245 @@
-<div align="center">
+# GiG Player 🎵
 
-# 🎧 GiG Player V2.0
-
-<p align="center">
-  <img src="https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React Native" />
-  <img src="https://img.shields.io/badge/Expo_55-000020?style=for-the-badge&logo=expo&logoColor=white" alt="Expo" />
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Redux_Toolkit-764ABC?style=for-the-badge&logo=redux&logoColor=white" alt="Redux Toolkit" />
-  <img src="https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge" alt="Status: Production Ready" />
-</p>
-
-A premium, high-performance music player app built with **React Native**, **Expo (SDK 55)**, and **TypeScript**. GiG Player V2.0 offers a seamless blend of cloud-synced music management, global discovery, and robust **Offline Playback**, all wrapped in a stunning, theme-aware "Sonic Noir" aesthetic with advanced **Reanimated 4** animations.
-
-</div>
+A full-featured music streaming and offline playback app built with React Native (Expo). Stream tracks from a backend API, download them for offline listening, manage playlists, and enjoy a premium audio experience with lock-screen controls and fluid gesture interactions.
 
 ---
 
-## 🔥 What's New in V2.0: The Optimization Update
+## Screenshots
 
-GiG Player underwent a massive, 4-phase architectural audit and polish to ensure it looks stunning and performs flawlessly at scale.
-
-* 🛡️ **Bulletproof Security**: Re-engineered Axios interceptors with a true silent token-refresh flow, keeping user sessions alive seamlessly without crashing.
-* ⚡ **Performance Leaps**: Throttled Redux playback dispatches from 60FPS to 500ms heartbeats, saving massive CPU overhead. Global image caching via `expo-image` ensures buttery smooth scrolling without network latency.
-* 🔄 **Tactile Synchronization**: Universal Pull-to-Refresh across all dynamic screens (Home, Playlists, Liked Songs), bundled with `expo-haptics` for premium, OS-level physical feedback when controlling playback.
-* 🧹 **Zero-Waste Rendering**: Deep static typing enforcement, React component memoization (`React.memo`), and resolution of all duplicate navigation stack anomalies. 
+> Run the app and use the built-in screens to explore the UI.
 
 ---
 
-## 🌟 Core Features
+## Features
 
-### 🎨 Immersive "Sonic Noir" UI
-- **Aura Glow + Breathing Animations**: A dynamic, pulsing color halo drops behind the cover art, rhythmically scaling and adapting to your custom accent theme during active playback.
-- **Glassmorphism**: Translucent, blurred MiniPlayer and Now Playing overlays for a modern, native-OS integrated feel.
-- **Floating Pill MiniPlayer**: A safe-area-aware playback bar with vibrant progress indicators, integrating adaptive transparency when navigating nested screens.
+### 🎧 Audio Playback
+- Stream tracks via authenticated API (HTTPS with Bearer token)
+- Background audio playback (iOS & Android)
+- Lock-screen controls with artwork, seek-forward and seek-backward
+- Auto-advance to next track on finish
+- Repeat modes: off / repeat track / repeat queue
+- Shuffle mode
 
-### 📶 Connection-Aware Offline Playback
-- **Local Caching**: Download your favorite tracks directly to local storage via `expo-file-system`.
-- **Smart Validation**: 3-stage validation process (HTTP 200 checks, Auth Header injection, and size guards) to prevent corrupted files from bloating your phone.
-- **Zero-Latency Fallback**: The app automatically detects connection drops and shifts to local files, indicated by an intelligent, auto-collapsing Offline Status Banner.
+### 📥 Offline / Downloads
+- Download any track to local device storage
+- Automatic fallback to local file when offline
+- Download progress indicator (percentage)
+- Cancel active downloads
+- Delete individual or all downloads
+- Storage usage summary
 
-### ☁️ Cloud Synced & Secure
-- **Custom Authentication**: Elegant JWT-powered Login and Sign Up flows with proper UI feedback for session expirations.
-- **Real-Time Data**: Liked Songs, Playlists, and History are synchronized in real-time with the backend. 
-- **Hybrid Search Engine**: Instantly hunt for tracks locally and across the global catalog.
+### 🎛 Mini Player
+- Persistent floating player above all screens
+- **Swipe left** → next track
+- **Swipe right** → previous track
+- **Long press + drag** → scrub playback position in real time
+- Visual arrow hints appear as you drag
+- Haptic feedback on all gestures
+
+### 📋 Now Playing Screen
+- Full-screen album art with blurred background
+- Breathing animation on artwork (music-reactive)
+- Dynamic accent glow behind artwork
+- Seekable progress slider
+- Play / Pause / Next / Previous controls
+- Like / Unlike track
+- Add to playlist
+- Animated "peek" carousel for queue context
+
+### 🗂 Library
+- Browse all tracks from the API
+- Search with debounce
+- Add tracks to playlists
+- Like / Unlike from search results
+
+### ❤️ Liked Songs
+- Grid view of all liked tracks
+- Edit mode with swipe-to-remove badges
+- Pull-to-refresh
+
+### 📂 Playlists
+- Create and manage playlists
+- Playlist detail view with track list
+- Swipe-to-delete tracks from a playlist
+- Pull-to-refresh
+
+### 🔔 Notifications
+- In-app notification screen
+
+### 👤 Profile
+- View and edit profile info
+- Navigate to Notifications and Support
+
+### ⚙️ Settings
+- Toggle dark / light mode
+- Select accent color (theme color picker)
+- Language selection
+- Contact, FAQ, Terms of Service links
+- App version display
+
+### 🌐 Connectivity
+- Real-time offline detection banner
+- Auto-collapses to a pill icon after 5 seconds
+- Floating "Downloads" FAB when offline
+- All errors, alerts, and messages displayed through the same unified banner (no system Alert dialogs)
+
+### 🔐 Authentication
+- Login / Sign Up screens with validation
+- Persistent sessions via AsyncStorage token storage
+- Silent token refresh via Axios interceptors
+- Auto-login on app restart
 
 ---
 
-## 📱 Application Screens
+## Tech Stack
 
-| Screen | Description |
-| :--- | :--- |
-| **Home** | Recommendation feeds and favorites with Skeleton Shimmer loaders to boost perceived performance. |
-| **Search** | Powerful hybrid search engine with rapid "Add to Playlist" capabilities. |
-| **Liked Songs** | Your favorite tracks featuring pull-to-refresh cloud sync. |
-| **Playlists** | Fully integrated CRUD management for custom collections. |
-| **Now Playing** | Immersive playback view featuring blurred backgrounds, shuffle/loop controls, and visualizers. |
-| **Downloads** | Local library management for viewing and concurrently wiping cached tracks. |
-| **Settings & Profile** | Dynamic Dark/Light theme toggles, localization controls, and personal listening statistics. |
-
----
-
-## 🛠️ Technology Stack
-
-| Layer | Technology |
-| :--- | :--- |
-| **Language** | TypeScript (Strict Typing) |
-| **Framework** | React Native (Expo SDK 55) |
-| **State Management** | Redux Toolkit (Async Thunks) |
-| **Animations** | React Native Reanimated 4 |
-| **Audio Engine** | Expo-Audio (Background & Foreground logic) |
-| **Networking & HTTP** | Axios (JWT Interceptors & 401 Catching) |
-| **Navigation** | React Navigation v6 (Native Stack + Custom Drawer) |
-| **Files & Storage** | Expo FileSystem |
+| Category | Technology |
+|---|---|
+| Framework | React Native + Expo SDK 55 |
+| Language | TypeScript |
+| State Management | Redux Toolkit |
+| Navigation | React Navigation (Native Stack + Drawer) |
+| Audio | expo-audio (background + lock screen) |
+| Images | expo-image (disk cache) |
+| Gestures | react-native-gesture-handler |
+| Animations | react-native-reanimated |
+| HTTP Client | Axios (with interceptor-based token refresh) |
+| Storage | AsyncStorage |
+| File System | expo-file-system |
+| Haptics | expo-haptics |
+| Network | @react-native-community/netinfo |
 
 ---
 
-## ⚙️ Getting Started
+## Project Structure
 
-### 1. Installation
+```
+src/
+├── components/          # Shared UI components
+│   ├── MiniPlayer.tsx       # Gesture-enabled floating player
+│   ├── OfflineBanner.tsx    # Unified notification + offline banner
+│   ├── DownloadButton.tsx   # Download / cancel / remove button
+│   ├── AuthInitializer.tsx  # App bootstrap + auth hydration
+│   ├── PlaylistPicker.tsx   # Bottom sheet playlist picker
+│   ├── NowPlaying/          # Now Playing sub-components
+│   └── ...
+├── screens/             # Full application screens
+│   ├── Auth/                # Login, SignUp, Welcome
+│   ├── Home/                # Home feed + track list
+│   ├── Library/             # Search / browse
+│   ├── LikedSongs/          # Liked songs grid
+│   ├── Playlist/            # Playlist list + detail
+│   ├── Downloads/           # Offline library
+│   ├── NowPlaying/          # Full player
+│   ├── Profile/             # User profile
+│   ├── Settings/            # App settings
+│   ├── Notifications/       # Notifications
+│   ├── Support/             # Support page
+│   ├── Contact/             # Contact form
+│   ├── FAQ/                 # FAQ page
+│   ├── Language/            # Language picker
+│   └── Legal/               # Terms of Service
+├── navigation/          # AppNavigator + DrawerNavigator
+├── redux/store/         # Redux slices
+│   ├── auth/                # Auth state (login, profile, token)
+│   ├── player/              # Playback state (track, queue, progress)
+│   ├── library/             # Track library cache
+│   ├── downloads/           # Downloaded tracks + progress
+│   ├── theme/               # Dark mode + accent color
+│   └── ui/                  # Global UI state (banner messages)
+├── services/
+│   ├── api/                 # Axios client, auth, library, download services
+│   ├── audio/               # AudioPlayerService singleton
+│   ├── auth/                # Token read/write (AsyncStorage)
+│   ├── logic/               # Screen logic hooks
+│   └── storage/             # Theme preferences persistence
+├── hooks/               # useThemeColor, useAccentColor
+├── constants/           # Theme tokens, accent colors
+├── types/               # Global TypeScript types
+└── utils/               # Validation helpers
+```
 
-Clone the repository and install dependencies:
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js ≥ 18
+- Expo CLI (`npm install -g expo-cli`)
+- Android Studio (for Android builds) or Xcode (for iOS builds)
+- A running backend API (configured in `src/services/api/axiosClient.ts`)
+
+### Install
+
 ```bash
-git clone https://github.com/DevEslam1/music-player.git
+git clone <repo-url>
 cd music-player
 npm install
 ```
 
-### 2. Launch Local Environment
+### Run (Development)
 
-Spin up the Expo development server:
 ```bash
+# Start Expo dev server
 npx expo start
+
+# Android (with dev client)
+npx expo run:android
+
+# iOS
+npx expo run:ios
 ```
-*Press `a` to run on Android, `i` to run on iOS (requires Mac), or scan the QR code using the Expo Go app on your physical device.*
 
-### 3. Production Build (APK)
+### Build (Production)
 
-GiG Player is structured for production via EAS CLI. To generate a standalone Android APK:
 ```bash
+# Install EAS CLI
 npm install -g eas-cli
-eas login
-eas build -p android --profile preview
+
+# Configure (first time)
+eas build:configure
+
+# Android APK / AAB
+eas build --platform android
+
+# iOS IPA
+eas build --platform ios
 ```
 
 ---
 
-## 👥 Authors
+## Key Architecture Decisions
 
-Developed with 💖 by:
-* **Eslam** — [GitHub](https://github.com/DevEslam1)
-* **Karima Mahmoud** — [GitHub](https://github.com/KarimaMahmoud626)
+### Unified Messaging via `OfflineBanner`
+All user-facing messages (errors, success, warnings, info) go through the `OfflineBanner` component driven by the `ui` Redux slice. No `Alert.alert` dialogs are used anywhere in the app. Messages auto-dismiss after 3 seconds; offline status persists until connectivity is restored.
+
+### Audio as a Singleton Service
+`AudioPlayerService` is a singleton that manages a single `expo-audio` player instance. It handles track loading, lock-screen metadata, progress dispatch (throttled to 500ms), auto-next-on-finish, and offline/streaming source resolution transparently.
+
+### Image Caching
+All images use `expo-image` with `contentFit="cover"` for automatic disk caching, reducing network usage on repeated views.
+
+### Token Refresh
+Axios interceptors silently refresh expired access tokens using the stored refresh token before retrying the original request. No user action required.
+
+### Gesture-First Mini Player
+The mini player uses `react-native-gesture-handler`'s `Gesture.Pan()` API composed with `Gesture.Simultaneous()` so swipe-to-change-track and long-press-to-scrub can coexist without conflict, both running on the UI thread via Reanimated shared values.
+
+---
+
+## Permissions
+
+| Permission | Reason |
+|---|---|
+| `INTERNET` | Stream audio and fetch track data |
+| `FOREGROUND_SERVICE` | Background audio playback (Android) |
+| `FOREGROUND_SERVICE_AUDIO_PLAYBACK` | Lock screen controls (Android) |
+| `WAKE_LOCK` | Keep audio alive while screen is off |
+| `ACCESS_NETWORK_STATE` | Detect offline/online status |
+
+---
+
+## License
+
+Private — all rights reserved.
