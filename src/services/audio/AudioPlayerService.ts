@@ -49,18 +49,6 @@ class AudioPlayerService {
   public async loadPlayTrack(track: Track) {
     this.currentLoadingTrackId = track.id;
 
-    if (this.player) {
-      try {
-        this.player.setActiveForLockScreen(false);
-        this.player.pause();
-        this.player.release();
-      } catch (e) {}
-
-      this.subscriptions.forEach(s => s.remove());
-      this.subscriptions = [];
-      this.player = null;
-    }
-
     try {
       store.dispatch(setCurrentTrack(track));
       this.lastProgressDispatch = 0;
@@ -97,9 +85,6 @@ class AudioPlayerService {
         if (playerSource.uri) playerSource.uri = playerSource.uri.replace(/^http:\/\//i, 'https://');
       }
 
-      console.log("🎵 Final Playback URI:", playerSource.uri);
-      const player = createAudioPlayer(playerSource);
-
       // expo-audio 55 AudioMetadata only supports: title, artist, albumTitle, artworkUrl
       const metadata = {
         title: track.name,
@@ -109,54 +94,74 @@ class AudioPlayerService {
       };
 
       // expo-audio 55 AudioLockScreenOptions only supports showSeekForward and showSeekBackward.
-      // Next/Previous track buttons are NOT implemented in this version of the native library.
       const options = {
         showSeekForward: true,
         showSeekBackward: true,
       };
 
-      player.setActiveForLockScreen(true, metadata, options);
-
-      if (this.currentLoadingTrackId !== track.id) {
-        player.release();
-        return;
-      }
-
-      this.player = player;
-
-      this.subscriptions.push(this.player.addListener('playbackStatusUpdate', (status) => {
-        if (status.playing !== undefined) {
-          store.dispatch(setIsPlaying(status.playing));
-          // Fallback duration: previews are always 30s max. The full Spotify duration
-          // (track.duration) is incorrect for preview files, so cap it at 30000ms.
-          const previewFallbackMs = Math.min((track.duration || 30000), 30000);
-          const now = Date.now();
-
-          if (now - this.lastProgressDispatch >= 500 || status.didJustFinish) {
-            store.dispatch(setProgress({
-              position: (status.currentTime || 0) * 1000,
-              duration: (status.duration && status.duration > 1)
-                ? status.duration * 1000
-                : previewFallbackMs,
-            }));
-            this.lastProgressDispatch = now;
-          }
+      if (this.player) {
+        // Seamlessly replace the audio source, keeping the foreground service & listener alive!
+        // This is crucial for Android 12+ where re-creating foreground services from background is banned.
+        this.player.replace(playerSource);
+        this.player.updateLockScreenMetadata(metadata);
+        
+        if (this.currentLoadingTrackId !== track.id) {
+          return;
         }
-
-        if (status.didJustFinish) {
-          this.playNext();
-        }
-      }));
-
-      if (Platform.OS === 'android') {
-        // expo-audio can race play() immediately after load on Android; keep the delay
-        // until the upstream playback-start issue is resolved in the SDK/runtime.
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-      
-      if (this.currentLoadingTrackId === track.id && this.player) {
+        
         this.player.play();
         store.dispatch(setIsPlaying(true));
+      } else {
+        const player = createAudioPlayer(playerSource);
+        player.setActiveForLockScreen(true, metadata, options);
+
+        if (this.currentLoadingTrackId !== track.id) {
+          player.release();
+          return;
+        }
+
+        this.player = player;
+
+        this.subscriptions.push(this.player.addListener('playbackStatusUpdate', (status) => {
+          if (status.playing !== undefined) {
+            store.dispatch(setIsPlaying(status.playing));
+            
+            // Check latest track directly from store, not from closure!
+            // When replace() is used, the closure's `track` object is stale.
+            const state = store.getState().player;
+            const activeTrack = state.currentTrack;
+            const previewFallbackMs = activeTrack 
+              ? Math.min((activeTrack.duration || 30000), 30000) 
+              : 30000;
+
+            const now = Date.now();
+
+            if (now - this.lastProgressDispatch >= 500 || status.didJustFinish) {
+              store.dispatch(setProgress({
+                position: (status.currentTime || 0) * 1000,
+                duration: (status.duration && status.duration > 1)
+                  ? status.duration * 1000
+                  : previewFallbackMs,
+              }));
+              this.lastProgressDispatch = now;
+            }
+          }
+
+          if (status.didJustFinish) {
+            this.playNext();
+          }
+        }));
+
+        if (Platform.OS === 'android') {
+          // expo-audio can race play() immediately after load on Android; keep the delay
+          // until the upstream playback-start issue is resolved in the SDK/runtime.
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        if (this.currentLoadingTrackId === track.id && this.player) {
+          this.player.play();
+          store.dispatch(setIsPlaying(true));
+        }
       }
 
       if (playerSource.uri && !playerSource.uri.startsWith('file://')) {
