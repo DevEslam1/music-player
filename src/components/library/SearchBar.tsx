@@ -6,9 +6,10 @@ import {
   GestureResponderEvent,
   StyleSheet,
 } from "react-native";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useBlurSettings } from "../../hooks/use-theme-color";
 import { RootState } from "../../redux/store/store";
 import { useSelector } from "react-redux";
+import { BlurView } from "expo-blur";
 
 type SearchBarProps = {
   onChangeText?: ((text: string) => void) | undefined;
@@ -23,8 +24,10 @@ export function SearchBar({
   onChangeText,
   onSearchPress,
 }: SearchBarProps) {
+  const { advancedBlurEnabled, blurIntensity } = useBlurSettings();
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
   const inputBg = useThemeColor({}, "inputBackground");
   const accentColor = useAccentColor();
   const placeholderColor = useSelector(
@@ -33,41 +36,57 @@ export function SearchBar({
     ? "#94A3B8"
     : "#A0AEC0";
   return (
-    <View style={[styles.searchContainer, { backgroundColor: inputBg }]}>
-      <Ionicons
-        name="search"
-        size={20}
-        color={placeholderColor}
-        style={styles.searchIcon}
-      />
-      <TextInput
-        style={[styles.searchInput, { color: textColor }]}
-        placeholder="Search songs, artists..."
-        placeholderTextColor={placeholderColor}
-        value={query}
-        onChangeText={onChangeText}
-        autoFocus={true}
-        selectionColor={accentColor}
-      />
-      {query.length > 0 && (
-        <TouchableOpacity onPress={onSearchPress}>
-          <Ionicons name="close-circle" size={20} color={placeholderColor} />
-        </TouchableOpacity>
-      )}
+    <View style={styles.searchContainer}>
+      <BlurView
+        intensity={advancedBlurEnabled ? blurIntensity : 0}
+        tint={isDarkMode ? "dark" : "light"}
+        style={[
+          styles.blurBackground,
+          { 
+            backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+            borderColor: textColor + '15'
+          }
+        ]}
+      >
+        <Ionicons
+          name="search"
+          size={20}
+          color={placeholderColor}
+          style={styles.searchIcon}
+        />
+        <TextInput
+          style={[styles.searchInput, { color: textColor }]}
+          placeholder="Search songs, artists..."
+          placeholderTextColor={placeholderColor}
+          value={query}
+          onChangeText={onChangeText}
+          autoFocus={true}
+          selectionColor={accentColor}
+        />
+        {query.length > 0 && (
+          <TouchableOpacity onPress={onSearchPress}>
+            <Ionicons name="close-circle" size={20} color={placeholderColor} />
+          </TouchableOpacity>
+        )}
+      </BlurView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   searchContainer: {
+    marginHorizontal: 15,
+    marginBottom: 20,
+    height: 56,
+  },
+  blurBackground: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    marginHorizontal: 20,
-    marginBottom: 20,
-    paddingHorizontal: 16,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#F1F5F9",
+    paddingHorizontal: 18,
+    borderRadius: 28,
+    borderWidth: 1,
+    overflow: 'hidden',
   },
   searchIcon: {
     marginRight: 10,

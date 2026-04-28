@@ -6,11 +6,14 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
+  Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
+import { Image } from "expo-image";
+import { BlurView } from "expo-blur";
+import { useThemeColor, useAccentColor, useColorScheme, useBlurSettings } from "../../hooks/use-theme-color";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { RootState, AppDispatch } from "../../redux/store/store";
 import { useLibraryScreenLogic } from "../../services/logic/libraryScreenLogic";
@@ -20,6 +23,7 @@ import PlaylistPicker from "../../components/PlaylistPicker";
 import { setAutoDownloadEnabled, batchDownloadTracksAction } from "../../redux/store/downloads/downloadsSlice";
 
 export default function LibraryScreen() {
+  const insets = useSafeAreaInsets();
   const {
     query,
     setQuery,
@@ -36,9 +40,14 @@ export default function LibraryScreen() {
   
   const dispatch = useDispatch<AppDispatch>();
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
+  const { advancedBlurEnabled, blurIntensity } = useBlurSettings();
   const autoDownloadEnabled = useSelector(
     (state: RootState) => state.downloads.autoDownloadEnabled,
   );
+  
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -62,9 +71,31 @@ export default function LibraryScreen() {
   }, [likedSongs]);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
+    <View style={{ flex: 1, backgroundColor }}>
+      {/* Dynamic Glass-Morphism Background Overlay */}
+      {advancedBlurEnabled && (
+        <View style={StyleSheet.absoluteFill}>
+          {currentTrack?.image && (
+            <Image 
+              source={{ uri: currentTrack.image }} 
+              style={StyleSheet.absoluteFill}
+              blurRadius={Platform.OS === 'ios' ? 80 : 30} 
+            />
+          )}
+          <BlurView
+            intensity={blurIntensity}
+            tint={isDarkMode ? "dark" : "light"}
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: isDarkMode ? "rgba(0,0,0,0.65)" : "rgba(255,255,255,0.45)" }
+            ]}
+          />
+        </View>
+      )}
+
+    <View style={styles.container}>
       <ScreenHeader
-        screenTitle="Library"
+        screenTitle="Search"
         leftIcon="arrow-back"
         rightComponent={
           isLoggedIn && (
@@ -89,7 +120,7 @@ export default function LibraryScreen() {
         }
       />
 
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, { paddingTop: insets.top + 82 }]}>
         <SearchBar
           query={query}
           onChangeText={setQuery}
@@ -128,8 +159,9 @@ export default function LibraryScreen() {
         onClose={() => setIsPickerVisible(false)}
         onSelect={handleAddToPlaylist}
       />
-    </SafeAreaView>
-  );
+    </View>
+  </View>
+);
 }
 
 const styles = StyleSheet.create({
@@ -137,11 +169,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchContainer: {
-    paddingVertical: 12,
+    paddingBottom: 4,
   },
   listContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 80,
+    paddingBottom: 100,
   },
   emptyContainer: {
     flex: 1,

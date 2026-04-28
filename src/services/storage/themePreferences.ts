@@ -6,6 +6,8 @@ export interface ThemePreferences {
   themeMode: "light" | "dark" | "system";
   isDarkMode: boolean; // Keep for backward compatibility
   accentColor: string;
+  advancedBlurEnabled: boolean;
+  blurIntensity: number;
 }
 
 export async function loadThemePreferences() {

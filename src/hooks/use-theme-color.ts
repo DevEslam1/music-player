@@ -31,3 +31,8 @@ export function useThemeColor(
 export function useAccentColor() {
   return useSelector((state: RootState) => state.theme.accentColor);
 }
+
+export function useBlurSettings() {
+  const { advancedBlurEnabled, blurIntensity } = useSelector((state: RootState) => state.theme);
+  return { advancedBlurEnabled, blurIntensity };
+}

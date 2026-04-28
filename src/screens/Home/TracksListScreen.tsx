@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import React, { useState } from "react";
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -12,9 +12,11 @@ import { useDispatch } from "react-redux";
 import { setQueue } from "../../redux/store/player/playerSlice";
 import { AppDispatch } from "../../redux/store/store";
 import { searchSongs } from "../../services/api/api";
+import { ScreenHeader } from "../../components/ScreenHeader";
 import { MainStack } from "../../navigation/AppNavigator";
 
 export default function TracksListScreen() {
+  const insets = useSafeAreaInsets();
   const route = useRoute<RouteProp<MainStack, "TracksList">>();
   const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
   const dispatch = useDispatch<AppDispatch>();
@@ -87,34 +89,22 @@ export default function TracksListScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.headerButton}
-        >
-          <Ionicons name="arrow-back" size={26} color={textColor} />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={[styles.headerTitle, { color: textColor }]} numberOfLines={1}>
-            {title}
-          </Text>
-          <Text style={styles.headerSubtitle}>{tracksList.length} tracks</Text>
-        </View>
-        <View style={styles.headerButton} />
-      </View>
+    <View style={[styles.container, { backgroundColor }]}>
+      <ScreenHeader screenTitle={title} onBack={() => navigation.goBack()} />
 
-      <FlatList
-        data={tracksList}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        onEndReached={fetchMoreTracks}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={renderFooter}
-      />
-    </SafeAreaView>
+      <View style={{ flex: 1, paddingTop: insets.top + 85 }}>
+        <FlatList
+          data={tracksList}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+          onEndReached={fetchMoreTracks}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
+        />
+      </View>
+    </View>
   );
 }
 
@@ -122,34 +112,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  headerButton: {
-    padding: 4,
-    width: 40,
-    alignItems: "center",
-  },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: "#94A3B8",
-    marginTop: 2,
-  },
   listContainer: {
     paddingHorizontal: 20,
+    paddingTop: 10,
     paddingBottom: 40,
   },
   trackCard: {

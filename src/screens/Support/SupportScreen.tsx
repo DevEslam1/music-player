@@ -1,13 +1,14 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from "react-native";
 import { CompositeNavigationProp, useNavigation } from "@react-navigation/native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor, useBlurSettings } from "../../hooks/use-theme-color";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MainStack } from "../../navigation/AppNavigator";
 import { drawerType } from "../../navigation/DrawerNavigator";
+import { ScreenHeader } from "../../components/ScreenHeader";
 
 interface SupportItemProps {
   icon: React.ComponentProps<typeof Ionicons>["name"];
@@ -38,6 +39,8 @@ const SupportItem = ({ icon, title, subtitle, onPress }: SupportItemProps) => {
   );
 };
 
+
+
 export default function SupportScreen() {
   const navigation = useNavigation<
     CompositeNavigationProp<
@@ -45,6 +48,7 @@ export default function SupportScreen() {
       NativeStackNavigationProp<MainStack>
     >
   >();
+  const insets = useSafeAreaInsets();
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
@@ -54,16 +58,13 @@ export default function SupportScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={26} color={textColor} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: textColor }]}>Support & Help</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <View style={{ flex: 1, backgroundColor }}>
+      <ScreenHeader 
+        screenTitle="Support & Help" 
+        onBack={() => navigation.goBack()}
+      />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 85 }]}>
         <View style={styles.heroSection}>
           <View style={[styles.heroBadge, { backgroundColor: accentColor, shadowColor: accentColor }]}>
             <Ionicons name="headset" size={40} color="#fff" />
@@ -104,7 +105,7 @@ export default function SupportScreen() {
           <Text style={styles.liveChatText}>Start Live Chat</Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

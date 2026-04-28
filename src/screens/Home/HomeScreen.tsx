@@ -6,11 +6,14 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
+  Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import { useAccentColor, useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor, useColorScheme, useBlurSettings } from "../../hooks/use-theme-color";
 import { useSelector, useDispatch } from "react-redux";
+import { Image } from "expo-image";
+import { BlurView } from "expo-blur";
 import { RootState, AppDispatch } from "../../redux/store/store";
 import {
   fetchHomeFeed,
@@ -23,13 +26,14 @@ import { useHomeScreenLogic } from "../../services/logic/homeScreenLogic";
 import { HomeSkeleton } from "../../components/home/HomeSkeleton";
 
 // Smaller, reusable components for a cleaner codebase! 
-import { HomeHeader } from "../../components/home/HomeHeader";
+import { ScreenHeader } from "../../components/ScreenHeader";
 import { EmptyFavorite } from "../../components/home/EmptyFavorite";
+import Ionicons from "@expo/vector-icons/build/Ionicons";
 
 /**
  * Professional Junior Refactor:
  * I've sliced the HomeScreen into smaller pieces.
- * 1. HomeHeader - Handles the top menu and search icons.
+ * 1. ScreenHeader - Premium glass-morphism header for top menu and search.
  * 2. EmptyFavorite - Shown when no songs are liked.
  * 
  * Slicing makes code much easier to maintain and faster to render! 🚀
@@ -48,6 +52,11 @@ export default function HomeScreen() {
     homeFeed,
     loadingStates,
   } = useSelector((state: RootState) => state.library);
+  
+  const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
+  const { advancedBlurEnabled, blurIntensity } = useBlurSettings();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -74,6 +83,7 @@ export default function HomeScreen() {
   ]);
 
   const [refreshing, setRefreshing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -94,17 +104,44 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      {/* Top Header Section */}
-      <HomeHeader 
-        onOpenDrawer={onOpenDrawer}
-        onNavigateLibrary={onNavigateLibrary}
-        textColor={textColor}
-      />
+    <View style={{ flex: 1, backgroundColor }}>
+      {/* Dynamic Glass-Morphism Background Overlay */}
+      {advancedBlurEnabled && (
+        <View style={StyleSheet.absoluteFill}>
+          {currentTrack?.image && (
+            <Image 
+              source={{ uri: currentTrack.image }} 
+              style={StyleSheet.absoluteFill}
+              blurRadius={Platform.OS === 'ios' ? 80 : 30} 
+            />
+          )}
+          <BlurView
+            intensity={blurIntensity}
+            tint={isDarkMode ? "dark" : "light"}
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: isDarkMode ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.4)" }
+            ]}
+          />
+        </View>
+      )}
+
+      <View style={styles.container}>
+        {/* Top Header Section */}
+        <ScreenHeader
+          screenTitle="GiG Player"
+          leftIcon="menu-outline"
+          onBack={onOpenDrawer}
+          rightComponent={
+             <TouchableOpacity onPress={onNavigateLibrary}>
+               <Ionicons name="search-outline" size={24} color={textColor} />
+             </TouchableOpacity>
+          }
+        />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 85 }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={accentColor} />
         }
@@ -154,8 +191,9 @@ export default function HomeScreen() {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
-  );
+    </View>
+  </View>
+);
 }
 
 const styles = StyleSheet.create({
@@ -163,7 +201,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80, 
+    paddingBottom: 100, 
   },
   sectionTitle: {
     fontSize: 22,

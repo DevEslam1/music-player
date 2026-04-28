@@ -8,7 +8,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
@@ -69,9 +69,10 @@ export default function LikedSongsScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
+  const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
+    <View style={[styles.container, { backgroundColor }]}>
       <ScreenHeader
         screenTitle="Liked Songs"
         leftIcon="menu"
@@ -103,11 +104,11 @@ export default function LikedSongsScreen() {
       />
 
       {loading ? (
-        <View style={styles.loadingContainer}>
+        <View style={[styles.loadingContainer, { paddingTop: insets.top + 100 }]}>
           <ActivityIndicator size="large" color={accentColor} />
         </View>
       ) : likedSongs.length === 0 ? (
-        <View style={styles.emptyContainer}>
+        <View style={[styles.emptyContainer, { paddingTop: insets.top + 100 }]}>
           <View style={styles.emptyIconCircle}>
             <Ionicons name="heart-dislike-outline" size={60} color="#64748B" />
           </View>
@@ -123,7 +124,10 @@ export default function LikedSongsScreen() {
           data={likedSongs}
           keyExtractor={(item) => item.id}
           numColumns={2}
-          contentContainerStyle={styles.listContainer}
+          contentContainerStyle={[
+            styles.listContainer, 
+            { paddingTop: insets.top + 85 }
+          ]}
           columnWrapperStyle={styles.columnWrapper}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -144,7 +148,7 @@ export default function LikedSongsScreen() {
           extraData={isEditMode}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 

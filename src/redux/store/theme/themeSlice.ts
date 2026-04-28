@@ -7,6 +7,8 @@ interface ThemeState {
   isDarkMode: boolean; // Keep for legacy/derived usage if needed, but primary is themeMode
   accentColor: string;
   hasHydrated: boolean;
+  advancedBlurEnabled: boolean;
+  blurIntensity: number;
 }
 
 const initialState: ThemeState = {
@@ -14,6 +16,8 @@ const initialState: ThemeState = {
   isDarkMode: false,
   accentColor: "#B34A30", // Standard GiG Player Red
   hasHydrated: false,
+  advancedBlurEnabled: true,
+  blurIntensity: 100,
 };
 
 const themeSlice = createSlice({
@@ -39,10 +43,22 @@ const themeSlice = createSlice({
     setThemeHydrated: (state, action: PayloadAction<boolean>) => {
       state.hasHydrated = action.payload;
     },
-
+    setAdvancedBlurEnabled: (state, action: PayloadAction<boolean>) => {
+      state.advancedBlurEnabled = action.payload;
+    },
+    setBlurIntensity: (state, action: PayloadAction<number>) => {
+      state.blurIntensity = action.payload;
+    },
   },
 });
 
-export const { toggleTheme, setDarkMode, setAccentColor, setThemeHydrated, setThemeMode } =
-  themeSlice.actions;
+export const { 
+  toggleTheme, 
+  setDarkMode, 
+  setAccentColor, 
+  setThemeHydrated, 
+  setThemeMode,
+  setAdvancedBlurEnabled,
+  setBlurIntensity
+} = themeSlice.actions;
 export default themeSlice.reducer;

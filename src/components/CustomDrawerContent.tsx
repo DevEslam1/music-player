@@ -8,7 +8,7 @@ import { RootState } from "../redux/store/store";
 import { toggleTheme } from "../redux/store/theme/themeSlice";
 import { setDrawerOpen } from "../redux/store/ui/uiSlice";
 import { fetchProfile } from "../redux/store/auth/authSlice";
-import { useThemeColor, useAccentColor, useColorScheme } from "../hooks/use-theme-color";
+import { useThemeColor, useAccentColor, useColorScheme, useBlurSettings } from "../hooks/use-theme-color";
 import { BlurView } from "expo-blur";
 
 interface DrawerItemProps {
@@ -68,6 +68,8 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
     }
   }, [isDrawerOpen, isLoggedIn, user?.name, dispatch]);
   
+  const { advancedBlurEnabled, blurIntensity } = useBlurSettings();
+  
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
@@ -75,25 +77,49 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const activeRoute = props.state.routes[props.state.index].name;
 
   return (
-    <View style={styles.container}>
-      <BlurView 
-        intensity={isDarkMode ? 80 : 90} 
-        tint={isDarkMode ? "dark" : "light"} 
-        style={[
-          StyleSheet.absoluteFill,
-          { backgroundColor: isDarkMode ? "rgba(0,0,0,0.65)" : "rgba(255,255,255,0.5)" }
-        ]}
-      >
-        {/* If a song is playing, show a hint of its colors behind the blur */}
-        {currentTrack?.image && (
-          <Image 
-            source={{ uri: currentTrack.image }} 
-            style={[StyleSheet.absoluteFill, { opacity: 0.25 }]}
-            blurRadius={20}
-          />
-        )}
-        
-        <View style={{ flex: 1, paddingTop: 60 }}>
+    <View style={[
+      styles.container, 
+      { 
+        backgroundColor: advancedBlurEnabled ? "transparent" : backgroundColor,
+        borderTopRightRadius: 32,
+        borderBottomRightRadius: 32,
+        overflow: 'hidden'
+      }
+    ]}>
+      {advancedBlurEnabled && (
+        <BlurView 
+          intensity={blurIntensity} 
+          tint={isDarkMode ? "dark" : "light"} 
+          style={[
+            StyleSheet.absoluteFill,
+            { 
+              backgroundColor: isDarkMode ? "rgba(0,0,0,0.65)" : "rgba(255,255,255,0.5)",
+              borderTopRightRadius: 32,
+              borderBottomRightRadius: 32,
+            }
+          ]}
+        >
+          {/* If a song is playing, show a hint of its colors behind the blur */}
+          {currentTrack?.image && (
+            <Image 
+              source={{ uri: currentTrack.image }} 
+              style={[StyleSheet.absoluteFill, { opacity: 0.25 }]}
+              blurRadius={20}
+            />
+          )}
+        </BlurView>
+      )}
+      
+      {!advancedBlurEnabled && (
+        <View style={[StyleSheet.absoluteFill, { 
+          backgroundColor, 
+          opacity: 0.95,
+          borderTopRightRadius: 32,
+          borderBottomRightRadius: 32,
+        }]} />
+      )}
+      
+      <View style={{ flex: 1, paddingTop: 60 }}>
       <View style={styles.header}>
         <View style={styles.profileSection}>
           <TouchableOpacity 
@@ -138,12 +164,17 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
         />
         <DrawerItem 
           icon="search-outline" 
-          label="Library" 
+          label="Search" 
           textColor={textColor}
           active={activeRoute === "Library"}
           isDarkMode={isDarkMode}
           onPress={() => props.navigation.navigate("Library")} 
         />
+        
+        <View style={[styles.sectionHeader, { marginTop: 20 }]}>
+          <Text style={[styles.sectionTitle, { color: textColor + '60' }]}>LIBRARY</Text>
+        </View>
+
         <DrawerItem 
           icon="heart-outline" 
           label="Liked Songs" 
@@ -220,7 +251,6 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
          <Text style={[styles.footerText, { color: textColor + '40' }]}>GiG Player v2.1.0</Text>
       </View>
         </View>
-      </BlurView>
     </View>
   );
 };
@@ -297,13 +327,24 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  sectionHeader: {
+    paddingHorizontal: 32,
+    paddingVertical: 8,
+    marginBottom: 4,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+  },
   item: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 20,
     marginHorizontal: 12,
-    marginVertical: 4,
+    marginVertical: 6,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "transparent",

@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -16,8 +16,10 @@ import { removeTrackFromPlaylistAction } from "../../redux/store/library/library
 import { batchDownloadTracksAction } from "../../redux/store/downloads/downloadsSlice";
 import { MainStack } from "../../navigation/AppNavigator";
 import { DownloadButton } from "../../components/DownloadButton";
+import { ScreenHeader } from "../../components/ScreenHeader";
 
 export default function PlaylistDetailScreen() {
+  const insets = useSafeAreaInsets();
   const route = useRoute<RouteProp<MainStack, "PlaylistDetail">>();
   const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
   const dispatch = useDispatch<AppDispatch>();
@@ -95,28 +97,25 @@ export default function PlaylistDetailScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-          <Ionicons name="arrow-back" size={26} color={textColor} />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={[styles.headerTitle, { color: textColor }]} numberOfLines={1}>{name}</Text>
-          <Text style={styles.headerSubtitle}>{tracks.length} songs</Text>
-        </View>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          {isLoggedIn && (
-            <TouchableOpacity style={styles.headerButton} onPress={handleDownloadAll} disabled={tracks.length === 0}>
-              <Ionicons name="cloud-download-outline" size={24} color={textColor} style={{ opacity: tracks.length === 0 ? 0.5 : 1 }} />
+    <View style={[styles.container, { backgroundColor }]}>
+      <ScreenHeader 
+        screenTitle={name}
+        rightComponent={
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            {isLoggedIn && (
+              <TouchableOpacity style={styles.headerButton} onPress={handleDownloadAll} disabled={tracks.length === 0}>
+                <Ionicons name="cloud-download-outline" size={24} color={textColor} style={{ opacity: tracks.length === 0 ? 0.5 : 1 }} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.headerButton} onPress={fetchPlaylistTracks}>
+              <Ionicons name="refresh-outline" size={24} color={textColor} />
             </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.headerButton} onPress={fetchPlaylistTracks}>
-            <Ionicons name="refresh-outline" size={24} color={textColor} />
-          </TouchableOpacity>
-        </View>
-      </View>
+          </View>
+        }
+      />
 
-      {loading ? (
+      <View style={{ flex: 1, paddingTop: insets.top + 85 }}>
+        {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={accentColor} />
         </View>
@@ -142,8 +141,9 @@ export default function PlaylistDetailScreen() {
           }
         />
       )}
-    </SafeAreaView>
-  );
+    </View>
+  </View>
+);
 }
 
 const styles = StyleSheet.create({

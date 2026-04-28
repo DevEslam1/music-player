@@ -39,7 +39,10 @@ const DrawerNavigator = () => {
         overlayColor: "rgba(0,0,0,0.4)",
         drawerStyle: {
           backgroundColor: "transparent",
-          width: "80%",
+          width: "82%",
+          borderTopRightRadius: 32,
+          borderBottomRightRadius: 32,
+          overflow: 'hidden',
         },
       }}
     >

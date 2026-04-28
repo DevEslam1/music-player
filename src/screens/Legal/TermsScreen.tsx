@@ -1,27 +1,26 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useBlurSettings } from "../../hooks/use-theme-color";
+import { ScreenHeader } from "../../components/ScreenHeader";
 
 export default function TermsScreen() {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const surfaceColor = useThemeColor({}, "surface");
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={26} color={textColor} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: textColor }]}>Terms of Service</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <View style={{ flex: 1, backgroundColor }}>
+      <ScreenHeader 
+        screenTitle="Terms of Service" 
+        onBack={() => navigation.goBack()}
+      />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 85 }]}>
         <View style={[styles.card, { backgroundColor: surfaceColor }]}>
           <Text style={[styles.title, { color: textColor }]}>1. Acceptance of Terms</Text>
           <Text style={styles.text}>
@@ -51,7 +50,7 @@ export default function TermsScreen() {
 
         <Text style={styles.footer}>Last Updated: April 2026</Text>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

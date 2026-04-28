@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { loadThemePreferences } from "../services/storage/themePreferences";
-import { setDarkMode, setAccentColor, setThemeHydrated, setThemeMode } from "../redux/store/theme/themeSlice";
+import { setDarkMode, setAccentColor, setThemeHydrated, setThemeMode, setAdvancedBlurEnabled, setBlurIntensity } from "../redux/store/theme/themeSlice";
 import { useDispatch } from "react-redux";
 
 const ACCENT_DEFAULT = "#B34A30";
@@ -29,6 +29,13 @@ export function useInitialTheme() {
             }
             dispatch(setAccentColor(prefs.accentColor));
             setAccentColorLocal(prefs.accentColor);
+
+            if (prefs.advancedBlurEnabled !== undefined) {
+              dispatch(setAdvancedBlurEnabled(prefs.advancedBlurEnabled));
+            }
+            if (prefs.blurIntensity !== undefined) {
+              dispatch(setBlurIntensity(prefs.blurIntensity));
+            }
           }
           dispatch(setThemeHydrated(true));
           setLoaded(true);

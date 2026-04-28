@@ -1,9 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor, useBlurSettings } from "../../hooks/use-theme-color";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScreenHeader } from "../../components/ScreenHeader";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MainStack } from "../../navigation/AppNavigator";
 
@@ -37,23 +38,24 @@ const NotificationItem = ({ title, body, time, icon, color }: NotificationItemPr
 
 export default function NotificationsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
+  const insets = useSafeAreaInsets();
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={26} color={textColor} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: textColor }]}>Notifications</Text>
-        <TouchableOpacity style={styles.clearBtn}>
-          <Text style={[styles.clearText, { color: accentColor }]}>Clear</Text>
-        </TouchableOpacity>
-      </View>
+    <View style={{ flex: 1, backgroundColor }}>
+      <ScreenHeader 
+        screenTitle="Notifications" 
+        onBack={() => navigation.goBack()}
+        rightComponent={
+          <TouchableOpacity style={styles.clearBtn}>
+            <Text style={[styles.clearText, { color: accentColor }]}>Clear</Text>
+          </TouchableOpacity>
+        }
+      />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 85 }]}>
         <Text style={styles.sectionTitle}>Recent</Text>
         
         <NotificationItem 
@@ -82,7 +84,7 @@ export default function NotificationsScreen() {
           color="#6366F1"
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

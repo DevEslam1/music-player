@@ -6,7 +6,7 @@ import { RootState } from "../redux/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import { audioPlayer } from "../services/audio/AudioPlayerService";
 import { useNavigation } from "@react-navigation/native";
-import { useAccentColor, useThemeColor } from "../hooks/use-theme-color";
+import { useAccentColor, useThemeColor, useColorScheme, useBlurSettings } from "../hooks/use-theme-color";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
@@ -39,9 +39,9 @@ function triggerHapticLight() {
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 }
 
-// ─── Component ─────────────────────────────────────────────────────────────────
+import { BlurView } from "expo-blur";
+
 const MiniPlayerInner = () => {
-  // ── ALL hooks must be called unconditionally at the top ──────────────────────
   const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
   const isPlaying = useSelector((state: RootState) => state.player.isPlaying);
   const { positionMillis, durationMillis } = useSelector(
@@ -53,18 +53,18 @@ const MiniPlayerInner = () => {
   );
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
+  const { advancedBlurEnabled, blurIntensity } = useBlurSettings();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
 
-  // Gesture shared values — must be before any early return
   const translateX = useSharedValue(0);
   const isScrubbing = useSharedValue(false);
   const hapticFired = useSharedValue(false);
   const scrubStartPosition = useSharedValue(0);
   const scrubPositionMs = useSharedValue(-1);
 
-  // Animated card style — hook must be unconditional
   const animatedCardStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
@@ -80,14 +80,10 @@ const MiniPlayerInner = () => {
     };
   }, [positionMillis, durationMillis]);
 
-  // ── Early return AFTER all hooks ─────────────────────────────────────────────
   if (!currentTrack) return null;
 
-  // ── Swipe gesture: left → next, right → prev ─────────────────────────────────
   const swipeGesture = Gesture.Pan()
-    .onStart(() => {
-      hapticFired.value = false;
-    })
+    .onStart(() => { hapticFired.value = false; })
     .onUpdate((e) => {
       if (!isScrubbing.value) {
         translateX.value = e.translationX;
@@ -115,7 +111,6 @@ const MiniPlayerInner = () => {
       }
     });
 
-  // ── Long-press + drag = scrub ─────────────────────────────────────────────────
   const longPressScrubGesture = Gesture.Pan()
     .activateAfterLongPress(500)
     .onStart(() => {
@@ -147,25 +142,45 @@ const MiniPlayerInner = () => {
             activeOpacity={0.9}
             style={[
               styles.container,
-              {
-                backgroundColor: isDarkMode
-                  ? "rgba(30, 41, 59, 0.9)"
-                  : "rgba(255, 255, 255, 0.85)",
-                borderColor: isDarkMode
-                  ? "rgba(255, 255, 255, 0.1)"
-                  : "rgba(0, 0, 0, 0.05)",
-              },
+              !advancedBlurEnabled && {
+                backgroundColor: isDarkMode ? "rgba(30, 41, 59, 1)" : "rgba(255, 255, 255, 1)",
+                borderColor: isDarkMode ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
+              }
             ]}
             onPress={() => navigation.navigate("NowPlaying")}
           >
+            {advancedBlurEnabled && (
+              <BlurView
+                intensity={blurIntensity}
+                tint={isDarkMode ? "dark" : "light"}
+                style={[
+                  StyleSheet.absoluteFill,
+                  { 
+                    backgroundColor: isDarkMode ? "rgba(30, 41, 59, 0.45)" : "rgba(255, 255, 255, 0.35)",
+                    borderRadius: 20,
+                    borderWidth: 1,
+                    borderColor: isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+                  }
+                ]}
+              >
+                {/* Visual Ghosting Effect: Subtle hint of the song colors */}
+                {currentTrack?.image && (
+                  <Image 
+                    source={{ uri: currentTrack.image }} 
+                    style={[StyleSheet.absoluteFill, { opacity: isDarkMode ? 0.2 : 0.15 }]} 
+                    blurRadius={10}
+                  />
+                )}
+              </BlurView>
+            )}
             {/* Progress bar */}
             <View
               style={[
                 styles.progressBarBackground,
                 {
                   backgroundColor: isDarkMode
-                    ? "rgba(255, 255, 255, 0.1)"
-                    : "rgba(0,0,0,0.05)",
+                    ? "rgba(255, 255, 255, 0.05)"
+                    : "rgba(0,0,0,0.02)",
                 },
               ]}
             >
@@ -177,7 +192,6 @@ const MiniPlayerInner = () => {
                     shadowColor: accentColor,
                     shadowOpacity: 0.8,
                     shadowRadius: 4,
-                    shadowOffset: { width: 0, height: 0 },
                   },
                   animatedProgressStyle,
                 ]}
