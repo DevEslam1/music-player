@@ -9,6 +9,9 @@ import {
   setAccentColor,
   setDarkMode,
   setThemeHydrated,
+  setThemeMode,
+  setAdvancedBlurEnabled,
+  setBlurIntensity,
 } from '../redux/store/theme/themeSlice';
 import { getAccessToken } from '../services/auth/session';
 import { loadThemePreferences } from '../services/storage/themePreferences';
@@ -24,36 +27,44 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) =>
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
+    let isCancelled = false;
+
     const initAuth = async () => {
       // Load saved theme prefs BEFORE the splash even renders
       try {
         const prefs = await loadThemePreferences();
-        if (prefs) {
-          dispatch(setDarkMode(prefs.isDarkMode));
-          dispatch(setAccentColor(prefs.accentColor));
+        if (prefs && !isCancelled) {
+          if (prefs.themeMode) dispatch(setThemeMode(prefs.themeMode));
+          if (prefs.isDarkMode !== undefined) dispatch(setDarkMode(prefs.isDarkMode));
+          if (prefs.accentColor) dispatch(setAccentColor(prefs.accentColor));
+          if (prefs.advancedBlurEnabled !== undefined) dispatch(setAdvancedBlurEnabled(prefs.advancedBlurEnabled));
+          if (prefs.blurIntensity !== undefined) dispatch(setBlurIntensity(prefs.blurIntensity));
         }
       } finally {
-        dispatch(setThemeHydrated(true));
+        if (!isCancelled) dispatch(setThemeHydrated(true));
       }
 
       try {
         const firstLaunch = await AsyncStorage.getItem('@is_first_launch');
-        dispatch(setFirstLaunch(firstLaunch === null));
+        if (!isCancelled) dispatch(setFirstLaunch(firstLaunch === null));
 
         const token = await getAccessToken();
-        if (token) {
+        if (token && !isCancelled) {
           await dispatch(fetchProfile()).unwrap();
         }
-        setAuthReady(true);
+        if (!isCancelled) setAuthReady(true);
       } catch (error) {
-        showAppBanner('Session expired. Please log in again.', 'warning');
-        setAuthReady(true);
+        if (!isCancelled) {
+          showAppBanner('Session expired. Please log in again.', 'warning');
+          setAuthReady(true);
+        }
       } finally {
-        setIsInitializing(false);
+        if (!isCancelled) setIsInitializing(false);
       }
     };
 
     initAuth();
+    return () => { isCancelled = true; };
   }, [dispatch]);
 
   if (isInitializing) {

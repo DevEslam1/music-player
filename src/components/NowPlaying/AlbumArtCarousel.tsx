@@ -98,11 +98,18 @@ const CarouselItem = ({
       </View>
 
       {/* Main Artwork Container */}
-      <Animated.View style={[styles.albumArtWrapper, scrollAnimatedStyle, { width: coverSize, height: coverSize, zIndex: 10 }]}>
-        <Animated.View style={animatedImageStyle}>
+      <Animated.View style={[
+        scrollAnimatedStyle, 
+        { width: coverSize, height: coverSize, zIndex: 10, justifyContent: 'center', alignItems: 'center' }
+      ]}>
+        <Animated.View style={[
+          styles.albumArtWrapper,
+          animatedImageStyle,
+          { width: '100%', height: '100%', backgroundColor: 'rgba(255, 255, 255, 0.05)' }
+        ]}>
           <Image
             source={{ uri: track.image || 'https://picsum.photos/400' }}
-            style={[styles.albumArt, { width: coverSize, height: coverSize, borderRadius: 24 }]}
+            style={[styles.albumArt, { width: '100%', height: '100%', borderRadius: 24 }]}
             contentFit="cover"
           />
         </Animated.View>
@@ -191,6 +198,7 @@ const styles = StyleSheet.create({
   },
   albumArtWrapper: {
     borderRadius: 24,
+    backgroundColor: '#000', // Fix for Android elevation rendering as a black box
     // Shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },

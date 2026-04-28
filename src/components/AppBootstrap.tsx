@@ -20,11 +20,8 @@ interface AppBootstrapProps {
 
 export function AppBootstrap({ children }: AppBootstrapProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
-  const accentColor = useSelector((state: RootState) => state.theme.accentColor);
-  const hasHydratedTheme = useSelector(
-    (state: RootState) => state.theme.hasHydrated,
-  );
+  const theme = useSelector((state: RootState) => state.theme);
+  const { isDarkMode, accentColor, themeMode, advancedBlurEnabled, blurIntensity, hasHydrated: hasHydratedTheme } = theme;
 
   useEffect(() => {
     // Inject Redux dependencies to avoid circular imports in DownloadService
@@ -50,10 +47,16 @@ export function AppBootstrap({ children }: AppBootstrapProps) {
       return;
     }
 
-    saveThemePreferences({ isDarkMode, accentColor }).catch((error) => {
+    saveThemePreferences({ 
+      themeMode,
+      isDarkMode, 
+      accentColor,
+      advancedBlurEnabled,
+      blurIntensity
+    }).catch((error) => {
       console.warn("Failed to persist theme preferences:", error);
     });
-  }, [accentColor, hasHydratedTheme, isDarkMode]);
+  }, [accentColor, hasHydratedTheme, isDarkMode, themeMode, advancedBlurEnabled, blurIntensity]);
 
   return <>{children}</>;
 }

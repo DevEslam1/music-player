@@ -48,38 +48,36 @@ const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
   const isFirstLaunch = useSelector((state: RootState) => state.auth.isFirstLaunch);
   const authLoading = useSelector((state: RootState) => state.auth.loading);
 
-  // While AuthInitializer is bootstrapping (fetchProfile pending), keep showing
-  // the splash via initialRouteName="Login" — this prevents the wrong screen
-  // from briefly rendering before the real auth check resolves.
   const isAuthReady = isFirstLaunch !== null;
-  const initialRouteName = !isAuthReady
-    ? "Login"
-    : isFirstLaunch
-      ? "Welcome"
-      : isLoggedIn
-        ? "Drawer"
-        : "Login";
 
   return (
     <View style={styles.container}>
-      <Stack.Navigator 
-        id="MainStack" 
-        screenOptions={{ headerShown: false }}
-        initialRouteName={initialRouteName}
-      >
-        {/* Auth screens */}
-        <Stack.Screen name="Welcome" component={WelcomeScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} />
-        {/* Main app screens */}
-        <Stack.Screen name="Drawer" component={DrawerNavigator} />
-        <Stack.Screen name="Library" component={LibraryScreen} />
-        <Stack.Screen name="NowPlaying" component={NowPlayingScreen} />
-        <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
-        <Stack.Screen name="TracksList" component={TracksListScreen} />
-        <Stack.Screen name="TermsOfService" component={TermsScreen} />
-        <Stack.Screen name="Notifications" component={NotificationsScreen} />
-        <Stack.Screen name="Support" component={SupportScreen} />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!isAuthReady ? (
+          // 1. Loading/Bootstrap Phase: Keep a stable screen mounted
+          <Stack.Screen name="Login" component={LoginScreen} />
+        ) : isFirstLaunch ? (
+          // 2. Onboarding Phase
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        ) : !isLoggedIn ? (
+          // 3. Auth Phase
+          <Stack.Group>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="SignUp" component={SignUpScreen} />
+          </Stack.Group>
+        ) : (
+          // 4. Main App Phase
+          <Stack.Group>
+            <Stack.Screen name="Drawer" component={DrawerNavigator} />
+            <Stack.Screen name="Library" component={LibraryScreen} />
+            <Stack.Screen name="NowPlaying" component={NowPlayingScreen} />
+            <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
+            <Stack.Screen name="TracksList" component={TracksListScreen} />
+            <Stack.Screen name="TermsOfService" component={TermsScreen} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} />
+            <Stack.Screen name="Support" component={SupportScreen} />
+          </Stack.Group>
+        )}
       </Stack.Navigator>
       {!hideMiniPlayer && <MiniPlayer />}
     </View>

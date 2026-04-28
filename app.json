@@ -2,7 +2,7 @@
   "expo": {
     "name": "GiG Player",
     "slug": "gig-player",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "light",
@@ -13,11 +13,9 @@
     },
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "2.1.0",
+      "buildNumber": "2.2.0",
       "infoPlist": {
-        "UIBackgroundModes": [
-          "audio"
-        ]
+        "UIBackgroundModes": ["audio"]
       }
     },
     "android": {
