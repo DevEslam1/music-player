@@ -12,6 +12,12 @@ A full-featured music streaming and offline playback app built with React Native
 
 ## Features
 
+### ✨ Premium Experience
+- **Glass-Morphism UI**: High-fidelity translucent interface with dynamic blur effects across headers, search bars, and navigation panels.
+- **Advanced Blur Control**: Toggle "Advanced Blur" effects and customize the intensity (10% to 100%) globally via app settings.
+- **Color Ghosting**: Dynamic visual projection of song artwork behind the MiniPlayer and Drawer for an immersive, color-reactive experience.
+- **Floating Curved Drawer**: Modern floating "side sheet" design with `32px` rounded corners and optimized `82%` width.
+
 ### 🎧 Audio Playback
 - Stream tracks via authenticated API (HTTPS with Bearer token)
 - Background audio playback (iOS & Android)
@@ -25,12 +31,13 @@ A full-featured music streaming and offline playback app built with React Native
 - Download any individual track to local device storage
 - Automatic fallback to local file when offline
 - Download progress indicator (percentage)
-- Cancel active downloads
+- Cancel active downloads mid-flight
 - Delete individual or all downloads
 - Storage usage summary
 
 ### 🎛 Mini Player
-- Persistent floating player above all screens
+- Persistent floating player with **Glass-Morphism** styling
+- **Visual Color Ghosting**: Subtle artwork projection behind the player's glass surface
 - **Swipe left** → next track
 - **Swipe right** → previous track
 - **Long press + drag** → scrub playback position in real time
@@ -38,20 +45,21 @@ A full-featured music streaming and offline playback app built with React Native
 - Haptic feedback on all gestures
 
 ### 📋 Now Playing Screen
-- Full-screen album art with blurred background
-- Breathing animation on artwork (music-reactive)
-- Dynamic accent glow behind artwork
+- Full-screen album art with blurred background image
+- Music-reactive "breathing" scale animation on album art
+- Dynamic accent glow pulsing behind artwork
 - Seekable progress slider
 - Play / Pause / Next / Previous controls
 - Like / Unlike track
 - Add to playlist
 - Animated "peek" carousel for queue context
 
-### 🗂 Library
+### 🗂 Search & Library
+- **Redesigned SearchBar**: Pill-shaped translucent search bar with dynamic theme-aware borders.
 - Browse all tracks from the API
-- Search with debounce
+- Search with debounce to reduce server load
 - Add tracks to playlists
-- Like / Unlike from search results
+- Like / Unlike directly from search results
 
 ### ❤️ Liked Songs
 - Grid view of all liked tracks
@@ -65,24 +73,26 @@ A full-featured music streaming and offline playback app built with React Native
 - Pull-to-refresh
 
 ### 🔔 Notifications
-- In-app notification screen
+- In-app notification feed with icon badges per type
 
 ### 👤 Profile
+- Side drawer profile synchronization (automatic updates from API)
 - View and edit profile info
 - Navigate to Notifications and Support
 
 ### ⚙️ Settings
-- Toggle dark / light mode
-- Select accent color (theme color picker)
+- **Advanced Blur Intensity**: Customizable global blur slider (10%-100%)
+- Toggle "Advanced Blur" on/off
+- Select accent color (dynamic theme color picker)
+- Toggle dark / light / system mode
 - Language selection
 - Contact, FAQ, Terms of Service links
-- App version display
 
 ### 🌐 Connectivity
 - Real-time offline detection banner
 - Auto-collapses to a pill icon after 5 seconds
 - Floating "Downloads" FAB when offline
-- All errors, alerts, and messages displayed through the same unified banner (no system Alert dialogs)
+- Unified banner system for all errors and alerts (no system dialogs)
 
 ### 🔐 Authentication
 - Login / Sign Up screens with validation
@@ -101,6 +111,7 @@ A full-featured music streaming and offline playback app built with React Native
 | State Management | Redux Toolkit |
 | Navigation | React Navigation (Native Stack + Drawer) |
 | Audio | expo-audio (background + lock screen) |
+| Glass-Morphism | expo-blur |
 | Images | expo-image (disk cache) |
 | Gestures | react-native-gesture-handler |
 | Animations | react-native-reanimated |
