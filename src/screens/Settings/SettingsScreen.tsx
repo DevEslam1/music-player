@@ -12,6 +12,7 @@ import Constants from "expo-constants";
 import { AppDispatch } from "../../redux/store/store";
 import { SettingItem } from "../../components/settings/SettingItem";
 import { ScreenHeader } from "../../components/ScreenHeader";
+import { saveThemePreferences } from "../../services/storage/themePreferences";
 
 export default function SettingsScreen() {
   const navigation = useNavigation<any>();
@@ -23,6 +24,17 @@ export default function SettingsScreen() {
   const surfaceColor = useThemeColor({}, "surface");
   const accentColor = useAccentColor();
   const appVersion = Constants.expoConfig?.version ?? "2.0.0";
+
+  const handleToggleDarkMode = () => {
+    const nextMode = !isDarkMode;
+    dispatch(toggleTheme());
+    saveThemePreferences({ isDarkMode: nextMode, accentColor });
+  };
+
+  const handleUpdateAccentColor = (color: string) => {
+    dispatch(setAccentColor(color));
+    saveThemePreferences({ isDarkMode, accentColor: color });
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
@@ -38,7 +50,7 @@ export default function SettingsScreen() {
           <SettingItem icon="moon-outline" label="Dark Mode">
             <Switch 
               value={isDarkMode} 
-              onValueChange={() => { dispatch(toggleTheme()); }} 
+              onValueChange={handleToggleDarkMode} 
               trackColor={{ false: "#CBD5E1", true: accentColor }}
             />
           </SettingItem>
@@ -49,7 +61,7 @@ export default function SettingsScreen() {
               {ACCENT_COLORS.map((item) => (
                 <TouchableOpacity
                   key={item.color}
-                  onPress={() => dispatch(setAccentColor(item.color))}
+                  onPress={() => handleUpdateAccentColor(item.color)}
                   style={[
                     styles.colorCircle,
                     { backgroundColor: item.color },

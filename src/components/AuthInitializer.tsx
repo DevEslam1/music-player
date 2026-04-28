@@ -11,11 +11,8 @@ import {
   setThemeHydrated,
 } from '../redux/store/theme/themeSlice';
 import { getAccessToken } from '../services/auth/session';
+import { loadThemePreferences } from '../services/storage/themePreferences';
 import { showAppBanner } from './OfflineBanner';
-
-const DARK_MODE_KEY = 'theme.darkMode';
-const ACCENT_COLOR_KEY = 'theme.accentColor';
-const ACCENT_DEFAULT = '#B34A30';
 
 interface AuthInitializerProps {
   children: React.ReactNode;
@@ -28,15 +25,13 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) =>
 
   useEffect(() => {
     const initAuth = async () => {
-      // Load saved theme prefs BEFORE the splash even renders so CustomSplash
-      // gets the correct dark/light colors from the first frame.
+      // Load saved theme prefs BEFORE the splash even renders
       try {
-        const [savedDark, savedAccent] = await Promise.all([
-          AsyncStorage.getItem(DARK_MODE_KEY),
-          AsyncStorage.getItem(ACCENT_COLOR_KEY),
-        ]);
-        dispatch(setDarkMode(savedDark === 'true'));
-        dispatch(setAccentColor(savedAccent || ACCENT_DEFAULT));
+        const prefs = await loadThemePreferences();
+        if (prefs) {
+          dispatch(setDarkMode(prefs.isDarkMode));
+          dispatch(setAccentColor(prefs.accentColor));
+        }
       } finally {
         dispatch(setThemeHydrated(true));
       }
