@@ -1,12 +1,16 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+export type ThemeMode = "light" | "dark" | "system";
+
 interface ThemeState {
-  isDarkMode: boolean;
+  themeMode: ThemeMode;
+  isDarkMode: boolean; // Keep for legacy/derived usage if needed, but primary is themeMode
   accentColor: string;
   hasHydrated: boolean;
 }
 
 const initialState: ThemeState = {
+  themeMode: "system",
   isDarkMode: false,
   accentColor: "#B34A30", // Standard GiG Player Red
   hasHydrated: false,
@@ -16,11 +20,18 @@ const themeSlice = createSlice({
   name: "theme",
   initialState,
   reducers: {
+    setThemeMode: (state, action: PayloadAction<ThemeMode>) => {
+      state.themeMode = action.payload;
+    },
     toggleTheme: (state) => {
+      // If system, we need to know what system is to toggle.
+      // For now, toggle between light/dark and stick to that.
+      state.themeMode = state.isDarkMode ? "light" : "dark";
       state.isDarkMode = !state.isDarkMode;
     },
     setDarkMode: (state, action: PayloadAction<boolean>) => {
       state.isDarkMode = action.payload;
+      state.themeMode = action.payload ? "dark" : "light";
     },
     setAccentColor: (state, action: PayloadAction<string>) => {
       state.accentColor = action.payload;
@@ -28,9 +39,10 @@ const themeSlice = createSlice({
     setThemeHydrated: (state, action: PayloadAction<boolean>) => {
       state.hasHydrated = action.payload;
     },
+
   },
 });
 
-export const { toggleTheme, setDarkMode, setAccentColor, setThemeHydrated } =
+export const { toggleTheme, setDarkMode, setAccentColor, setThemeHydrated, setThemeMode } =
   themeSlice.actions;
 export default themeSlice.reducer;

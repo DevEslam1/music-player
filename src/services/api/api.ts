@@ -43,25 +43,15 @@ export const mapCustomTrackToModel = (track: CustomApiTrackRaw): Track => ({
 });
 
 export const searchSongs = async (query: string, offset: number = 0): Promise<Track[]> => {
-  try {
-    const response = await axiosClient.get(`/tracks/search/`, {
-      params: { q: query, limit: 10, offset }
-    });
-    const data = response.data || [];
-    return data.map(mapCustomTrackToModel);
-  } catch (error) {
-    console.error("Error fetching songs from API", error);
-    return [];
-  }
+  const response = await axiosClient.get(`tracks/search/`, {
+    params: { q: query, limit: 10, offset }
+  });
+  const data = response.data || [];
+  return data.map(mapCustomTrackToModel);
 };
 
 export const getRecommendedSongs = async (): Promise<Track[]> => {
-  try {
-    const response = await axiosClient.get('/recommendations/');
-    const data = response.data || [];
-    return data.map(mapCustomTrackToModel);
-  } catch (error) {
-    console.error("Error fetching recommended songs", error);
-    return [];
-  }
+  const response = await axiosClient.get('recommendations/');
+  const data = response.data || [];
+  return data.map(mapCustomTrackToModel);
 };

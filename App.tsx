@@ -14,9 +14,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ErrorBoundary } from "./src/components/ErrorBoundary";
 import { AppBootstrap } from "./src/components/AppBootstrap";
 
+import { useColorScheme } from "./src/hooks/use-theme-color";
+
 function RootContent() {
   const [currentRoute, setCurrentRoute] = useState<string | undefined>();
-  const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
+  const colorScheme = useColorScheme();
 
   return (
     <NavigationContainer
@@ -29,7 +31,7 @@ function RootContent() {
         setCurrentRoute(currentRouteName);
       }}
     >
-      <StatusBar style={isDarkMode ? "light" : "dark"} animated={true} />
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} animated={true} />
       <AppNavigator currentRoute={currentRoute} />
     </NavigationContainer>
   );

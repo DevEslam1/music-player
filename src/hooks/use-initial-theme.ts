@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { loadThemePreferences } from "../services/storage/themePreferences";
-import { setDarkMode, setAccentColor, setThemeHydrated } from "../redux/store/theme/themeSlice";
+import { setDarkMode, setAccentColor, setThemeHydrated, setThemeMode } from "../redux/store/theme/themeSlice";
 import { useDispatch } from "react-redux";
 
 const ACCENT_DEFAULT = "#B34A30";
@@ -18,7 +18,15 @@ export function useInitialTheme() {
         
         if (!cancelled) {
           if (prefs) {
-            dispatch(setDarkMode(prefs.isDarkMode));
+            if ((prefs as any).themeMode) {
+              dispatch(setThemeMode((prefs as any).themeMode));
+              // For sync purposes, update isDarkMode if it was specific
+              if ((prefs as any).themeMode !== "system") {
+                dispatch(setDarkMode((prefs as any).themeMode === "dark"));
+              }
+            } else {
+              dispatch(setDarkMode(prefs.isDarkMode));
+            }
             dispatch(setAccentColor(prefs.accentColor));
             setAccentColorLocal(prefs.accentColor);
           }

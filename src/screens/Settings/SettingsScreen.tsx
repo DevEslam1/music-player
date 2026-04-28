@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store/store";
-import { toggleTheme, setAccentColor } from "../../redux/store/theme/themeSlice";
+import { toggleTheme, setAccentColor, setThemeMode } from "../../redux/store/theme/themeSlice";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { ACCENT_COLORS } from "../../constants/theme";
 import Constants from "expo-constants";
@@ -17,7 +17,7 @@ import { saveThemePreferences } from "../../services/storage/themePreferences";
 export default function SettingsScreen() {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
-  const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
+  const { isDarkMode, themeMode } = useSelector((state: RootState) => state.theme);
   
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -25,15 +25,18 @@ export default function SettingsScreen() {
   const accentColor = useAccentColor();
   const appVersion = Constants.expoConfig?.version ?? "2.1.0";
 
-  const handleToggleDarkMode = () => {
-    const nextMode = !isDarkMode;
-    dispatch(toggleTheme());
-    saveThemePreferences({ isDarkMode: nextMode, accentColor });
+  const handleUpdateThemeMode = (mode: "light" | "dark" | "system") => {
+    dispatch(setThemeMode(mode));
+    saveThemePreferences({ 
+      themeMode: mode, 
+      isDarkMode: mode === "dark", 
+      accentColor 
+    });
   };
 
   const handleUpdateAccentColor = (color: string) => {
     dispatch(setAccentColor(color));
-    saveThemePreferences({ isDarkMode, accentColor: color });
+    saveThemePreferences({ themeMode, isDarkMode, accentColor: color });
   };
 
   return (
@@ -47,13 +50,37 @@ export default function SettingsScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.section, { backgroundColor: surfaceColor }]}>
           <Text style={[styles.sectionTitle, { color: accentColor }]}>Appearance</Text>
-          <SettingItem icon="moon-outline" label="Dark Mode">
-            <Switch 
-              value={isDarkMode} 
-              onValueChange={handleToggleDarkMode} 
-              trackColor={{ false: "#CBD5E1", true: accentColor }}
-            />
-          </SettingItem>
+          
+          <View style={styles.themeSelector}>
+            {[
+              { label: "Light", value: "light", icon: "sunny-outline" },
+              { label: "Dark", value: "dark", icon: "moon-outline" },
+              { label: "Auto", value: "system", icon: "sync-outline" },
+            ].map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                onPress={() => handleUpdateThemeMode(option.value as any)}
+                style={[
+                  styles.themeOption,
+                  { backgroundColor: themeMode === option.value ? accentColor : "rgba(148, 163, 184, 0.1)" }
+                ]}
+              >
+                <Ionicons 
+                  name={option.icon as any} 
+                  size={20} 
+                  color={themeMode === option.value ? "#FFF" : textColor} 
+                />
+                <Text 
+                  style={[
+                    styles.themeLabel, 
+                    { color: themeMode === option.value ? "#FFF" : textColor }
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
           
           <View style={styles.colorPickerContainer}>
             <Text style={[styles.colorPickerLabel, { color: textColor }]}>Theme Color</Text>
@@ -167,6 +194,25 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: 12,
     letterSpacing: 1,
+  },
+  themeSelector: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  themeOption: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginHorizontal: 4,
+  },
+  themeLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 8,
   },
   colorPickerContainer: {
     marginTop: 8,

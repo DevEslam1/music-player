@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Platform } from "
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useColorScheme } from "../../hooks/use-theme-color";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../redux/store/store";
 import { toggleLikeSongAction, addTrackToPlaylistAction } from "../../redux/store/library/librarySlice";
@@ -43,7 +43,8 @@ export default function NowPlayingScreen() {
   const player = useSelector((state: RootState) => state.player);
   const likedSongs = useSelector((state: RootState) => state.library.likedSongs);
   const [isPickerVisible, setIsPickerVisible] = React.useState(false);
-  const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
   
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");

@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
@@ -133,6 +133,13 @@ export default function PlaylistDetailScreen() {
           renderItem={({ item, index }) => renderItem({ item, index })}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={loading}
+              onRefresh={fetchPlaylistTracks}
+              tintColor={accentColor}
+            />
+          }
         />
       )}
     </SafeAreaView>

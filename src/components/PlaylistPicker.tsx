@@ -7,11 +7,13 @@ import {
   TouchableOpacity,
   FlatList,
   Dimensions,
-  Pressable
+  Pressable,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSelector } from 'react-redux';
-import { RootState } from '../redux/store/store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../redux/store/store';
+import { fetchPlaylists } from '../redux/store/library/librarySlice';
 import { useThemeColor, useAccentColor } from '../hooks/use-theme-color';
 import { PlaylistSummary } from '../types';
 
@@ -24,13 +26,37 @@ interface PlaylistPickerProps {
 }
 
 export default function PlaylistPicker({ isVisible, onClose, onSelect }: PlaylistPickerProps) {
+  const dispatch = useDispatch<AppDispatch>();
   const playlists = useSelector((state: RootState) => state.library.playlists);
+  const playlistsLastFetchedAt = useSelector((state: RootState) => state.library.playlistsLastFetchedAt);
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
-  const surfaceColor = useThemeColor({}, 'surface');
   const accentColor = useAccentColor();
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
 
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await dispatch(fetchPlaylists()).unwrap();
+    } catch (e) {
+      console.error("Failed to refresh playlists in picker:", e);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (isVisible) {
+      // Auto-refresh if data is older than 1 minute or never fetched
+      const now = Date.now();
+      const last = playlistsLastFetchedAt || 0;
+      if (now - last > 60000) {
+        dispatch(fetchPlaylists());
+      }
+    }
+  }, [isVisible, dispatch, playlistsLastFetchedAt]);
   
   const renderItem = ({ item }: { item: PlaylistSummary }) => (
     <TouchableOpacity 
@@ -42,7 +68,7 @@ export default function PlaylistPicker({ isVisible, onClose, onSelect }: Playlis
       </View>
       <View style={styles.info}>
         <Text style={[styles.name, { color: textColor }]}>{item.name}</Text>
-        <Text style={styles.count}>{item.tracks?.length || 0} songs</Text>
+        <Text style={styles.count}>{(item as any).track_count ?? item.tracks?.length ?? 0} songs</Text>
       </View>
       <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
     </TouchableOpacity>
@@ -62,9 +88,22 @@ export default function PlaylistPicker({ isVisible, onClose, onSelect }: Playlis
         >
           <View style={styles.header}>
             <Text style={[styles.title, { color: textColor }]}>Add to Playlist</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color={textColor} />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity onPress={onRefresh} style={{ marginRight: 20 }} disabled={isRefreshing}>
+                {isRefreshing ? (
+                   <ActivityIndicator size="small" color={accentColor} />
+                ) : (
+                  <Ionicons 
+                    name="refresh-outline" 
+                    size={22} 
+                    color={textColor} 
+                  />
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onClose}>
+                <Ionicons name="close" size={24} color={textColor} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {playlists.length > 0 ? (
@@ -73,6 +112,7 @@ export default function PlaylistPicker({ isVisible, onClose, onSelect }: Playlis
               keyExtractor={(item) => item.id.toString()}
               renderItem={renderItem}
               contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
             />
           ) : (
             <View style={styles.emptyState}>
@@ -122,7 +162,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: 'rgba(179, 74, 48, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,

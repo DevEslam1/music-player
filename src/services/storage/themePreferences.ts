@@ -3,7 +3,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const THEME_PREFERENCES_KEY = "@theme_preferences";
 
 export interface ThemePreferences {
-  isDarkMode: boolean;
+  themeMode: "light" | "dark" | "system";
+  isDarkMode: boolean; // Keep for backward compatibility
   accentColor: string;
 }
 
