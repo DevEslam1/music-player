@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from "react-native";
 import { DrawerContentComponentProps, useDrawerStatus } from "@react-navigation/drawer";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
+import { Image } from "expo-image";
 import { RootState } from "../redux/store/store";
 import { toggleTheme } from "../redux/store/theme/themeSlice";
 import { setDrawerOpen } from "../redux/store/ui/uiSlice";
@@ -16,15 +17,20 @@ interface DrawerItemProps {
   onPress: () => void;
   textColor: string;
   active?: boolean;
+  isDarkMode?: boolean;
 }
 
-const DrawerItem = ({ icon, label, onPress, textColor, active }: DrawerItemProps) => {
+const DrawerItem = ({ icon, label, onPress, textColor, active, isDarkMode }: DrawerItemProps) => {
   const accentColor = useAccentColor();
   return (
     <TouchableOpacity 
       style={[
         styles.item, 
-        active && { backgroundColor: accentColor + '20', borderRadius: 12 }
+        active && { 
+          backgroundColor: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)", 
+          borderColor: accentColor + '40',
+          borderRadius: 16 
+        }
       ]} 
       onPress={onPress}
     >
@@ -52,6 +58,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const isDarkMode = colorScheme === "dark";
   const user = useSelector((state: RootState) => state.auth.currentUser);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
   const isDrawerOpen = useDrawerStatus() === 'open';
   
   React.useEffect(() => {
@@ -68,14 +75,25 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const activeRoute = props.state.routes[props.state.index].name;
 
   return (
-    <BlurView 
-      intensity={isDarkMode ? 80 : 100} 
-      tint={isDarkMode ? "dark" : "light"} 
-      style={[
-        styles.container, 
-        { backgroundColor: isDarkMode ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.75)" }
-      ]}
-    >
+    <View style={styles.container}>
+      <BlurView 
+        intensity={isDarkMode ? 80 : 90} 
+        tint={isDarkMode ? "dark" : "light"} 
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: isDarkMode ? "rgba(0,0,0,0.65)" : "rgba(255,255,255,0.5)" }
+        ]}
+      >
+        {/* If a song is playing, show a hint of its colors behind the blur */}
+        {currentTrack?.image && (
+          <Image 
+            source={{ uri: currentTrack.image }} 
+            style={[StyleSheet.absoluteFill, { opacity: 0.25 }]}
+            blurRadius={20}
+          />
+        )}
+        
+        <View style={{ flex: 1, paddingTop: 60 }}>
       <View style={styles.header}>
         <View style={styles.profileSection}>
           <TouchableOpacity 
@@ -115,6 +133,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           label="Home" 
           textColor={textColor}
           active={activeRoute === "Home"}
+          isDarkMode={isDarkMode}
           onPress={() => props.navigation.navigate("Home")} 
         />
         <DrawerItem 
@@ -122,6 +141,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           label="Library" 
           textColor={textColor}
           active={activeRoute === "Library"}
+          isDarkMode={isDarkMode}
           onPress={() => props.navigation.navigate("Library")} 
         />
         <DrawerItem 
@@ -129,6 +149,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           label="Liked Songs" 
           textColor={textColor}
           active={activeRoute === "LikedSongs"}
+          isDarkMode={isDarkMode}
           onPress={() => props.navigation.navigate("LikedSongs")} 
         />
         <DrawerItem 
@@ -136,6 +157,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           label="Playlists" 
           textColor={textColor}
           active={activeRoute === "Playlist"}
+          isDarkMode={isDarkMode}
           onPress={() => props.navigation.navigate("Playlist")} 
         />
         <DrawerItem 
@@ -143,6 +165,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           label="Downloads" 
           textColor={textColor}
           active={activeRoute === "Downloads"}
+          isDarkMode={isDarkMode}
           onPress={() => props.navigation.navigate("Downloads")} 
         />
         
@@ -153,6 +176,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           label="Profile" 
           textColor={textColor}
           active={activeRoute === "Profile"}
+          isDarkMode={isDarkMode}
           onPress={() => props.navigation.navigate("Profile")} 
         />
         <DrawerItem 
@@ -160,6 +184,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           label="Language" 
           textColor={textColor}
           active={activeRoute === "Language"}
+          isDarkMode={isDarkMode}
           onPress={() => props.navigation.navigate("Language")} 
         />
         <DrawerItem 
@@ -167,6 +192,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           label="Settings" 
           textColor={textColor}
           active={activeRoute === "Settings"}
+          isDarkMode={isDarkMode}
           onPress={() => props.navigation.navigate("Settings")} 
         />
         
@@ -177,6 +203,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           label="Contact us" 
           textColor={textColor}
           active={activeRoute === "Contact"}
+          isDarkMode={isDarkMode}
           onPress={() => props.navigation.navigate("Contact")} 
         />
         <DrawerItem 
@@ -184,6 +211,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           label="FAQs" 
           textColor={textColor}
           active={activeRoute === "FAQ"}
+          isDarkMode={isDarkMode}
           onPress={() => props.navigation.navigate("FAQ")} 
         />
       </ScrollView>
@@ -191,14 +219,17 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
       <View style={styles.footer}>
          <Text style={[styles.footerText, { color: textColor + '40' }]}>GiG Player v2.1.0</Text>
       </View>
-    </BlurView>
+        </View>
+      </BlurView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
+    borderRightWidth: 1,
+    borderRightColor: "rgba(255,255,255,0.1)",
   },
   header: {
     flexDirection: "row",
@@ -274,6 +305,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     marginVertical: 4,
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "transparent",
   },
   icon: {
     marginRight: 16,
@@ -288,7 +321,7 @@ const styles = StyleSheet.create({
     height: 1,
     marginVertical: 20,
     marginHorizontal: 25,
-    opacity: 0.5,
+    backgroundColor: "rgba(255,255,255,0.08)", // Glass etch look
   },
   footer: {
     paddingVertical: 25,
