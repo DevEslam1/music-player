@@ -94,30 +94,10 @@ export default function LibraryScreen() {
       <ScreenHeader
         screenTitle="Search"
         leftIcon="arrow-back"
-        rightComponent={
-          isLoggedIn && (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <TouchableOpacity 
-                onPress={() => {
-                  dispatch(setAutoDownloadEnabled(true));
-                  if (results?.length > 0) {
-                    dispatch(batchDownloadTracksAction(results));
-                  }
-                }}
-                style={{ padding: 4 }}
-              >
-                <Ionicons 
-                  name={autoDownloadEnabled ? "cloud-done" : "cloud-offline"} 
-                  size={26} 
-                  color={autoDownloadEnabled ? accentColor : "#94A3B8"} 
-                />
-              </TouchableOpacity>
-            </View>
-          )
-        }
+        rightComponent={null}
       />
 
-      <View style={[styles.searchContainer, { paddingTop: insets.top + 82 }]}>
+      <View style={[styles.searchContainer, { paddingTop: insets.top + 85 }]}>
         <SearchBar
           query={query}
           onChangeText={setQuery}
@@ -144,6 +124,7 @@ export default function LibraryScreen() {
               onPlayTrack={() => handlePlayTrack(item)}
               onOpenPicker={() => handleOpenPicker(item)}
               isLiked={isLiked(item.id)}
+              hideDownload={true}
             />
           )}
           keyExtractor={(item) => item.id}

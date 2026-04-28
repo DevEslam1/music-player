@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { loadThemePreferences } from "../services/storage/themePreferences";
-import { setDarkMode, setAccentColor, setThemeHydrated, setThemeMode, setAdvancedBlurEnabled, setBlurIntensity } from "../redux/store/theme/themeSlice";
+import { setDarkMode, setAccentColor, setThemeHydrated, setThemeMode, setAdvancedBlurEnabled, setBlurIntensity, updateDerivedDarkMode } from "../redux/store/theme/themeSlice";
 import { useDispatch } from "react-redux";
 
 const ACCENT_DEFAULT = "#B34A30";
@@ -20,9 +20,12 @@ export function useInitialTheme() {
           if (prefs) {
             if ((prefs as any).themeMode) {
               dispatch(setThemeMode((prefs as any).themeMode));
-              // For sync purposes, update isDarkMode if it was specific
               if ((prefs as any).themeMode !== "system") {
                 dispatch(setDarkMode((prefs as any).themeMode === "dark"));
+              } else {
+                const Appearance = require('react-native').Appearance;
+                const systemDark = Appearance.getColorScheme() === 'dark';
+                dispatch(updateDerivedDarkMode(systemDark));
               }
             } else {
               dispatch(setDarkMode(prefs.isDarkMode));

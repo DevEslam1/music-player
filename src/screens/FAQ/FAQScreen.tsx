@@ -13,6 +13,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScreenHeader } from "../../components/ScreenHeader";
 
 
 
@@ -48,6 +50,7 @@ export default function FAQScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
+  const insets = useSafeAreaInsets();
 
   const faqs = [
     {
@@ -77,16 +80,10 @@ export default function FAQScreen() {
   ];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={26} color={textColor} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: textColor }]}>FAQs</Text>
-        <View style={{ width: 26 }} />
-      </View>
+    <View style={[styles.container, { backgroundColor }]}>
+      <ScreenHeader screenTitle="FAQs" />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 85 }]}>
         <Text style={[styles.subtitle, { color: accentColor }]}>Frequently Asked Questions</Text>
         <Text style={[styles.description, { color: textColor + '99' }]}>
           Find quick answers to common questions about using GiG Player.
@@ -111,7 +108,7 @@ export default function FAQScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

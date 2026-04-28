@@ -32,7 +32,7 @@ export default function SettingsScreen() {
   const textColor = useThemeColor({}, "text");
   const surfaceColor = useThemeColor({}, "surface");
   const accentColor = useAccentColor();
-  const appVersion = Constants.expoConfig?.version ?? "2.1.0";
+  const appVersion = Constants.expoConfig?.version ?? "2.2.0";
 
   const handleUpdateThemeMode = (mode: "light" | "dark" | "system") => {
     dispatch(setThemeMode(mode));

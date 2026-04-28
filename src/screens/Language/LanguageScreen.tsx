@@ -4,6 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColor } from "../../hooks/use-theme-color";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScreenHeader } from "../../components/ScreenHeader";
 import { LanguageItem } from "../../components/language/LanguageItem";
 
 export default function LanguageScreen() {
@@ -14,18 +16,13 @@ export default function LanguageScreen() {
     { light: "#94A3B8", dark: "#94A3B8" },
     "text",
   );
+  const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={26} color={textColor} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: textColor }]}>App Language</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <View style={[styles.container, { backgroundColor }]}>
+      <ScreenHeader screenTitle="App Language" />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 85 }]}>
         <Text style={[styles.description, { color: mutedTextColor }]}>
           Select your preferred language for the app interface.
         </Text>
@@ -35,7 +32,7 @@ export default function LanguageScreen() {
           <LanguageItem label="Arabic" comingSoon={true} onPress={() => {}} />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

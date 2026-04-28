@@ -52,7 +52,7 @@ const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
 
   return (
     <View style={styles.container}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator id="main" screenOptions={{ headerShown: false }}>
         {!isAuthReady ? (
           // 1. Loading/Bootstrap Phase: Keep a stable screen mounted
           <Stack.Screen name="Login" component={LoginScreen} />

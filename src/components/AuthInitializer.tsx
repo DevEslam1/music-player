@@ -12,7 +12,9 @@ import {
   setThemeMode,
   setAdvancedBlurEnabled,
   setBlurIntensity,
+  updateDerivedDarkMode,
 } from '../redux/store/theme/themeSlice';
+import { Appearance } from 'react-native';
 import { getAccessToken } from '../services/auth/session';
 import { loadThemePreferences } from '../services/storage/themePreferences';
 import { showAppBanner } from './OfflineBanner';
@@ -30,12 +32,19 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) =>
     let isCancelled = false;
 
     const initAuth = async () => {
-      // Load saved theme prefs BEFORE the splash even renders
       try {
         const prefs = await loadThemePreferences();
         if (prefs && !isCancelled) {
-          if (prefs.themeMode) dispatch(setThemeMode(prefs.themeMode));
-          if (prefs.isDarkMode !== undefined) dispatch(setDarkMode(prefs.isDarkMode));
+          const savedMode = prefs.themeMode ?? (prefs.isDarkMode ? 'dark' : 'light');
+          dispatch(setThemeMode(savedMode));
+
+          if (savedMode === 'system') {
+            // Derive isDarkMode from OS; never let setDarkMode override themeMode
+            dispatch(updateDerivedDarkMode(Appearance.getColorScheme() === 'dark'));
+          } else {
+            dispatch(setDarkMode(savedMode === 'dark'));
+          }
+
           if (prefs.accentColor) dispatch(setAccentColor(prefs.accentColor));
           if (prefs.advancedBlurEnabled !== undefined) dispatch(setAdvancedBlurEnabled(prefs.advancedBlurEnabled));
           if (prefs.blurIntensity !== undefined) dispatch(setBlurIntensity(prefs.blurIntensity));

@@ -9,6 +9,8 @@ import { logoutAction } from "../../redux/store/auth/authSlice";
 import { navigate } from "../../navigation/navigationUtils";
 import { useThemeColor, useAccentColor, useColorScheme } from "../../hooks/use-theme-color";
 import { useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScreenHeader } from "../../components/ScreenHeader";
 
 export default function ProfileScreen() {
   const dispatch = useDispatch<AppDispatch>();
@@ -19,6 +21,7 @@ export default function ProfileScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
+  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   const cardBg = isDarkMode ? "rgba(255, 255, 255, 0.05)" : "#F1F5F9";
@@ -29,18 +32,14 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={26} color={textColor} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: textColor }]}>Profile</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
-          <Ionicons name="settings-outline" size={24} color={textColor} />
-        </TouchableOpacity>
-      </View>
+    <View style={[styles.container, { backgroundColor }]}>
+      <ScreenHeader 
+        screenTitle="Profile" 
+        postIcon="settings-outline"
+        onPostPress={() => navigation.navigate("Settings")}
+      />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 85 }]}>
         <View style={styles.profileHeader}>
           <View style={[styles.avatarContainer, { borderColor: accentColor, backgroundColor: accentColor + '10' }]}>
              <Ionicons name="person" size={50} color={accentColor} />
@@ -92,7 +91,7 @@ export default function ProfileScreen() {
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

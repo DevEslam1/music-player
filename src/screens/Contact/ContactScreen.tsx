@@ -1,9 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useAccentColor, useThemeColor } from "../../hooks/use-theme-color";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScreenHeader } from "../../components/ScreenHeader";
 
 interface ContactOptionProps {
   icon: React.ComponentProps<typeof Ionicons>["name"];
@@ -38,6 +39,7 @@ export default function ContactScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
+  const insets = useSafeAreaInsets();
 
   const handleEmail = () => {
     Linking.openURL('mailto:karima.mahmoud.dev@gmail.com');
@@ -48,16 +50,10 @@ export default function ContactScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={26} color={textColor} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: textColor }]}>Contact Us</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <View style={[styles.container, { backgroundColor }]}>
+      <ScreenHeader screenTitle="Contact Us" />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 85 }]}>
         <View style={styles.heroSection}>
           <View style={[styles.heroIconCircle, { backgroundColor: accentColor, shadowColor: accentColor }]}>
             <Ionicons name="code-slash-outline" size={50} color="#fff" />
@@ -88,28 +84,13 @@ export default function ContactScreen() {
         </View>
 
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  backBtn: {
-    padding: 4,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
   },
   content: {
     paddingHorizontal: 20,

@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Appearance } from "react-native";
 
 export type ThemeMode = "light" | "dark" | "system";
 
@@ -11,9 +12,11 @@ interface ThemeState {
   blurIntensity: number;
 }
 
+const getSystemDarkMode = () => Appearance.getColorScheme() === "dark";
+
 const initialState: ThemeState = {
   themeMode: "system",
-  isDarkMode: false,
+  isDarkMode: getSystemDarkMode(),
   accentColor: "#B34A30", // Standard GiG Player Red
   hasHydrated: false,
   advancedBlurEnabled: true,
@@ -26,16 +29,23 @@ const themeSlice = createSlice({
   reducers: {
     setThemeMode: (state, action: PayloadAction<ThemeMode>) => {
       state.themeMode = action.payload;
+      if (action.payload === "system") {
+        state.isDarkMode = getSystemDarkMode();
+        return;
+      }
+
+      state.isDarkMode = action.payload === "dark";
     },
     toggleTheme: (state) => {
-      // If system, we need to know what system is to toggle.
-      // For now, toggle between light/dark and stick to that.
       state.themeMode = state.isDarkMode ? "light" : "dark";
       state.isDarkMode = !state.isDarkMode;
     },
     setDarkMode: (state, action: PayloadAction<boolean>) => {
       state.isDarkMode = action.payload;
       state.themeMode = action.payload ? "dark" : "light";
+    },
+    updateDerivedDarkMode: (state, action: PayloadAction<boolean>) => {
+      state.isDarkMode = action.payload;
     },
     setAccentColor: (state, action: PayloadAction<string>) => {
       state.accentColor = action.payload;
@@ -59,6 +69,7 @@ export const {
   setThemeHydrated, 
   setThemeMode,
   setAdvancedBlurEnabled,
-  setBlurIntensity
+  setBlurIntensity,
+  updateDerivedDarkMode
 } = themeSlice.actions;
 export default themeSlice.reducer;

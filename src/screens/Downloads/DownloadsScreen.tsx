@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import React, { useState, useCallback } from "react";
 import { Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, View, RefreshControl } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { useDownloadsScreenLogic } from "../../services/logic/downloadsScreenLogic";
@@ -15,6 +15,7 @@ export default function DownloadsScreen() {
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
 
   const {
     downloadedTracks,
@@ -52,7 +53,7 @@ export default function DownloadsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
+    <View style={[styles.container, { backgroundColor }]}>
       <ScreenHeader 
         screenTitle="Offline Library" 
         leftIcon="menu"
@@ -61,70 +62,70 @@ export default function DownloadsScreen() {
         onPostPress={handleDeleteAll}
       />
 
-      {downloadedTracks.length > 0 && (
-        <View style={styles.storageCard}>
-          <View style={[styles.storageIconWrapper, { backgroundColor: accentColor + '15' }]}>
-            <Ionicons name="stats-chart" size={20} color={accentColor} />
-          </View>
-          <View>
-            <Text style={[styles.storageTitle, { color: textColor }]}>Storage Used</Text>
-            <Text style={styles.storageValue}>{formatBytes(totalStorage)} for {downloadedTracks.length} tracks</Text>
-          </View>
-        </View>
-      )}
-
-      {loading ? (
-        <ActivityIndicator size="large" color={accentColor} style={{ marginTop: 40 }} />
-      ) : (
-        <FlatList
-          data={downloadedTracks}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={accentColor}
-            />
-          }
-          renderItem={({ item }) => (
-            <ReanimatedSwipeable renderRightActions={() => renderRightActions(item.id)}>
-              <TouchableOpacity 
-                style={[styles.trackItem, { backgroundColor }]}
-                onPress={() => handlePlayTrack(item)}
-                activeOpacity={0.7}
-              >
-                <Image source={{ uri: item.image }} style={styles.artwork} />
-                
-                <View style={styles.trackInfo}>
-                  <Text style={[styles.trackName, { color: textColor }]} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <Text style={styles.artistName} numberOfLines={1}>
-                    {item.artist}
-                  </Text>
-                </View>
-
-                <DownloadButton track={item} />
-              </TouchableOpacity>
-            </ReanimatedSwipeable>
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-            <View style={[styles.emptyIconCircle, { backgroundColor: accentColor + '10' }]}>
-              <Ionicons name="cloud-offline-outline" size={48} color={accentColor} />
+      <View style={{ flex: 1, paddingTop: insets.top + 85 }}>
+        {downloadedTracks.length > 0 && (
+          <View style={styles.storageCard}>
+            <View style={[styles.storageIconWrapper, { backgroundColor: accentColor + '15' }]}>
+              <Ionicons name="stats-chart" size={20} color={accentColor} />
             </View>
-              <Text style={[styles.emptyText, { color: textColor }]}>
-                No tracks downloaded
-              </Text>
-              <Text style={styles.emptySubText}>
-                Your collection of offline tracks will appear here once you download them.
-              </Text>
+            <View>
+              <Text style={[styles.storageTitle, { color: textColor }]}>Storage Used</Text>
+              <Text style={styles.storageValue}>{formatBytes(totalStorage)} for {downloadedTracks.length} tracks</Text>
             </View>
-          }
-        />
-      )}
-    </SafeAreaView>
+          </View>
+        )}
+
+        {loading ? (
+          <ActivityIndicator size="large" color={accentColor} style={{ marginTop: 40 }} />
+        ) : (
+          <FlatList
+            data={downloadedTracks}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContainer}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={accentColor}
+              />
+            }
+            renderItem={({ item }) => (
+              <ReanimatedSwipeable renderRightActions={() => renderRightActions(item.id)}>
+                <TouchableOpacity 
+                  style={[styles.trackItem, { backgroundColor }]}
+                  onPress={() => handlePlayTrack(item)}
+                  activeOpacity={0.7}
+                >
+                  <Image source={{ uri: item.image }} style={styles.artwork} />
+                  
+                  <View style={styles.trackInfo}>
+                    <Text style={[styles.trackName, { color: textColor }]} numberOfLines={1}>
+                      {item.name}
+                    </Text>
+                    <Text style={styles.artistName} numberOfLines={1}>
+                      {item.artist}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </ReanimatedSwipeable>
+            )}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+              <View style={[styles.emptyIconCircle, { backgroundColor: accentColor + '10' }]}>
+                <Ionicons name="cloud-offline-outline" size={48} color={accentColor} />
+              </View>
+                <Text style={[styles.emptyText, { color: textColor }]}>
+                  No tracks downloaded
+                </Text>
+                <Text style={styles.emptySubText}>
+                  Your collection of offline tracks will appear here once you download them.
+                </Text>
+              </View>
+            }
+          />
+        )}
+      </View>
+    </View>
   );
 }
 

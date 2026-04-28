@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   RefreshControl
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
@@ -48,6 +48,7 @@ export default function PlaylistScreen() {
   const [isCreating, setIsCreating] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   React.useEffect(() => {
     if (!playlistsLastFetchedAt) {
@@ -97,7 +98,7 @@ export default function PlaylistScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
+    <View style={[styles.container, { backgroundColor }]}>
       <ScreenHeader
         screenTitle="My Playlists"
         leftIcon="menu"
@@ -125,7 +126,7 @@ export default function PlaylistScreen() {
       />
 
       <ScrollView 
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 85 }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -179,7 +180,7 @@ export default function PlaylistScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

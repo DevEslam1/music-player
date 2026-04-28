@@ -11,6 +11,7 @@ type SearchItemProps = {
   onOpenPicker?: ((event: GestureResponderEvent) => void) | undefined;
   item: Track;
   isLiked?: boolean;
+  hideDownload?: boolean;
 };
 
 const SearchItemInner = ({
@@ -18,6 +19,7 @@ const SearchItemInner = ({
   onPlayTrack,
   onOpenPicker,
   isLiked = false,
+  hideDownload = false,
 }: SearchItemProps) => {
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
@@ -51,7 +53,7 @@ const SearchItemInner = ({
         </View>
       </View>
       <View style={styles.cardActions}>
-        <DownloadButton track={item} size={24} color={textColor} />
+        {!hideDownload && <DownloadButton track={item} size={24} color={textColor} />}
         <TouchableOpacity onPress={onOpenPicker}>
           <Ionicons name="add-circle-outline" size={26} color={textColor} />
         </TouchableOpacity>

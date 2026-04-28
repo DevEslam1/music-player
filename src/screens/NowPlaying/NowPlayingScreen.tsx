@@ -27,14 +27,7 @@ import { TrackMetaInfo } from "../../components/NowPlaying/TrackMetaInfo";
 import { ProgressBar } from "../../components/NowPlaying/ProgressBar";
 import { PlaybackControls } from "../../components/NowPlaying/PlaybackControls";
 
-/**
- * Professional Refactoring Note (Junior style):
- * I cleaned up this file! Now it's much shorter and easier to read.
- * Most of the "UI stuff" is in the components folder.
- * 
- * I also added 'useCallback' to functions. This stops them from being recreated
- * every time the component renders, which is great for performance!
- */
+
 
 export default function NowPlayingScreen() {
   const navigation = useNavigation<any>();

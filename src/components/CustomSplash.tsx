@@ -18,8 +18,9 @@ import Animated, {
 import type { SharedValue } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { useInitialTheme } from "../hooks/use-initial-theme";
+import { useSelector } from "react-redux";
 import { useColorScheme } from "../hooks/use-theme-color";
+import { RootState } from "../redux/store/store";
 
 const { width } = Dimensions.get("window");
 const WAVE_SEGMENTS = 7;
@@ -86,7 +87,7 @@ const WaveBar = memo(({ offset, accentColor, index }: {
 
 export const CustomSplash = memo(() => {
   const insets = useSafeAreaInsets();
-  const { accentColor, loaded } = useInitialTheme();
+  const { accentColor, hasHydrated: loaded } = useSelector((state: RootState) => state.theme);
   const systemTheme = useColorScheme();
 
   const isDark = systemTheme === "dark";

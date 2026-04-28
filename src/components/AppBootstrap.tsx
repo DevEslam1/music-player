@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { DownloadService } from "../services/api/downloadService";
+import { useColorScheme as useSystemColorScheme } from "react-native";
 import { registerUnauthorizedHandler } from "../services/auth/session";
 import { store, AppDispatch, RootState } from "../redux/store/store";
 import { logoutCompleted } from "../redux/store/auth/authSlice";
@@ -12,6 +13,9 @@ import {
   setDownloadProgress, 
   clearDownloadProgress 
 } from "../redux/store/downloads/downloadsSlice";
+import { 
+  updateDerivedDarkMode,
+} from "../redux/store/theme/themeSlice";
 import { showBanner } from "../redux/store/ui/uiSlice";
 
 interface AppBootstrapProps {
@@ -20,11 +24,22 @@ interface AppBootstrapProps {
 
 export function AppBootstrap({ children }: AppBootstrapProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const systemColorScheme = useSystemColorScheme();
   const theme = useSelector((state: RootState) => state.theme, shallowEqual);
   const { isDarkMode, accentColor, themeMode, advancedBlurEnabled, blurIntensity, hasHydrated: hasHydratedTheme } = theme;
 
   useEffect(() => {
-    // Inject Redux dependencies to avoid circular imports in DownloadService
+    if (themeMode !== "system" || !hasHydratedTheme) {
+      return;
+    }
+
+    const isSystemDark = systemColorScheme === "dark";
+    if (isDarkMode !== isSystemDark) {
+      dispatch(updateDerivedDarkMode(isSystemDark));
+    }
+  }, [dispatch, hasHydratedTheme, isDarkMode, systemColorScheme, themeMode]);
+
+  useEffect(() => {
     DownloadService.injectRedux(store.dispatch, store.getState, {
       hydrateDownloads,
       upsertDownload,

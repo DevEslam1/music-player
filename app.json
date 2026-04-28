@@ -5,7 +5,7 @@
     "version": "2.2.0",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/app-icon.png",
       "resizeMode": "contain",
@@ -34,7 +34,7 @@
       ],
       "predictiveBackGestureEnabled": false,
       "package": "com.eslamm2500.musicplayer",
-      "versionCode": 3
+      "versionCode": 4
     },
     "web": {
       "favicon": "./assets/app-icon.png"
@@ -49,7 +49,8 @@
       ],
       "expo-font",
       "expo-asset",
-      "expo-image"
+      "expo-image",
+      "expo-system-ui"
     ],
     "extra": {
       "eas": {

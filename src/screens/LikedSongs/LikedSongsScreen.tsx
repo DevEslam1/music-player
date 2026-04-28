@@ -82,8 +82,9 @@ export default function LikedSongsScreen() {
             {isLoggedIn && (
               <TouchableOpacity 
                 onPress={() => {
-                  dispatch(setAutoDownloadEnabled(true));
-                  if (likedSongs.length > 0) {
+                  const newState = !autoDownloadEnabled;
+                  dispatch(setAutoDownloadEnabled(newState));
+                  if (newState && likedSongs.length > 0) {
                     dispatch(batchDownloadTracksAction(likedSongs));
                   }
                 }}

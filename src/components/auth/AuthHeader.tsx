@@ -4,11 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useThemeColor } from '../../hooks/use-theme-color';
 
-/**
- * Professional Junior Component:
- * Now supports alignment and back button! 
- * Reusable for any screen that needs an Auth-style header.
- */
+
 
 interface AuthHeaderProps {
   title: string;
