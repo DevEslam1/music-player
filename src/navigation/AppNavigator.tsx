@@ -39,15 +39,26 @@ interface AppNavigatorProps {
 }
 
 const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
+  // Re-read auth state on every render so initialRouteName stays current
+  // during the bootstrap window (fetchProfile resolves after mount).
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const isDrawerOpen = useSelector((state: RootState) => state.ui.isDrawerOpen);
   // Hide miniplayer during auth, now playing, or when route is not yet determined
   const hideMiniPlayer = isDrawerOpen || !currentRoute || ["Login", "SignUp", "NowPlaying", "Welcome"].includes(currentRoute);
   const isFirstLaunch = useSelector((state: RootState) => state.auth.isFirstLaunch);
+  const authLoading = useSelector((state: RootState) => state.auth.loading);
 
-  // Fix 6: Determine initial route but always register all screens unconditionally.
-  // This prevents "screen does not exist" errors during auth state transitions.
-  const initialRouteName = isFirstLaunch ? "Welcome" : (isLoggedIn ? "Drawer" : "Login");
+  // While AuthInitializer is bootstrapping (fetchProfile pending), keep showing
+  // the splash via initialRouteName="Login" — this prevents the wrong screen
+  // from briefly rendering before the real auth check resolves.
+  const isAuthReady = isFirstLaunch !== null;
+  const initialRouteName = !isAuthReady
+    ? "Login"
+    : isFirstLaunch
+      ? "Welcome"
+      : isLoggedIn
+        ? "Drawer"
+        : "Login";
 
   return (
     <View style={styles.container}>

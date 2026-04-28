@@ -10,9 +10,12 @@ import {
   setDarkMode,
   setThemeHydrated,
 } from '../redux/store/theme/themeSlice';
-import { loadThemePreferences } from '../services/storage/themePreferences';
 import { getAccessToken } from '../services/auth/session';
 import { showAppBanner } from './OfflineBanner';
+
+const DARK_MODE_KEY = 'theme.darkMode';
+const ACCENT_COLOR_KEY = 'theme.accentColor';
+const ACCENT_DEFAULT = '#B34A30';
 
 interface AuthInitializerProps {
   children: React.ReactNode;
@@ -21,35 +24,35 @@ interface AuthInitializerProps {
 export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) => {
   const dispatch = useDispatch<AppDispatch>();
   const [isInitializing, setIsInitializing] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
     const initAuth = async () => {
+      // Load saved theme prefs BEFORE the splash even renders so CustomSplash
+      // gets the correct dark/light colors from the first frame.
       try {
-        try {
-          const savedTheme = await loadThemePreferences();
-          if (savedTheme) {
-            dispatch(setDarkMode(savedTheme.isDarkMode));
-            dispatch(setAccentColor(savedTheme.accentColor));
-          }
-        } finally {
-          dispatch(setThemeHydrated(true));
-        }
+        const [savedDark, savedAccent] = await Promise.all([
+          AsyncStorage.getItem(DARK_MODE_KEY),
+          AsyncStorage.getItem(ACCENT_COLOR_KEY),
+        ]);
+        dispatch(setDarkMode(savedDark === 'true'));
+        dispatch(setAccentColor(savedAccent || ACCENT_DEFAULT));
+      } finally {
+        dispatch(setThemeHydrated(true));
+      }
 
-        // Check for first launch
-        const firstLaunch = await AsyncStorage.getItem("@is_first_launch");
-        if (firstLaunch === null) {
-          dispatch(setFirstLaunch(true));
-        } else {
-          dispatch(setFirstLaunch(false));
-        }
+      try {
+        const firstLaunch = await AsyncStorage.getItem('@is_first_launch');
+        dispatch(setFirstLaunch(firstLaunch === null));
 
         const token = await getAccessToken();
         if (token) {
           await dispatch(fetchProfile()).unwrap();
         }
+        setAuthReady(true);
       } catch (error) {
-        console.log("Auto-login failed or initialization error:", error);
-        showAppBanner("Session expired. Please log in again.", "warning");
+        showAppBanner('Session expired. Please log in again.', 'warning');
+        setAuthReady(true);
       } finally {
         setIsInitializing(false);
       }
@@ -62,5 +65,5 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) =>
     return <CustomSplash />;
   }
 
-  return <>{children}</>;
+  return <>{authReady ? children : <CustomSplash />}</>;
 };

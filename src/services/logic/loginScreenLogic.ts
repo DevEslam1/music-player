@@ -12,6 +12,7 @@ import { AuthService } from "../api/authService";
 import { AppDispatch } from "../../redux/store/store";
 import { clearAuthTokens, saveAuthTokens } from "../auth/session";
 import { showAppBanner } from "../../components/OfflineBanner";
+import { navigate } from "../../navigation/navigationUtils";
 
 /**
  * Professional Junior Logic Note:
@@ -48,6 +49,7 @@ export function useLoginScreenLogic() {
       const { access, refresh } = data;
       await saveAuthTokens({ access, refresh });
       await dispatch(fetchProfile()).unwrap();
+      navigate("Drawer");
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.detail ||

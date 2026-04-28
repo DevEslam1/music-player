@@ -5,7 +5,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../redux/store/store";
-import { logoutAction, fetchProfile } from "../../redux/store/auth/authSlice";
+import { logoutAction } from "../../redux/store/auth/authSlice";
+import { navigate } from "../../navigation/navigationUtils";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { useNavigation } from "@react-navigation/native";
 
@@ -15,16 +16,16 @@ export default function ProfileScreen() {
   const { currentUser } = useSelector((state: RootState) => state.auth);
   const { likedSongs, playlists } = useSelector((state: RootState) => state.library);
 
-  React.useEffect(() => {
-    dispatch(fetchProfile());
-  }, [dispatch]);
-
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
-
   const cardBg = isDarkMode ? "rgba(255, 255, 255, 0.05)" : "#F1F5F9";
+
+  const handleLogout = async () => {
+    await dispatch(logoutAction());
+    navigate("Login");
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
@@ -84,7 +85,7 @@ export default function ProfileScreen() {
 
         <TouchableOpacity 
           style={[styles.logoutButton, { backgroundColor: accentColor, shadowColor: accentColor }]}
-          onPress={() => dispatch(logoutAction())}
+          onPress={handleLogout}
         >
           <Ionicons name="log-out-outline" size={20} color="#fff" />
           <Text style={styles.logoutText}>Log Out</Text>

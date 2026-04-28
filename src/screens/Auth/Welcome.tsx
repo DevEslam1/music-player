@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions, StatusBar } from 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch } from 'react-redux';
 import { setFirstLaunch } from '../../redux/store/auth/authSlice';
+import { navigate } from '../../navigation/navigationUtils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAccentColor, useThemeColor } from '../../hooks/use-theme-color';
@@ -64,6 +65,7 @@ const WelcomeScreen = () => {
     try {
       await AsyncStorage.setItem('@is_first_launch', 'false');
       dispatch(setFirstLaunch(false));
+      navigate("Login");
     } catch (error) {
       console.error("Error setting first launch:", error);
     }
