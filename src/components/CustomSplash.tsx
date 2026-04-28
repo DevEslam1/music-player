@@ -27,11 +27,11 @@ const NOTE_COUNT = 6;
 
 // ─── Animated Note ───────────────────────────────────────────────────────────
 
-function AnimatedNote({ np, accentColor, left }: {
+const AnimatedNote = memo(({ np, accentColor, left }: {
   np: SharedValue<number>;
   accentColor: string;
   left: number;
-}) {
+}) => {
   const animatedStyle = useAnimatedStyle(() => {
     // Start near loading bar and flow upward
     const y = interpolate(np.value, [0, 1], [0, -140]);
@@ -39,7 +39,11 @@ function AnimatedNote({ np, accentColor, left }: {
     const s = interpolate(np.value, [0, 0.25, 1], [0.5, 1, 0.7]);
     const drift = interpolate(np.value, [0, 1], [0, 16]);
     return {
-      transform: [{ translateY: y }, { translateX: drift }, { scale: s }],
+      transform: [
+        { translateY: y },
+        { translateX: drift },
+        { scale: s },
+      ] as any,
       opacity,
     };
   });
@@ -49,20 +53,20 @@ function AnimatedNote({ np, accentColor, left }: {
       <Ionicons name="musical-notes" size={14} color={accentColor} />
     </Animated.View>
   );
-}
+});
 
 // ─── Wave Bar ────────────────────────────────────────────────────────────────
 
-function WaveBar({ offset, accentColor, index }: {
+const WaveBar = memo(({ offset, accentColor, index }: {
   offset: SharedValue<number>;
   accentColor: string;
   index: number;
-}) {
+}) => {
   const animatedStyle = useAnimatedStyle(() => {
     const w = (offset.value / (WAVE_SEGMENTS * 1.2)) * 100;
     const o = 0.6 + offset.value * 0.4;
     return {
-      width: `${w}%` as unknown as number,
+      width: `${w}%` as any,
       opacity: o,
     };
   });
@@ -76,7 +80,7 @@ function WaveBar({ offset, accentColor, index }: {
       ]}
     />
   );
-}
+});
 
 // ─── Splash ──────────────────────────────────────────────────────────────────
 
@@ -162,14 +166,14 @@ export const CustomSplash = memo(() => {
 
   // Logo: split transform entries to satisfy RN transform union typing
   const logoAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: logoScale.value }, { translateY: floatY.value }],
+    transform: [{ scale: logoScale.value }, { translateY: floatY.value }] as any,
   }));
 
   const glowAnimatedStyle = useAnimatedStyle(() => ({
     opacity: glowOpacity.value,
     transform: [
       { scale: interpolate(logoScale.value, [0, 1], [0.5, 1.6]) },
-    ],
+    ] as any,
   }));
 
   const shimmerAnimatedStyle = useAnimatedStyle(() => ({

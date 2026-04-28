@@ -32,6 +32,7 @@ export default function LikedSongsScreen() {
   } = useLikedScreenLogic();
 
   const navigation = useNavigation<any>();
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const autoDownloadEnabled = useSelector(
     (state: RootState) => state.downloads.autoDownloadEnabled,
   );
@@ -77,22 +78,23 @@ export default function LikedSongsScreen() {
         onBack={() => navigation.openDrawer()}
         rightComponent={
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <TouchableOpacity 
-              onPress={() => {
-                dispatch(setAutoDownloadEnabled(true));
-                if (likedSongs.length > 0) {
-                  dispatch(batchDownloadTracksAction(likedSongs));
-                }
-              }}
-              style={{ marginRight: 15, padding: 4 }}
-            >
-
-              <Ionicons 
-                name={autoDownloadEnabled ? "cloud-done" : "cloud-offline"} 
-                size={26} 
-                color={autoDownloadEnabled ? accentColor : "#94A3B8"} 
-              />
-            </TouchableOpacity>
+            {isLoggedIn && (
+              <TouchableOpacity 
+                onPress={() => {
+                  dispatch(setAutoDownloadEnabled(true));
+                  if (likedSongs.length > 0) {
+                    dispatch(batchDownloadTracksAction(likedSongs));
+                  }
+                }}
+                style={{ marginRight: 15, padding: 4 }}
+              >
+                <Ionicons 
+                  name={autoDownloadEnabled ? "cloud-done" : "cloud-offline"} 
+                  size={26} 
+                  color={autoDownloadEnabled ? accentColor : "#94A3B8"} 
+                />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity onPress={() => setIsEditMode(!isEditMode)} style={{ padding: 4 }}>
               <Ionicons name={isEditMode ? "checkmark-circle" : "options-outline"} size={26} color={accentColor} />
             </TouchableOpacity>

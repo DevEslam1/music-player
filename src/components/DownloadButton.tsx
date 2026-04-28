@@ -32,7 +32,10 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
   const color = propColor || accentColor;
   const isDownloaded = useSelector((state: RootState) => selectIsDownloaded(state, track.id));
   const downloadProgress = useSelector((state: RootState) => selectDownloadProgress(state, track.id));
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const dispatch = useDispatch();
+
+  if (!isLoggedIn) return null;
 
   const handlePress = async () => {
     if (isDownloaded) {

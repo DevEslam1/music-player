@@ -35,6 +35,7 @@ export default function LibraryScreen() {
   } = useLibraryScreenLogic();
   
   const dispatch = useDispatch<AppDispatch>();
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const autoDownloadEnabled = useSelector(
     (state: RootState) => state.downloads.autoDownloadEnabled,
   );
@@ -66,23 +67,25 @@ export default function LibraryScreen() {
         screenTitle="Library"
         leftIcon="arrow-back"
         rightComponent={
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <TouchableOpacity 
-              onPress={() => {
-                dispatch(setAutoDownloadEnabled(true));
-                if (results?.length > 0) {
-                  dispatch(batchDownloadTracksAction(results));
-                }
-              }}
-              style={{ padding: 4 }}
-            >
-              <Ionicons 
-                name={autoDownloadEnabled ? "cloud-done" : "cloud-offline"} 
-                size={26} 
-                color={autoDownloadEnabled ? accentColor : "#94A3B8"} 
-              />
-            </TouchableOpacity>
-          </View>
+          isLoggedIn && (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity 
+                onPress={() => {
+                  dispatch(setAutoDownloadEnabled(true));
+                  if (results?.length > 0) {
+                    dispatch(batchDownloadTracksAction(results));
+                  }
+                }}
+                style={{ padding: 4 }}
+              >
+                <Ionicons 
+                  name={autoDownloadEnabled ? "cloud-done" : "cloud-offline"} 
+                  size={26} 
+                  color={autoDownloadEnabled ? accentColor : "#94A3B8"} 
+                />
+              </TouchableOpacity>
+            </View>
+          )
         }
       />
 
