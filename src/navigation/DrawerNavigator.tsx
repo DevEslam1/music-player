@@ -35,7 +35,7 @@ const DrawerNavigator = () => {
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
         headerShown: false,
-        drawerType: "slide",
+        drawerType: "front",
         overlayColor: "rgba(0,0,0,0.4)",
         drawerStyle: {
           backgroundColor: "transparent",

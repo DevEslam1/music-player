@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store/store";
 import { toggleTheme } from "../redux/store/theme/themeSlice";
 import { setDrawerOpen } from "../redux/store/ui/uiSlice";
+import { fetchProfile } from "../redux/store/auth/authSlice";
 import { useThemeColor, useAccentColor, useColorScheme } from "../hooks/use-theme-color";
 import { BlurView } from "expo-blur";
 
@@ -36,7 +37,7 @@ const DrawerItem = ({ icon, label, onPress, textColor, active }: DrawerItemProps
       <Text 
         style={[
           styles.label, 
-          { color: active ? accentColor : textColor, fontWeight: active ? "700" : "500" }
+          { color: active ? accentColor : textColor, fontWeight: active ? "800" : "600" }
         ]}
       >
         {label}
@@ -50,11 +51,15 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   const user = useSelector((state: RootState) => state.auth.currentUser);
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const isDrawerOpen = useDrawerStatus() === 'open';
   
   React.useEffect(() => {
     dispatch(setDrawerOpen(isDrawerOpen));
-  }, [isDrawerOpen, dispatch]);
+    if (isDrawerOpen && isLoggedIn && !user?.name) {
+      dispatch(fetchProfile() as any);
+    }
+  }, [isDrawerOpen, isLoggedIn, user?.name, dispatch]);
   
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -64,11 +69,11 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
 
   return (
     <BlurView 
-      intensity={isDarkMode ? 45 : 85} 
+      intensity={isDarkMode ? 80 : 100} 
       tint={isDarkMode ? "dark" : "light"} 
       style={[
         styles.container, 
-        { backgroundColor: isDarkMode ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.4)" }
+        { backgroundColor: isDarkMode ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.75)" }
       ]}
     >
       <View style={styles.header}>
@@ -77,11 +82,11 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
             style={[styles.avatar, { backgroundColor: accentColor }]}
             onPress={() => props.navigation.navigate("Profile")}
           >
-            <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase() || "U"}</Text>
+            <Ionicons name="person" size={24} color="#FFF" />
           </TouchableOpacity>
           <View style={styles.userInfo}>
             <Text style={[styles.userName, { color: textColor }]} numberOfLines={1}>
-              {user?.name || "Music Lover"}
+              {user?.name || user?.email?.split('@')[0] || "User"}
             </Text>
             <View style={[styles.badge, { backgroundColor: accentColor + '30' }]}>
               <Text style={[styles.userStatus, { color: accentColor }]}>PREMIUM</Text>

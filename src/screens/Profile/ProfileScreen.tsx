@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../redux/store/store";
 import { logoutAction } from "../../redux/store/auth/authSlice";
 import { navigate } from "../../navigation/navigationUtils";
-import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
+import { useThemeColor, useAccentColor, useColorScheme } from "../../hooks/use-theme-color";
 import { useNavigation } from "@react-navigation/native";
 
 export default function ProfileScreen() {
@@ -19,7 +19,8 @@ export default function ProfileScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
-  const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
   const cardBg = isDarkMode ? "rgba(255, 255, 255, 0.05)" : "#F1F5F9";
 
   const handleLogout = async () => {
@@ -44,7 +45,7 @@ export default function ProfileScreen() {
           <View style={[styles.avatarContainer, { borderColor: accentColor, backgroundColor: accentColor + '10' }]}>
              <Ionicons name="person" size={50} color={accentColor} />
           </View>
-          <Text style={[styles.userName, { color: textColor }]}>{currentUser?.email?.split('@')[0] || "User Name"}</Text>
+          <Text style={[styles.userName, { color: textColor }]}>{currentUser?.name || currentUser?.email?.split('@')[0] || "User Name"}</Text>
           <Text style={styles.userEmail}>{currentUser?.email || "user@example.com"}</Text>
         </View>
 
