@@ -110,7 +110,7 @@ export default function NowPlayingScreen() {
     if (player.currentTrack) {
       dispatch(addTrackToPlaylistAction({ 
         playlistId, 
-        trackId: player.currentTrack.id 
+        track: player.currentTrack 
       }));
       setIsPickerVisible(false);
     }

@@ -75,7 +75,7 @@ export function useLibraryScreenLogic() {
       dispatch(
         addTrackToPlaylistAction({
           playlistId,
-          trackId: selectedTrack.id,
+          track: selectedTrack,
         }),
       );
       setIsPickerVisible(false);

@@ -154,6 +154,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 16,
+    paddingTop: 12, // Ensure negative top badge isn't clipped
     paddingBottom: 80,
   },
   columnWrapper: {

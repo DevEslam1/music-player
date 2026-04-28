@@ -51,22 +51,25 @@ export const fetchLikedSongs = createAsyncThunk<
 export const toggleLikeSongAction = createAsyncThunk<
   Track,
   Track,
-  { rejectValue: string, state: RootState }
+  { rejectValue: string; state: RootState }
 >("library/toggleLikeSong", async (track, { rejectWithValue, getState, dispatch }) => {
   try {
     await LibraryService.toggleLike(track.id);
-    
+
+    // Refresh all collections to stay in sync
+    dispatch(fetchLikedSongs());
+    dispatch(fetchPlaylists());
+
     // Auto-download logic
-    // Auto-download on like: DownloadService.downloadTrack owns progress reporting
     const state = getState();
-    const isLiked = state.library.likedSongs.some(t => t.id === track.id);
-    // If it *wasn't* liked before (so it is now being liked) and auto-download is on
-    if (!isLiked && state.downloads.autoDownloadEnabled) {
-      DownloadService.downloadTrack(track).catch(e => {
-        console.warn('Auto-download failed', e);
+    const isNowLiked = !state.library.likedSongs.some((t) => t.id === track.id);
+    // If it *is* now being liked and auto-download is on
+    if (isNowLiked && state.downloads.autoDownloadEnabled) {
+      DownloadService.downloadTrack(track).catch((e) => {
+        console.warn("Auto-download failed", e);
       });
     }
-    
+
     return track;
   } catch (e: any) {
     return rejectWithValue(e.message);
@@ -101,25 +104,41 @@ export const deletePlaylistAction = createAsyncThunk<
   string,
   string,
   { rejectValue: string }
->("library/deletePlaylist", async (playlistId, { rejectWithValue }) => {
+>("library/deletePlaylist", async (playlistId, { rejectWithValue, dispatch }) => {
   try {
     await LibraryService.deletePlaylist(playlistId);
+    // Refresh library to ensure sync
+    dispatch(fetchPlaylists());
+    dispatch(fetchLikedSongs());
     return playlistId;
   } catch (e: any) {
     return rejectWithValue(e.message);
   }
 });
 
-export const addTrackToPlaylistAction = createAsyncThunk(
+export const addTrackToPlaylistAction = createAsyncThunk<
+  { playlistId: string; track: Track },
+  { playlistId: string; track: Track },
+  { rejectValue: string; state: RootState }
+>(
   "library/addTrackToPlaylist",
-  async (
-    { playlistId, trackId }: { playlistId: string; trackId: string },
-    { rejectWithValue, dispatch },
-  ) => {
+  async ({ playlistId, track }, { rejectWithValue, dispatch, getState }) => {
     try {
-      await LibraryService.addTrackToPlaylist(playlistId, trackId);
+      await LibraryService.addTrackToPlaylist(playlistId, track.id);
+
+      // Refresh all collections
       dispatch(fetchPlaylists());
-      return { playlistId, trackId };
+      dispatch(fetchLikedSongs());
+
+      // Auto-download logic when adding to playlist
+      const state = getState();
+      if (state.downloads.autoDownloadEnabled) {
+        DownloadService.downloadTrack(track).catch((e) => {
+          console.warn("Auto-download failed", e);
+        });
+      }
+
+      return { playlistId, track };
     } catch (e: any) {
       return rejectWithValue(e.message);
     }
@@ -134,7 +153,9 @@ export const removeTrackFromPlaylistAction = createAsyncThunk(
   ) => {
     try {
       await LibraryService.removeTrackFromPlaylist(playlistId, trackId);
+      // Refresh to ensure full sync
       dispatch(fetchPlaylists());
+      dispatch(fetchLikedSongs());
       return { playlistId, trackId };
     } catch (e: any) {
       return rejectWithValue(e.message);
