@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import React, { useRef, useEffect, useCallback } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Platform } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -11,7 +11,6 @@ import { toggleLikeSongAction, addTrackToPlaylistAction } from "../../redux/stor
 import { toggleShuffle, toggleRepeat } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import PlaylistPicker from "../../components/PlaylistPicker";
-import { DownloadService } from "../../services/api/downloadService";
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -40,7 +39,13 @@ import { PlaybackControls } from "../../components/NowPlaying/PlaybackControls";
 export default function NowPlayingScreen() {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
-  const player = useSelector((state: RootState) => state.player);
+  const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
+  const queue = useSelector((state: RootState) => state.player.queue);
+  const isPlaying = useSelector((state: RootState) => state.player.isPlaying);
+  const isShuffled = useSelector((state: RootState) => state.player.isShuffled);
+  const repeatMode = useSelector((state: RootState) => state.player.repeatMode);
+  const positionMillis = useSelector((state: RootState) => state.player.positionMillis);
+  const durationMillis = useSelector((state: RootState) => state.player.durationMillis);
   const likedSongs = useSelector((state: RootState) => state.library.likedSongs);
   const [isPickerVisible, setIsPickerVisible] = React.useState(false);
   const colorScheme = useColorScheme();
@@ -49,8 +54,8 @@ export default function NowPlayingScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
 
-  const currentIndex = player.currentTrack && player.queue.length > 0 
-    ? player.queue.findIndex(t => t.id === player.currentTrack?.id) 
+  const currentIndex = currentTrack && queue.length > 0 
+    ? queue.findIndex(t => t.id === currentTrack?.id) 
     : 0;
 
   // scale: starts at 0.9 for a subtle entrance effect
@@ -60,7 +65,7 @@ export default function NowPlayingScreen() {
   const glowIntensity = useSharedValue(0); // 0→1 drives the glow behind the artwork
 
   useEffect(() => {
-    if (player.isPlaying) {
+    if (isPlaying) {
       // Bounce into playing state — bouncier spring than before
       scale.value = withSpring(1.08, { damping: 12, stiffness: 50 });
       shadowOpacity.value = withTiming(0.55, { duration: 400 });
@@ -81,7 +86,7 @@ export default function NowPlayingScreen() {
       glowIntensity.value = withTiming(0, { duration: 400 });
       breathe.value = withTiming(0, { duration: 300 });
     }
-  }, [player.isPlaying]);
+  }, [isPlaying]);
 
   const animatedImageStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value + breathe.value * 0.015 }],
@@ -89,39 +94,39 @@ export default function NowPlayingScreen() {
   }));
 
   const onTrackChange = useCallback(async (newIdx: number) => {
-    if (player.queue.length === 0 || !player.queue[newIdx]) return;
-    const track = player.queue[newIdx];
-    if (track && track.id !== player.currentTrack?.id) {
+    if (queue.length === 0 || !queue[newIdx]) return;
+    const track = queue[newIdx];
+    if (track && track.id !== currentTrack?.id) {
       await audioPlayer.loadPlayTrack(track);
     }
-  }, [player.queue, player.currentTrack]);
+  }, [queue, currentTrack]);
 
-  const isLiked = player.currentTrack 
-    ? likedSongs.some(t => t.id === player.currentTrack?.id) 
+  const isLiked = currentTrack 
+    ? likedSongs.some(t => t.id === currentTrack?.id) 
     : false;
 
   const canGoPrevious = currentIndex > 0;
-  const canGoNext = currentIndex < player.queue.length - 1;
+  const canGoNext = currentIndex < queue.length - 1;
 
   const handleSeek = useCallback((value: number) => {
     audioPlayer.seek(value);
   }, []);
 
   const handleAddToPlaylist = useCallback((playlistId: string) => {
-    if (player.currentTrack) {
+    if (currentTrack) {
       dispatch(addTrackToPlaylistAction({ 
         playlistId, 
-        track: player.currentTrack 
+        track: currentTrack 
       }));
       setIsPickerVisible(false);
     }
-  }, [player.currentTrack, dispatch]);
+  }, [currentTrack, dispatch]);
 
   const onToggleLike = useCallback(() => {
-    if (player.currentTrack) {
-      dispatch(toggleLikeSongAction(player.currentTrack));
+    if (currentTrack) {
+      dispatch(toggleLikeSongAction(currentTrack));
     }
-  }, [player.currentTrack, dispatch]);
+  }, [currentTrack, dispatch]);
 
   const onToggleShuffle = useCallback(() => dispatch(toggleShuffle()), [dispatch]);
   const onToggleRepeat = useCallback(() => dispatch(toggleRepeat()), [dispatch]);
@@ -129,15 +134,15 @@ export default function NowPlayingScreen() {
   const onPrevious = useCallback(() => audioPlayer.playPrevious(), []);
   const onNext = useCallback(() => audioPlayer.playNext(), []);
 
-  if (!player.currentTrack) return null;
+  if (!currentTrack) return null;
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
       {/* Blurred Background */}
       <View style={StyleSheet.absoluteFill}>
-        {player.currentTrack.image ? (
+        {currentTrack.image ? (
           <Image 
-            source={{ uri: player.currentTrack.image }} 
+            source={{ uri: currentTrack.image }} 
             style={StyleSheet.absoluteFill}
             blurRadius={Platform.OS === 'ios' ? 80 : 30} 
           />
@@ -167,8 +172,8 @@ export default function NowPlayingScreen() {
 
         {/* 1. Album Art Carousel */}
         <AlbumArtCarousel 
-          queue={player.queue}
-          currentTrack={player.currentTrack}
+          queue={queue}
+          currentTrack={currentTrack}
           currentIndex={currentIndex}
           onTrackChange={onTrackChange}
           animatedImageStyle={animatedImageStyle}
@@ -177,7 +182,7 @@ export default function NowPlayingScreen() {
 
         {/* 2. Track Meta Info (Title, Artist, Like, Playlist, Download) */}
         <TrackMetaInfo 
-          track={player.currentTrack}
+          track={currentTrack}
           isLiked={isLiked}
           onToggleLike={onToggleLike}
           onAddToPlaylist={() => setIsPickerVisible(true)}
@@ -186,9 +191,9 @@ export default function NowPlayingScreen() {
 
         {/* 3. Secondary Controls & Progress Bar */}
         <PlaybackControls 
-          isPlaying={player.isPlaying}
-          isShuffled={player.isShuffled}
-          repeatMode={player.repeatMode}
+          isPlaying={isPlaying}
+          isShuffled={isShuffled}
+          repeatMode={repeatMode}
           canGoNext={canGoNext}
           canGoPrevious={canGoPrevious}
           onToggleShuffle={onToggleShuffle}
@@ -201,8 +206,8 @@ export default function NowPlayingScreen() {
 
         {/* 4. Progress Bar Slider */}
         <ProgressBar 
-          positionMillis={player.positionMillis}
-          durationMillis={player.durationMillis}
+          positionMillis={positionMillis}
+          durationMillis={durationMillis}
           onSeek={handleSeek}
           textColor={textColor}
         />

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { DownloadService } from "../services/api/downloadService";
 import { registerUnauthorizedHandler } from "../services/auth/session";
 import { store, AppDispatch, RootState } from "../redux/store/store";
@@ -20,7 +20,7 @@ interface AppBootstrapProps {
 
 export function AppBootstrap({ children }: AppBootstrapProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const theme = useSelector((state: RootState) => state.theme);
+  const theme = useSelector((state: RootState) => state.theme, shallowEqual);
   const { isDarkMode, accentColor, themeMode, advancedBlurEnabled, blurIntensity, hasHydrated: hasHydratedTheme } = theme;
 
   useEffect(() => {

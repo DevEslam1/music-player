@@ -10,6 +10,7 @@ import { setDrawerOpen } from "../redux/store/ui/uiSlice";
 import { fetchProfile } from "../redux/store/auth/authSlice";
 import { useThemeColor, useAccentColor, useColorScheme, useBlurSettings } from "../hooks/use-theme-color";
 import { BlurView } from "expo-blur";
+import Constants from "expo-constants";
 
 interface DrawerItemProps {
   icon: React.ComponentProps<typeof Ionicons>["name"];
@@ -248,7 +249,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
       </ScrollView>
       
       <View style={styles.footer}>
-         <Text style={[styles.footerText, { color: textColor + '40' }]}>GiG Player v2.1.0</Text>
+         <Text style={[styles.footerText, { color: textColor + '40' }]}>GiG Player v{Constants.expoConfig?.version ?? "2.2.0"}</Text>
       </View>
         </View>
     </View>

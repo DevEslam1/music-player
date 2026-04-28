@@ -19,12 +19,14 @@ import { SettingItem } from "../../components/settings/SettingItem";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { saveThemePreferences } from "../../services/storage/themePreferences";
 import { ACCENT_COLORS } from "../../constants/theme";
+import { setAutoDownloadEnabled } from "../../redux/store/downloads/downloadsSlice";
 
 export default function SettingsScreen() {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
   const { isDarkMode, themeMode } = useSelector((state: RootState) => state.theme);
   const { advancedBlurEnabled, blurIntensity } = useBlurSettings();
+  const autoDownloadEnabled = useSelector((state: RootState) => state.downloads.autoDownloadEnabled);
   
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -34,28 +36,18 @@ export default function SettingsScreen() {
 
   const handleUpdateThemeMode = (mode: "light" | "dark" | "system") => {
     dispatch(setThemeMode(mode));
-    saveThemePreferences({ 
-      themeMode: mode, 
-      isDarkMode: mode === "dark", 
-      accentColor,
-      advancedBlurEnabled,
-      blurIntensity,
-    });
   };
 
   const handleUpdateAccentColor = (color: string) => {
     dispatch(setAccentColor(color));
-    saveThemePreferences({ themeMode, isDarkMode, accentColor: color, advancedBlurEnabled, blurIntensity });
   };
 
   const handleToggleBlur = (val: boolean) => {
     dispatch(setAdvancedBlurEnabled(val));
-    saveThemePreferences({ themeMode, isDarkMode, accentColor, advancedBlurEnabled: val, blurIntensity });
   };
 
   const handleUpdateBlurIntensity = (val: number) => {
     dispatch(setBlurIntensity(val));
-    saveThemePreferences({ themeMode, isDarkMode, accentColor, advancedBlurEnabled, blurIntensity: val });
   };
 
   const insets = useSafeAreaInsets();
@@ -172,8 +164,8 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: accentColor }]}>Storage & Downloads</Text>
           <SettingItem icon="cloud-download-outline" label="Auto-Download Favorites">
             <Switch 
-              value={useSelector((state: any) => state.downloads.autoDownloadEnabled)} 
-              onValueChange={(val) => { dispatch({ type: "downloads/setAutoDownloadEnabled", payload: val }); }} 
+              value={autoDownloadEnabled} 
+              onValueChange={(val) => { dispatch(setAutoDownloadEnabled(val)); }} 
               trackColor={{ false: "#CBD5E1", true: accentColor }}
             />
           </SettingItem>

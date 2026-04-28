@@ -74,13 +74,7 @@ export default function HomeScreen() {
     }
 
     dispatch(fetchHomeFeed());
-  }, [
-    dispatch,
-    likedSongsLastFetchedAt,
-    loadingStates.likedSongs,
-    loadingStates.playlists,
-    playlistsLastFetchedAt,
-  ]);
+  }, [dispatch]);
 
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();

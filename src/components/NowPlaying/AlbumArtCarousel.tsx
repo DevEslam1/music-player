@@ -126,7 +126,6 @@ export const AlbumArtCarousel = React.memo(({
   animatedImageStyle,
   glowIntensity
 }: AlbumArtCarouselProps) => {
-  const accentColor = useAccentColor();
   const { width } = useWindowDimensions();
   const itemWidth = width * 0.72;
   const itemSpacing = (width - itemWidth) / 2;
@@ -183,6 +182,10 @@ export const AlbumArtCarousel = React.memo(({
             coverSize={coverSize}
           />
         )}
+        windowSize={3}
+        maxToRenderPerBatch={3}
+        initialNumToRender={3}
+        removeClippedSubviews={Platform.OS === 'android'}
       />
     </View>
   );

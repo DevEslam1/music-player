@@ -57,9 +57,6 @@ export default function LibraryScreen() {
     const delayDebounceFn = setTimeout(() => {
       if (query.trim().length >= 2) {
         fetchResults(query);
-      } else {
-        // If query is empty, maybe show liked songs as default or empty results
-        fetchResults(query);
       }
     }, 500);
 

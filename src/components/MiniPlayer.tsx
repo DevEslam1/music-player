@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import React, { useRef } from "react";
+import React, { useRef, memo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { shallowEqual, useSelector } from "react-redux";
 import { RootState } from "../redux/store/store";
@@ -38,6 +38,14 @@ function triggerSeek(millis: number) {
 function triggerHapticLight() {
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 }
+
+const GhostingImage = memo(({ image, isDarkMode }: { image: string, isDarkMode: boolean }) => (
+  <Image 
+    source={{ uri: image }} 
+    style={[StyleSheet.absoluteFill, { opacity: isDarkMode ? 0.2 : 0.15 }]} 
+    blurRadius={10}
+  />
+));
 
 import { BlurView } from "expo-blur";
 
@@ -165,11 +173,7 @@ const MiniPlayerInner = () => {
               >
                 {/* Visual Ghosting Effect: Subtle hint of the song colors */}
                 {currentTrack?.image && (
-                  <Image 
-                    source={{ uri: currentTrack.image }} 
-                    style={[StyleSheet.absoluteFill, { opacity: isDarkMode ? 0.2 : 0.15 }]} 
-                    blurRadius={10}
-                  />
+                  <GhostingImage image={currentTrack.image} isDarkMode={isDarkMode} />
                 )}
               </BlurView>
             )}

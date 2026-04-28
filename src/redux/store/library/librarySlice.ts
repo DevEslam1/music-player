@@ -244,16 +244,8 @@ const librarySlice = createSlice({
       .addCase(toggleLikeSongAction.pending, (state) => {
         state.loadingStates.togglingLike = "loading";
       })
-      .addCase(toggleLikeSongAction.fulfilled, (state, action) => {
+      .addCase(toggleLikeSongAction.fulfilled, (state) => {
         state.loadingStates.togglingLike = "succeeded";
-        const track = action.payload;
-        const exists = state.likedSongs.find((item) => item.id === track.id);
-
-        if (exists) {
-          state.likedSongs = state.likedSongs.filter((item) => item.id !== track.id);
-        } else {
-          state.likedSongs.push(track);
-        }
       })
       .addCase(toggleLikeSongAction.rejected, (state, action) => {
         state.loadingStates.togglingLike = "failed";
