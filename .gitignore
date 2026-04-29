@@ -7,3 +7,6 @@ implementation_plan.md.resolved
 dist/
 CLAUDE.md
 tasks.md
+.gemini/
+.specify/
+GEMINI.md

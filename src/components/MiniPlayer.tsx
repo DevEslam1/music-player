@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
-import React, { useRef, memo } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { memo } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from "react-native";
 import { shallowEqual, useSelector } from "react-redux";
 import { RootState } from "../redux/store/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,6 +16,9 @@ import Animated, {
   withSpring,
   withTiming,
   runOnJS,
+  withRepeat,
+  Easing,
+  cancelAnimation,
 } from "react-native-reanimated";
 import type { SharedValue } from "react-native-reanimated";
 
@@ -61,6 +64,10 @@ const MiniPlayerInner = () => {
   );
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  const maxWidth = screenWidth - 24; // left: 12, right: 12
+  const minWidth = 72; // size of the CD
+
   const { advancedBlurEnabled, blurIntensity } = useBlurSettings();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -73,8 +80,32 @@ const MiniPlayerInner = () => {
   const scrubStartPosition = useSharedValue(0);
   const scrubPositionMs = useSharedValue(-1);
 
+  const compactProgress = useSharedValue(0);
+  const startCompactProgress = useSharedValue(0);
+  const startTranslateX = useSharedValue(0);
+  const gestureDirection = useSharedValue<'horizontal' | 'vertical' | null>(null);
+  const rotation = useSharedValue(0);
+
+  React.useEffect(() => {
+    if (isPlaying) {
+      rotation.value = withRepeat(
+        withTiming(rotation.value + 2 * Math.PI, {
+          duration: 4000,
+          easing: Easing.linear,
+        }),
+        -1,
+        false
+      );
+    } else {
+      cancelAnimation(rotation);
+    }
+  }, [isPlaying]);
+
   const animatedCardStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
+    width: maxWidth - compactProgress.value * (maxWidth - minWidth),
+    borderRadius: 20 + compactProgress.value * 16,
+    height: 72,
   }));
 
   const animatedProgressStyle = useAnimatedStyle(() => {
@@ -88,33 +119,109 @@ const MiniPlayerInner = () => {
     };
   }, [positionMillis, durationMillis]);
 
+  const animatedProgressBarStyle = useAnimatedStyle(() => ({
+    opacity: 1 - compactProgress.value,
+  }));
+
+  const animatedContentStyle = useAnimatedStyle(() => ({
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16 * (1 - compactProgress.value),
+  }));
+
+  const animatedImageContainerStyle = useAnimatedStyle(() => {
+    const isComp = compactProgress.value;
+    return {
+      width: 48 + isComp * 24, // 48 to 72
+      height: 48 + isComp * 24,
+      borderRadius: 12 + isComp * 24, // 12 to 36
+      marginRight: 12 * (1 - isComp), // 12 to 0
+      overflow: "hidden",
+      justifyContent: "center",
+      alignItems: "center",
+      transform: [{ rotate: `${rotation.value}rad` }],
+    };
+  });
+
+  const animatedTextControlsStyle = useAnimatedStyle(() => ({
+    opacity: 1 - compactProgress.value,
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  }));
+
+  const animatedCdHoleStyle = useAnimatedStyle(() => ({
+    opacity: compactProgress.value,
+  }));
+
   if (!currentTrack) return null;
 
   const swipeGesture = Gesture.Pan()
-    .onStart(() => { hapticFired.value = false; })
+    .onStart(() => {
+      hapticFired.value = false;
+      startCompactProgress.value = compactProgress.value;
+      startTranslateX.value = translateX.value;
+      gestureDirection.value = null;
+    })
     .onUpdate((e) => {
       if (!isScrubbing.value) {
-        translateX.value = e.translationX;
-        if (Math.abs(e.translationX) > SWIPE_THRESHOLD && !hapticFired.value) {
-          hapticFired.value = true;
-          runOnJS(triggerHapticLight)();
+        if (gestureDirection.value === null) {
+          if (Math.abs(e.translationX) > 10 || Math.abs(e.translationY) > 10) {
+            gestureDirection.value = Math.abs(e.translationY) > Math.abs(e.translationX) ? 'vertical' : 'horizontal';
+          }
+        }
+
+        if (gestureDirection.value === 'vertical') {
+          const newCompact = Math.max(0, Math.min(1, startCompactProgress.value + e.translationY / 100));
+          compactProgress.value = newCompact;
+          if (startCompactProgress.value > 0.5) {
+            translateX.value = startTranslateX.value * newCompact;
+          }
+        } else if (gestureDirection.value === 'horizontal') {
+          if (startCompactProgress.value < 0.5) {
+            translateX.value = e.translationX;
+            if (Math.abs(e.translationX) > SWIPE_THRESHOLD && !hapticFired.value) {
+              hapticFired.value = true;
+              runOnJS(triggerHapticLight)();
+            }
+          } else {
+            const newTranslateX = startTranslateX.value + e.translationX;
+            translateX.value = Math.max(0, Math.min(maxWidth - minWidth, newTranslateX));
+          }
         }
       }
     })
     .onEnd((e) => {
       if (!isScrubbing.value) {
-        if (e.translationX < -SWIPE_THRESHOLD) {
-          translateX.value = withTiming(-300, { duration: 200 }, () => {
-            translateX.value = 0;
-          });
-          runOnJS(triggerNext)();
-        } else if (e.translationX > SWIPE_THRESHOLD) {
-          translateX.value = withTiming(300, { duration: 200 }, () => {
-            translateX.value = 0;
-          });
-          runOnJS(triggerPrev)();
-        } else {
-          translateX.value = withSpring(0);
+        if (gestureDirection.value === 'vertical') {
+          if (compactProgress.value > 0.5) {
+            if (compactProgress.value < 1) runOnJS(triggerHapticLight)();
+            compactProgress.value = withSpring(1, { damping: 20, stiffness: 200 });
+          } else {
+            if (compactProgress.value > 0) runOnJS(triggerHapticLight)();
+            compactProgress.value = withSpring(0, { damping: 20, stiffness: 200 });
+            translateX.value = withSpring(0, { damping: 20, stiffness: 200 });
+          }
+        } else if (gestureDirection.value === 'horizontal') {
+          if (startCompactProgress.value < 0.5) {
+            if (e.translationX < -SWIPE_THRESHOLD) {
+              translateX.value = withTiming(-300, { duration: 200 }, () => {
+                translateX.value = 0;
+              });
+              runOnJS(triggerNext)();
+            } else if (e.translationX > SWIPE_THRESHOLD) {
+              translateX.value = withTiming(300, { duration: 200 }, () => {
+                translateX.value = 0;
+              });
+              runOnJS(triggerPrev)();
+            } else {
+              translateX.value = withSpring(0);
+            }
+          } else {
+            const snapPoint = translateX.value > (maxWidth - minWidth) / 2 ? maxWidth - minWidth : 0;
+            translateX.value = withSpring(snapPoint, { damping: 20, stiffness: 200 });
+          }
         }
       }
     });
@@ -122,6 +229,7 @@ const MiniPlayerInner = () => {
   const longPressScrubGesture = Gesture.Pan()
     .activateAfterLongPress(500)
     .onStart(() => {
+      if (compactProgress.value > 0.5) return;
       isScrubbing.value = true;
       runOnJS(triggerHapticLight)();
       scrubStartPosition.value = positionMillis;
@@ -142,20 +250,32 @@ const MiniPlayerInner = () => {
 
   const composedGesture = Gesture.Simultaneous(longPressScrubGesture, swipeGesture);
 
+  const handlePress = () => {
+    if (compactProgress.value > 0.5) {
+      compactProgress.value = withSpring(0, { damping: 20, stiffness: 200 });
+      translateX.value = withSpring(0, { damping: 20, stiffness: 200 });
+      triggerHapticLight();
+    } else {
+      navigation.navigate("NowPlaying");
+    }
+  };
+
   return (
     <View style={[styles.wrapper, { bottom: insets.bottom + 10 }]}>
       <GestureDetector gesture={composedGesture}>
-        <Animated.View style={animatedCardStyle}>
+        <Animated.View style={[
+          animatedCardStyle,
+          {
+            overflow: "hidden",
+            borderWidth: 1,
+            borderColor: isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+            backgroundColor: !advancedBlurEnabled ? (isDarkMode ? "rgba(30, 41, 59, 1)" : "rgba(255, 255, 255, 1)") : "transparent"
+          }
+        ]}>
           <TouchableOpacity
             activeOpacity={0.9}
-            style={[
-              styles.container,
-              !advancedBlurEnabled && {
-                backgroundColor: isDarkMode ? "rgba(30, 41, 59, 1)" : "rgba(255, 255, 255, 1)",
-                borderColor: isDarkMode ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
-              }
-            ]}
-            onPress={() => navigation.navigate("NowPlaying")}
+            style={{ flex: 1 }}
+            onPress={handlePress}
           >
             {advancedBlurEnabled && (
               <BlurView
@@ -165,9 +285,6 @@ const MiniPlayerInner = () => {
                   StyleSheet.absoluteFill,
                   { 
                     backgroundColor: isDarkMode ? "rgba(30, 41, 59, 0.45)" : "rgba(255, 255, 255, 0.35)",
-                    borderRadius: 20,
-                    borderWidth: 1,
-                    borderColor: isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
                   }
                 ]}
               >
@@ -177,8 +294,9 @@ const MiniPlayerInner = () => {
                 )}
               </BlurView>
             )}
+            
             {/* Progress bar */}
-            <View
+            <Animated.View
               style={[
                 styles.progressBarBackground,
                 {
@@ -186,6 +304,7 @@ const MiniPlayerInner = () => {
                     ? "rgba(255, 255, 255, 0.05)"
                     : "rgba(0,0,0,0.02)",
                 },
+                animatedProgressBarStyle,
               ]}
             >
               <Animated.View
@@ -200,52 +319,65 @@ const MiniPlayerInner = () => {
                   animatedProgressStyle,
                 ]}
               />
-            </View>
+            </Animated.View>
 
-            <View style={styles.content}>
-              <Image
-                source={{ uri: currentTrack.image }}
-                style={styles.image}
-                contentFit="cover"
-              />
-              <View style={styles.info}>
-                <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>
-                  {currentTrack.name}
-                </Text>
-                <Text style={styles.artist} numberOfLines={1}>
-                  {currentTrack.artist}
-                </Text>
-              </View>
+            <Animated.View style={animatedContentStyle}>
+              <Animated.View style={animatedImageContainerStyle}>
+                <Image
+                  source={{ uri: currentTrack.image }}
+                  style={StyleSheet.absoluteFill}
+                  contentFit="cover"
+                />
+                <Animated.View style={[
+                  styles.cdHole,
+                  {
+                    backgroundColor: isDarkMode ? "rgba(30, 41, 59, 1)" : "rgba(255, 255, 255, 1)",
+                    borderColor: isDarkMode ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
+                  },
+                  animatedCdHoleStyle
+                ]} />
+              </Animated.View>
+              
+              <Animated.View style={animatedTextControlsStyle}>
+                <View style={styles.info}>
+                  <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>
+                    {currentTrack.name}
+                  </Text>
+                  <Text style={styles.artist} numberOfLines={1}>
+                    {currentTrack.artist}
+                  </Text>
+                </View>
 
-              <View style={styles.controls}>
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    audioPlayer.playPause();
-                  }}
-                  style={styles.playBtn}
-                >
-                  <Ionicons
-                    name={isPlaying ? "pause" : "play"}
-                    size={26}
-                    color={accentColor}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                    audioPlayer.playNext();
-                  }}
-                  style={styles.nextBtn}
-                >
-                  <Ionicons name="play-skip-forward" size={22} color={textColor} />
-                </TouchableOpacity>
-              </View>
-            </View>
+                <View style={styles.controls}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      audioPlayer.playPause();
+                    }}
+                    style={styles.playBtn}
+                  >
+                    <Ionicons
+                      name={isPlaying ? "pause" : "play"}
+                      size={26}
+                      color={accentColor}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      audioPlayer.playNext();
+                    }}
+                    style={styles.nextBtn}
+                  >
+                    <Ionicons name="play-skip-forward" size={22} color={textColor} />
+                  </TouchableOpacity>
+                </View>
+              </Animated.View>
+            </Animated.View>
           </TouchableOpacity>
 
           {/* Swipe direction hints */}
-          <SwipeHintArrows translateX={translateX} accentColor={accentColor} />
+          <SwipeHintArrows translateX={translateX} accentColor={accentColor} compactProgress={compactProgress} />
         </Animated.View>
       </GestureDetector>
     </View>
@@ -256,15 +388,17 @@ const MiniPlayerInner = () => {
 function SwipeHintArrows({
   translateX,
   accentColor,
+  compactProgress,
 }: {
   translateX: SharedValue<number>;
   accentColor: string;
+  compactProgress: SharedValue<number>;
 }) {
   const leftStyle = useAnimatedStyle(() => ({
-    opacity: Math.min(1, Math.max(0, translateX.value / SWIPE_THRESHOLD)),
+    opacity: Math.min(1, Math.max(0, translateX.value / SWIPE_THRESHOLD)) * (1 - compactProgress.value),
   }));
   const rightStyle = useAnimatedStyle(() => ({
-    opacity: Math.min(1, Math.max(0, -translateX.value / SWIPE_THRESHOLD)),
+    opacity: Math.min(1, Math.max(0, -translateX.value / SWIPE_THRESHOLD)) * (1 - compactProgress.value),
   }));
 
   return (
@@ -294,30 +428,12 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 15,
   },
-  container: {
-    height: 72,
-    borderRadius: 20,
-    overflow: "hidden",
-    borderWidth: 1,
-  },
   progressBarBackground: {
     height: 3,
     width: "100%",
   },
   progressBarFill: {
     height: "100%",
-  },
-  content: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  image: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    marginRight: 12,
   },
   info: {
     flex: 1,
@@ -360,5 +476,12 @@ const styles = StyleSheet.create({
     right: -24,
     top: "50%",
     marginTop: -12,
+  },
+  cdHole: {
+    position: "absolute",
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 1,
   },
 });
