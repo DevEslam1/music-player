@@ -21,6 +21,7 @@ import { SearchBar } from "../../components/library/SearchBar";
 import { SearchItem } from "../../components/library/SearchItem";
 import PlaylistPicker from "../../components/PlaylistPicker";
 import { setAutoDownloadEnabled, batchDownloadTracksAction } from "../../redux/store/downloads/downloadsSlice";
+import { fetchHomeFeed } from "../../redux/store/library/librarySlice";
 
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
@@ -36,6 +37,8 @@ export default function LibraryScreen() {
     setIsPickerVisible,
     handleAddToPlaylist,
     likedSongs,
+    recentSearches,
+    suggestions,
   } = useLibraryScreenLogic();
   
   const dispatch = useDispatch<AppDispatch>();
@@ -63,9 +66,59 @@ export default function LibraryScreen() {
     return () => clearTimeout(delayDebounceFn);
   }, [query]);
 
+  useEffect(() => {
+    dispatch(fetchHomeFeed());
+  }, [dispatch]);
+
   const isLiked = useCallback((trackId: string) => {
     return likedSongs.some(s => s.id === trackId);
   }, [likedSongs]);
+
+  const renderEmptyState = () => {
+    if (query) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, { color: textColor }]}>
+            No songs found
+          </Text>
+        </View>
+      );
+    }
+
+    const showRecent = recentSearches.length > 0;
+    const dataToShow = showRecent ? recentSearches : suggestions.slice(0, 5);
+    const title = showRecent ? "Recent Searches" : "Suggestions for you";
+
+    if (dataToShow.length === 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, { color: textColor }]}>
+            Your library search results will appear here.
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.sectionTitle, { color: textColor }]}>{title}</Text>
+        <FlatList
+          data={dataToShow}
+          renderItem={({ item }) => (
+            <SearchItem
+              item={item}
+              onPlayTrack={() => handlePlayTrack(item, dataToShow)}
+              onOpenPicker={() => handleOpenPicker(item)}
+              isLiked={isLiked(item.id)}
+              hideDownload={true}
+            />
+          )}
+          keyExtractor={(item) => `empty-${item.id}`}
+          contentContainerStyle={styles.listContainer}
+        />
+      </View>
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor }}>
@@ -109,12 +162,8 @@ export default function LibraryScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={accentColor} />
         </View>
-      ) : results.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={[styles.emptyText, { color: textColor }]}>
-            {query ? "No songs found" : "Your library search results will appear here."}
-          </Text>
-        </View>
+      ) : (query === "" || results.length === 0) ? (
+        renderEmptyState()
       ) : (
         <FlatList
           data={results}
@@ -168,5 +217,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 10,
   },
 });

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Track } from "../../types";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,7 +7,7 @@ import React from "react";
 import { searchSongs } from "../api/api";
 import { setQueue } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../audio/AudioPlayerService";
-import { addTrackToPlaylistAction } from "../../redux/store/library/librarySlice";
+import { addTrackToPlaylistAction, addToRecentSearches } from "../../redux/store/library/librarySlice";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MainStack } from "../../navigation/AppNavigator";
 
@@ -20,14 +20,14 @@ export function useLibraryScreenLogic() {
   const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
   const dispatch = useDispatch<AppDispatch>();
 
-  const { likedSongs } = useSelector(
+  const { likedSongs, recentSearches, homeFeed } = useSelector(
     (state: RootState) => state.library,
   );
-  const activeQuery = React.useRef<string>("");
+  const activeQuery = useRef<string>("");
 
   const fetchResults = async (searchQuery: string) => {
     activeQuery.current = searchQuery;
-    setLoading(true); // Fix 2: show spinner while fetching
+    setLoading(true);
 
     const localLiked = likedSongs.filter(
       (s) =>
@@ -59,8 +59,9 @@ export function useLibraryScreenLogic() {
     }
   };
 
-  const handlePlayTrack = async (track: Track) => {
-    dispatch(setQueue(results));
+  const handlePlayTrack = async (track: Track, customQueue?: Track[]) => {
+    dispatch(addToRecentSearches(track));
+    dispatch(setQueue(customQueue || results));
     await audioPlayer.loadPlayTrack(track);
     navigation.navigate("NowPlaying");
   };
@@ -92,6 +93,8 @@ export function useLibraryScreenLogic() {
     setIsPickerVisible,
     selectedTrack,
     likedSongs,
+    recentSearches,
+    suggestions: homeFeed.suggestions,
     fetchResults,
     handlePlayTrack,
     handleAddToPlaylist,

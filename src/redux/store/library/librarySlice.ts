@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { PlaylistSummary, Track } from "../../../types";
 import { LibraryService } from "../../../services/api/libraryService";
 import { getRecommendedSongs, searchSongs } from "../../../services/api/api";
@@ -33,6 +33,7 @@ interface LibraryState {
   likedSongsLastFetchedAt: number | null;
   playlistsLastFetchedAt: number | null;
   homeFeed: HomeFeedState;
+  recentSearches: Track[];
   error: string | null;
 }
 
@@ -220,13 +221,20 @@ const initialState: LibraryState = {
     fullSuggestions: [],
     lastFetchedAt: null,
   },
+  recentSearches: [],
   error: null,
 };
 
 const librarySlice = createSlice({
   name: "library",
   initialState,
-  reducers: {},
+  reducers: {
+    addToRecentSearches: (state, action: PayloadAction<Track>) => {
+      const track = action.payload;
+      const filtered = state.recentSearches.filter((t) => t.id !== track.id);
+      state.recentSearches = [track, ...filtered].slice(0, 5);
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchLikedSongs.pending, (state) => {
@@ -301,6 +309,8 @@ const librarySlice = createSlice({
       });
   },
 });
+
+export const { addToRecentSearches } = librarySlice.actions;
 
 export const selectLikedSongsLoading = (state: { library: LibraryState }) =>
   state.library.loadingStates.likedSongs === "loading";
