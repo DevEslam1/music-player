@@ -65,7 +65,6 @@ const WelcomeScreen = () => {
     try {
       await AsyncStorage.setItem('@is_first_launch', 'false');
       dispatch(setFirstLaunch(false));
-      navigate("Login");
     } catch (error) {
       console.error("Error setting first launch:", error);
     }

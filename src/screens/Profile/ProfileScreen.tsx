@@ -28,13 +28,12 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     await dispatch(logoutAction());
-    navigate("Login");
   };
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <ScreenHeader 
-        screenTitle="Profile" 
+      <ScreenHeader
+        screenTitle="Profile"
         postIcon="settings-outline"
         onPostPress={() => navigation.navigate("Settings")}
       />
@@ -42,7 +41,7 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 85 }]}>
         <View style={styles.profileHeader}>
           <View style={[styles.avatarContainer, { borderColor: accentColor, backgroundColor: accentColor + '10' }]}>
-             <Ionicons name="person" size={50} color={accentColor} />
+            <Ionicons name="person" size={50} color={accentColor} />
           </View>
           <Text style={[styles.userName, { color: textColor }]}>{currentUser?.name || currentUser?.email?.split('@')[0] || "User Name"}</Text>
           <Text style={styles.userEmail}>{currentUser?.email || "user@example.com"}</Text>
@@ -60,7 +59,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.menuContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.menuItem, { backgroundColor: cardBg }]}
             onPress={() => navigation.navigate("Notifications")}
           >
@@ -73,7 +72,7 @@ export default function ProfileScreen() {
             <Text style={[styles.menuText, { color: textColor }]}>Privacy & Safety</Text>
             <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.menuItem, { backgroundColor: cardBg }]}
             onPress={() => navigation.navigate("Support")}
           >
@@ -83,7 +82,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.logoutButton, { backgroundColor: accentColor, shadowColor: accentColor }]}
           onPress={handleLogout}
         >

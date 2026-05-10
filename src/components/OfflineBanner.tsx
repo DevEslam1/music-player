@@ -34,6 +34,7 @@ export const OfflineBanner = () => {
   const insets = useSafeAreaInsets();
   const hasCurrentTrack = useSelector((state: RootState) => !!state.player.currentTrack);
   const accentColor = useAccentColor();
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const banner = useSelector((state: RootState) => state.ui.banner);
   const { width: screenWidth } = useWindowDimensions();
 
@@ -160,20 +161,22 @@ export const OfflineBanner = () => {
         </View>
       </Animated.View>
 
-      {/* Offline FAB → navigate to Downloads */}
-      <Animated.View style={[styles.fabContainer, fabAnimatedStyle]}>
-        <TouchableOpacity
-          style={[styles.fab, { backgroundColor: accentColor, shadowColor: accentColor }]}
-          activeOpacity={0.8}
-          onPress={() => {
-            if (navigationRef.isReady()) {
-              (navigationRef as any).navigate('Downloads');
-            }
-          }}
-        >
-          <Ionicons name="download" size={24} color="#FFF" />
-        </TouchableOpacity>
-      </Animated.View>
+      {/* Offline FAB → navigate to Downloads (only if logged in) */}
+      {isOffline && isLoggedIn && (
+        <Animated.View style={[styles.fabContainer, fabAnimatedStyle]}>
+          <TouchableOpacity
+            style={[styles.fab, { backgroundColor: accentColor, shadowColor: accentColor }]}
+            activeOpacity={0.8}
+            onPress={() => {
+              if (navigationRef.isReady()) {
+                (navigationRef as any).navigate('Downloads');
+              }
+            }}
+          >
+            <Ionicons name="download" size={24} color="#FFF" />
+          </TouchableOpacity>
+        </Animated.View>
+      )}
     </>
   );
 };
