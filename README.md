@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.png" width="100%" alt="GiG Player Banner" />
+</p>
+
 # GiG Player 🎵
 
 A full-featured music streaming and offline playback app built with React Native (Expo). Stream tracks from a backend API, download them for offline listening, manage playlists, and enjoy a premium audio experience with lock-screen controls and fluid gesture interactions.
