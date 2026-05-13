@@ -16,6 +16,7 @@ import { DownloadButton } from '../DownloadButton';
 interface TrackMetaInfoProps {
   track: Track;
   isLiked: boolean;
+  isGuestMode: boolean;
   onToggleLike: () => void;
   onAddToPlaylist: () => void;
   textColor: string;
@@ -26,6 +27,7 @@ import { useAccentColor } from '../../hooks/use-theme-color';
 export const TrackMetaInfo = React.memo(({
   track,
   isLiked,
+  isGuestMode,
   onToggleLike,
   onAddToPlaylist,
   textColor
@@ -47,28 +49,32 @@ export const TrackMetaInfo = React.memo(({
       </View>
 
       <View style={styles.actionsBox}>
-        <TouchableOpacity
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            onAddToPlaylist();
-          }}
-          style={styles.actionBtn}
-        >
-          <Ionicons name="add-circle-outline" size={28} color={textColor} />
-        </TouchableOpacity>
+        {!isGuestMode && (
+          <>
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onAddToPlaylist();
+              }}
+              style={styles.actionBtn}
+            >
+              <Ionicons name="add-circle-outline" size={28} color={textColor} />
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            onToggleLike();
-          }}
-        >
-          <Ionicons
-            name={isLiked ? 'heart' : 'heart-outline'}
-            size={26}
-            color={isLiked ? accentColor : textColor}
-          />
-        </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                onToggleLike();
+              }}
+            >
+              <Ionicons
+                name={isLiked ? 'heart' : 'heart-outline'}
+                size={26}
+                color={isLiked ? accentColor : textColor}
+              />
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   );

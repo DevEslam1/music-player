@@ -42,6 +42,7 @@ export default function NowPlayingScreen() {
   const positionMillis = useSelector((state: RootState) => state.player.positionMillis);
   const durationMillis = useSelector((state: RootState) => state.player.durationMillis);
   const likedSongs = useSelector((state: RootState) => state.library.likedSongs);
+  const isGuestMode = useSelector((state: RootState) => state.auth.isGuestMode);
   const sleepTimerEndAt = useSelector((state: RootState) => state.player.sleepTimerEndAt);
   const [isPickerVisible, setIsPickerVisible] = React.useState(false);
   const [isSleepTimerVisible, setIsSleepTimerVisible] = React.useState(false);
@@ -202,6 +203,7 @@ export default function NowPlayingScreen() {
         <TrackMetaInfo 
           track={currentTrack}
           isLiked={isLiked}
+          isGuestMode={isGuestMode}
           onToggleLike={onToggleLike}
           onAddToPlaylist={() => setIsPickerVisible(true)}
           textColor={textColor}
