@@ -118,8 +118,9 @@ A full-featured music streaming and offline playback app built with React Native
 ### 🔐 Authentication
 
 - Login / Sign Up screens with validation
-- Persistent sessions via AsyncStorage token storage
-- Silent token refresh via Axios interceptors
+- **Guest Mode**: Skip login to access downloaded and local music offline.
+- **Persistent Sessions**: Instant app entry via `AsyncStorage` hydration.
+- Silent token refresh via Axios interceptors (resilient to network timeouts).
 - Auto-login on app restart
 
 ---
@@ -295,6 +296,13 @@ To prevent Metro bundler `Require cycle` loops that cause sporadic `undefined` e
 ---
 
 ## Changelog
+
+### v2.5.0 (May 2026)
+
+- **🚫 Guest Mode**: Added full offline mode allowing users to bypass authentication to play downloaded and local tracks. Cloud features are dynamically hidden.
+- **💾 Persistent Sessions**: Rebuilt auth bootstrap. The user session now loads instantly from `AsyncStorage`, completely bypassing the splash screen block.
+- **📶 Network Resilience**: The API client no longer logs users out if a background token refresh fails due to a network timeout.
+- **🧹 Queue Swipe-to-Delete**: Users can now swipe to remove tracks directly from the active playback queue.
 
 ### v2.4.0 (May 2026)
 
