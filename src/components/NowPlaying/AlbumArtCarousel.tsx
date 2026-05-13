@@ -87,7 +87,7 @@ const CarouselItem = ({
         pointerEvents="none"
       >
         <Animated.Image 
-          source={{ uri: track.image || 'https://picsum.photos/400' }}
+          source={track.image ? { uri: track.image } : undefined}
           style={[
             styles.glowBackground, 
             glowStyle,
@@ -108,7 +108,7 @@ const CarouselItem = ({
           { width: '100%', height: '100%', backgroundColor: 'rgba(255, 255, 255, 0.05)' }
         ]}>
           <Image
-            source={{ uri: track.image || 'https://picsum.photos/400' }}
+            source={track.image ? { uri: track.image } : undefined}
             style={[styles.albumArt, { width: '100%', height: '100%', borderRadius: 24 }]}
             contentFit="cover"
           />

@@ -157,6 +157,15 @@ const localLibrarySlice = createSlice({
         state.enrichedAlbumIds.push(albumId);
       }
     },
+    /** Update specific tracks (e.g. after on-the-fly enrichment) */
+    updateTracks(state, action: PayloadAction<LocalTrack[]>) {
+      const enriched = action.payload;
+      const enrichedIds = new Set(enriched.map(t => t.id));
+      const merged = state.tracks.map(t => (enrichedIds.has(t.id) ? (enriched.find(e => e.id === t.id) ?? t) : t));
+      state.tracks = merged;
+      state.albums = buildAlbums(merged);
+      state.artists = buildArtists(merged);
+    },
     clearLocalLibrary(state) {
       Object.assign(state, initialState);
     },
@@ -192,6 +201,7 @@ export const {
   setPermissionStatus,
   setScanProgress,
   updateEnrichedTracks,
+  updateTracks,
   clearLocalLibrary,
 } = localLibrarySlice.actions;
 

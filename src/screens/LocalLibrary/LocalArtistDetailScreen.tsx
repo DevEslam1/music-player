@@ -87,7 +87,13 @@ export default function LocalArtistDetailScreen() {
         }
         renderItem={({ item, index }) => (
           <TouchableOpacity style={styles.row} onPress={() => handlePlay(item, tracks)} activeOpacity={0.7}>
-            <Text style={[styles.idx, { color: textColor + "40" }]}>{index + 1}</Text>
+            <View style={[styles.imgContainer, { backgroundColor: accentColor + "12" }]}>
+              {item.image ? (
+                <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} contentFit="cover" />
+              ) : (
+                <Ionicons name="musical-notes" size={14} color={accentColor} />
+              )}
+            </View>
             <View style={styles.info}>
               <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>{item.name}</Text>
               <Text style={[styles.meta, { color: textColor + "50" }]} numberOfLines={1}>{item.album}</Text>
@@ -125,11 +131,12 @@ const styles = StyleSheet.create({
   },
   actionBtnTxt: { color: "#fff", fontWeight: "700", fontSize: 15 },
   row: { flexDirection: "row", alignItems: "center", paddingVertical: 14, gap: 12 },
+  imgContainer: { width: 44, height: 44, borderRadius: 8, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   idx: { width: 28, fontSize: 13, fontWeight: "800", textAlign: "center" },
   info: { flex: 1 },
   title: { fontSize: 15, fontWeight: "700", marginBottom: 2 },
   meta: { fontSize: 12 },
   rightSide: { flexDirection: "row", alignItems: "center", gap: 10 },
   dur: { fontSize: 12 },
-  rowSeparator: { position: "absolute", bottom: 0, left: 40, right: 0, height: 1 },
+  rowSeparator: { position: "absolute", bottom: 0, left: 56, right: 0, height: 1 },
 });

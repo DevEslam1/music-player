@@ -137,7 +137,11 @@ function SongsTab({ tracks }: { tracks: LocalTrack[] }) {
         renderItem={({ item, index }) => (
           <TouchableOpacity style={styles.songRow} onPress={() => handlePlay(item)} activeOpacity={0.7}>
             <View style={[styles.songIdx, { backgroundColor: accentColor + "12" }]}>
-              <Text style={[styles.songIdxTxt, { color: accentColor }]}>{index + 1}</Text>
+              {item.image ? (
+                <Image source={{ uri: item.image }} style={styles.songImg} contentFit="cover" />
+              ) : (
+                <Ionicons name="musical-notes" size={16} color={accentColor} />
+              )}
             </View>
             <View style={styles.songInfo}>
               <Text style={[styles.songName, { color: textColor }]} numberOfLines={1}>{item.name}</Text>
@@ -306,7 +310,7 @@ export default function LocalLibraryScreen() {
   if (scanStatus === "done" && tracks.length === 0) return <EmptyLibrary onRescan={handleRescan} />;
   if (scanStatus === "error") return <EmptyLibrary onRescan={handleRescan} />;
 
-  const tabW = SCREEN_WIDTH / TABS.length;
+  const tabW = (SCREEN_WIDTH - 32) / TABS.length;
   const indicatorX = tabAnim.interpolate({
     inputRange: TABS.map((_, i) => i),
     outputRange: TABS.map((_, i) => i * tabW),
@@ -383,7 +387,8 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 15 },
   // Song row
   songRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, paddingHorizontal: 4, gap: 12, height: 68 },
-  songIdx: { width: 34, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  songIdx: { width: 48, height: 48, borderRadius: 10, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  songImg: { width: "100%", height: "100%" },
   songIdxTxt: { fontSize: 13, fontWeight: "800" },
   songInfo: { flex: 1 },
   songName: { fontSize: 15, fontWeight: "700", marginBottom: 2 },
@@ -397,7 +402,7 @@ const styles = StyleSheet.create({
   rowInfo: { flex: 1 },
   rowTitle: { fontSize: 16, fontWeight: "700", marginBottom: 3 },
   rowMeta: { fontSize: 13 },
-  rowSeparator: { position: "absolute", bottom: 0, left: 58, right: 0, height: 1 },
+  rowSeparator: { position: "absolute", bottom: 0, left: 68, right: 0, height: 1 },
   // Album grid
   albumArt: { borderRadius: 14, overflow: "hidden", alignItems: "center", justifyContent: "center", marginBottom: 8 },
   albumTitle: { fontSize: 14, fontWeight: "700", marginBottom: 2 },
