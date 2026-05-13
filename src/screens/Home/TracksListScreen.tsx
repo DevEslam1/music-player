@@ -72,10 +72,15 @@ export default function TracksListScreen() {
       onPress={() => handlePlayTrack(item)}
     >
       <Text style={styles.trackNumber}>{index + 1}</Text>
-      <Image
-        source={{ uri: item.image || "https://picsum.photos/200" }}
-        style={styles.trackImage}
-      />
+      <View style={[styles.trackImage, { backgroundColor: accentColor + "10", justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }]}>
+        <Ionicons name="musical-notes" size={20} color={accentColor} />
+        {item.image && (
+          <Image
+            source={{ uri: item.image }}
+            style={StyleSheet.absoluteFill}
+          />
+        )}
+      </View>
       <View style={styles.textContainer}>
         <Text style={[styles.trackName, { color: textColor }]} numberOfLines={1}>
           {item.name}

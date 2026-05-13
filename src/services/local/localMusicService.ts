@@ -150,11 +150,15 @@ class LocalMusicServiceClass {
           picture: true,
         });
 
+        const currentNameIsGeneric = track.name === "Unknown Title" || track.name === track.id || !track.name;
+        const currentArtistIsGeneric = track.artist === "Unknown Artist" || !track.artist;
+        const currentAlbumIsGeneric = track.album === "Unknown Album" || !track.album;
+
         enriched.push({
           ...track,
-          name: info?.title || track.name,
-          artist: info?.artist || track.artist,
-          album: info?.album || track.album,
+          name: (info?.title && currentNameIsGeneric) ? info.title : track.name,
+          artist: (info?.artist && currentArtistIsGeneric) ? info.artist : track.artist,
+          album: (info?.album && currentAlbumIsGeneric) ? info.album : track.album,
           image: info?.picture?.pictureData
             ? `data:image/jpeg;base64,${info.picture.pictureData}`
             : track.image,

@@ -15,6 +15,7 @@ type SearchBarProps = {
   onChangeText?: ((text: string) => void) | undefined;
   query: string;
   onSearchPress: ((event: GestureResponderEvent) => void) | undefined;
+  autoFocus?: boolean;
 };
 
 import { useAccentColor } from "../../hooks/use-theme-color";
@@ -23,6 +24,7 @@ export function SearchBar({
   query,
   onChangeText,
   onSearchPress,
+  autoFocus = true,
 }: SearchBarProps) {
   const { advancedBlurEnabled, blurIntensity } = useBlurSettings();
   const backgroundColor = useThemeColor({}, "background");
@@ -60,7 +62,7 @@ export function SearchBar({
           placeholderTextColor={placeholderColor}
           value={query}
           onChangeText={onChangeText}
-          autoFocus={true}
+          autoFocus={autoFocus}
           selectionColor={accentColor}
         />
         {query.length > 0 && (

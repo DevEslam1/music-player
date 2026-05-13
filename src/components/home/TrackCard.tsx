@@ -1,6 +1,8 @@
 import { Image } from "expo-image";
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAccentColor } from "../../hooks/use-theme-color";
 import { Track } from "../../types";
 
 const TrackCardInner = ({
@@ -12,14 +14,18 @@ const TrackCardInner = ({
   onPress: () => void;
   textColor: string;
 }) => {
+  const accentColor = useAccentColor();
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: track.image || "https://picsum.photos/200" }}
-          style={styles.cardImage}
-          contentFit="cover"
-        />
+      <View style={[styles.imageContainer, { backgroundColor: accentColor + "10", borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', height: 150 }]}>
+        <Ionicons name="musical-notes" size={40} color={accentColor} />
+        {track.image && (
+          <Image
+            source={{ uri: track.image }}
+            style={styles.cardImage}
+            contentFit="cover"
+          />
+        )}
       </View>
       <Text style={[styles.cardTitle, { color: textColor }]} numberOfLines={1}>
         {track.name}

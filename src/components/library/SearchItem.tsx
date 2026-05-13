@@ -26,11 +26,16 @@ const SearchItemInner = ({
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPlayTrack}>
-      <Image
-        source={{ uri: item.image || "https://picsum.photos/200" }}
-        style={styles.cardImage}
-        contentFit="cover"
-      />
+      <View style={[styles.cardImage, { backgroundColor: accentColor + "10", justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }]}>
+        <Ionicons name="musical-notes" size={24} color={accentColor} />
+        {item.image && (
+          <Image
+            source={{ uri: item.image }}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+          />
+        )}
+      </View>
       <View style={styles.cardInfo}>
         <Text
           style={[styles.cardTitle, { color: textColor }]}

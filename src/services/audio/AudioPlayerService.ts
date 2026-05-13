@@ -1,11 +1,11 @@
 import { createAudioPlayer, AudioPlayer, setAudioModeAsync } from "expo-audio";
 import { Track } from "../../types";
-import { store } from "../../redux/store/store";
-import { setIsPlaying, setProgress, setCurrentTrack, setPlaybackError } from "../../redux/store/player/playerSlice";
-import { LibraryService } from "../api/libraryService";
 import { Platform } from "react-native";
 import { DownloadService } from "../api/downloadService";
 import { getAccessToken } from "../auth/session";
+import { LocalMusicService } from "../local/localMusicService";
+import { LocalTrack } from "../../types";
+import { LibraryService } from "../api/libraryService";
 
 /**
  * Audio Player Service
@@ -37,6 +37,17 @@ class AudioPlayerService {
   private subscriptions: { remove: () => void }[] = [];
   private lastProgressDispatch = 0;
 
+  // Injected Redux dependencies to avoid cycles
+  private dispatch: any = null;
+  private getState: any = null;
+  private actions: { 
+    setIsPlaying: any;
+    setProgress: any;
+    setCurrentTrack: any;
+    setPlaybackError: any;
+    updateTracks: any;
+  } | null = null;
+
   private constructor() {}
 
   public static getInstance(): AudioPlayerService {
@@ -46,11 +57,30 @@ class AudioPlayerService {
     return AudioPlayerService.instance;
   }
 
+  /**
+   * Inject Redux dispatch and actions to avoid circular dependencies
+   */
+  public injectRedux(
+    dispatch: any, 
+    getState: any, 
+    actions: { 
+      setIsPlaying: any;
+      setProgress: any;
+      setCurrentTrack: any;
+      setPlaybackError: any;
+      updateTracks: any;
+    }
+  ) {
+    this.dispatch = dispatch;
+    this.getState = getState;
+    this.actions = actions;
+  }
+
   public async loadPlayTrack(track: Track) {
     this.currentLoadingTrackId = track.id;
 
     try {
-      store.dispatch(setCurrentTrack(track));
+      this.dispatch?.(this.actions?.setCurrentTrack(track));
       this.lastProgressDispatch = 0;
       
       const token = await getAccessToken();
@@ -94,12 +124,37 @@ class AudioPlayerService {
       }
 
       // expo-audio 55 AudioMetadata only supports: title, artist, albumTitle, artworkUrl
-      const metadata = {
+      const metadata = this.sanitizeMetadata({
         title: track.name,
         artist: track.artist,
-        albumTitle: "GiG Player",
-        artworkUrl: track.image || "https://picsum.photos/400",
-      };
+        albumTitle: track.album || "GiG Player",
+        artworkUrl: track.image || undefined,
+      });
+
+      // If local track and no image, enrich it on the fly!
+      if (isLocalFile && !track.image && this.dispatch && this.actions && this.getState) {
+        LocalMusicService.enrichMetadata([track as LocalTrack]).then(enriched => {
+          if (enriched.length > 0 && enriched[0].image) {
+            const enrichedTrack = enriched[0];
+            this.dispatch(this.actions.updateTracks([enrichedTrack]));
+            
+            // Also update current track in player if it's still the same one
+            if (this.getState().player.currentTrack?.id === enrichedTrack.id) {
+              this.dispatch(this.actions.setCurrentTrack(enrichedTrack));
+              try {
+                this.player?.updateLockScreenMetadata(this.sanitizeMetadata({
+                  title: enrichedTrack.name,
+                  artist: enrichedTrack.artist,
+                  albumTitle: enrichedTrack.album || "GiG Player",
+                  artworkUrl: enrichedTrack.image,
+                }));
+              } catch (e) {
+                console.warn("Failed to update enriched metadata on lockscreen:", e);
+              }
+            }
+          }
+        }).catch(() => {});
+      }
 
       // expo-audio 55 AudioLockScreenOptions only supports showSeekForward and showSeekBackward.
       const options = {
@@ -111,17 +166,25 @@ class AudioPlayerService {
         // Seamlessly replace the audio source, keeping the foreground service & listener alive!
         // This is crucial for Android 12+ where re-creating foreground services from background is banned.
         this.player.replace(playerSource);
-        this.player.updateLockScreenMetadata(metadata);
+        try {
+          this.player.updateLockScreenMetadata(metadata);
+        } catch (e) {
+          console.warn("Failed to update lockscreen metadata:", e);
+        }
         
         if (this.currentLoadingTrackId !== track.id) {
           return;
         }
         
         this.player.play();
-        store.dispatch(setIsPlaying(true));
+        this.dispatch?.(this.actions?.setIsPlaying(true));
       } else {
         const player = createAudioPlayer(playerSource);
-        player.setActiveForLockScreen(true, metadata, options);
+        try {
+          player.setActiveForLockScreen(true, metadata, options);
+        } catch (e) {
+          console.warn("Failed to activate lockscreen metadata:", e);
+        }
 
         if (this.currentLoadingTrackId !== track.id) {
           player.release();
@@ -132,11 +195,10 @@ class AudioPlayerService {
 
         this.subscriptions.push(this.player.addListener('playbackStatusUpdate', (status) => {
           if (status.playing !== undefined) {
-            store.dispatch(setIsPlaying(status.playing));
+            this.dispatch?.(this.actions?.setIsPlaying(status.playing));
             
-            // Check latest track directly from store, not from closure!
-            // When replace() is used, the closure's `track` object is stale.
-            const state = store.getState().player;
+            // Check latest track directly from state
+            const state = this.getState?.().player;
             const activeTrack = state.currentTrack;
             const previewFallbackMs = activeTrack 
               ? Math.min((activeTrack.duration || 30000), 30000) 
@@ -145,7 +207,7 @@ class AudioPlayerService {
             const now = Date.now();
 
             if (now - this.lastProgressDispatch >= 500 || status.didJustFinish) {
-              store.dispatch(setProgress({
+              this.dispatch?.(this.actions?.setProgress({
                 position: (status.currentTime || 0) * 1000,
                 duration: (status.duration && status.duration > 1)
                   ? status.duration * 1000
@@ -168,7 +230,7 @@ class AudioPlayerService {
         
         if (this.currentLoadingTrackId === track.id && this.player) {
           this.player.play();
-          store.dispatch(setIsPlaying(true));
+          this.dispatch?.(this.actions?.setIsPlaying(true));
         }
       }
 
@@ -178,7 +240,7 @@ class AudioPlayerService {
 
     } catch (e: any) {
       console.error("Audio Load Error:", e.message);
-      store.dispatch(setPlaybackError(e.message));
+      this.dispatch?.(this.actions?.setPlaybackError(e.message));
     }
   }
 
@@ -192,18 +254,18 @@ class AudioPlayerService {
 
   public async playPause() {
     if (!this.player) return;
-    const state = store.getState().player;
+    const state = this.getState?.().player;
     if (state.isPlaying) {
       this.player.pause();
-      store.dispatch(setIsPlaying(false));
+      this.dispatch?.(this.actions?.setIsPlaying(false));
     } else {
       this.player.play();
-      store.dispatch(setIsPlaying(true));
+      this.dispatch?.(this.actions?.setIsPlaying(true));
     }
   }
 
   public async playNext() {
-    const state = store.getState().player;
+    const state = this.getState?.().player;
     if (!state.currentTrack || state.queue.length === 0) return;
 
     if (state.repeatMode === 'track') {
@@ -219,7 +281,7 @@ class AudioPlayerService {
         nextIndex = 0;
       } else {
         this.player?.pause();
-        store.dispatch(setIsPlaying(false));
+        this.dispatch?.(this.actions?.setIsPlaying(false));
         return;
       }
     }
@@ -237,7 +299,7 @@ class AudioPlayerService {
   }
 
   public async playPrevious() {
-    const state = store.getState().player;
+    const state = this.getState?.().player;
     if (!state.currentTrack || state.queue.length === 0) return;
 
     if (state.positionMillis > 3000) {
@@ -258,6 +320,21 @@ class AudioPlayerService {
   public async seek(positionMillis: number) {
     if (!this.player) return;
     this.player.seekTo(positionMillis / 1000); 
+  }
+
+  /**
+   * Sanitizes metadata for native lockscreen consumption.
+   * Android MediaSession can reject metadata if base64 artwork is too large.
+   */
+  private sanitizeMetadata(metadata: any) {
+    // If artwork is a data URI, check its size. 
+    // Android MediaMetadata has a limit on the total bundle size (often ~100KB-500KB).
+    // Large base64 strings will cause the native call to be rejected.
+    if (metadata.artworkUrl?.startsWith('data:') && metadata.artworkUrl.length > 200000) {
+      console.log("⚠️ Metadata artwork too large for lockscreen, omitting base64 data");
+      return { ...metadata, artworkUrl: undefined };
+    }
+    return metadata;
   }
 }
 

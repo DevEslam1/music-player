@@ -18,6 +18,7 @@ import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { LocalTrack, LocalArtist, LocalAlbum, LocalFolder } from "../../types";
 import { ScreenHeader } from "../../components/ScreenHeader";
+import { SearchBar } from "../../components/library/SearchBar";
 import { MainStack } from "../../navigation/AppNavigator";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -90,12 +91,11 @@ function EmptyLibrary({ onRescan }: { onRescan: () => void }) {
 }
 
 // ─── Songs Tab ────────────────────────────────────────────────────────────────
-function SongsTab({ tracks }: { tracks: LocalTrack[] }) {
+function SongsTab({ tracks, query }: { tracks: LocalTrack[]; query: string }) {
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
   const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
-  const [query, setQuery] = useState("");
 
   const filtered = query
     ? tracks.filter(t =>
@@ -116,31 +116,17 @@ function SongsTab({ tracks }: { tracks: LocalTrack[] }) {
 
   return (
     <View style={styles.tabContainer}>
-      <View style={[styles.searchBox, { backgroundColor: textColor + "10" }]}>
-        <Ionicons name="search-outline" size={17} color={textColor + "60"} style={{ marginRight: 8 }} />
-        <TextInput
-          style={[styles.searchInput, { color: textColor }]}
-          placeholder="Search songs…"
-          placeholderTextColor={textColor + "50"}
-          value={query}
-          onChangeText={setQuery}
-        />
-        {query.length > 0 && (
-          <TouchableOpacity onPress={() => setQuery("")}>
-            <Ionicons name="close-circle" size={17} color={textColor + "60"} />
-          </TouchableOpacity>
-        )}
-      </View>
       <FlatList
         data={filtered}
         keyExtractor={item => item.id}
         renderItem={({ item, index }) => (
           <TouchableOpacity style={styles.songRow} onPress={() => handlePlay(item)} activeOpacity={0.7}>
             <View style={[styles.songIdx, { backgroundColor: accentColor + "12" }]}>
-              {item.image ? (
-                <Image source={{ uri: item.image }} style={styles.songImg} contentFit="cover" />
-              ) : (
+              <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center' }]}>
                 <Ionicons name="musical-notes" size={16} color={accentColor} />
+              </View>
+              {item.image && (
+                <Image source={{ uri: item.image }} style={styles.songImg} contentFit="cover" />
               )}
             </View>
             <View style={styles.songInfo}>
@@ -286,6 +272,7 @@ export default function LocalLibraryScreen() {
   const bg = useThemeColor({}, "background");
 
   const [activeTab, setActiveTab] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
   const pagerRef = useRef<PagerView>(null);
   const tabAnim = useRef(new Animated.Value(0)).current;
 
@@ -329,33 +316,45 @@ export default function LocalLibraryScreen() {
         }
       />
 
-      <View style={[styles.tabBar, { marginTop: insets.top + 76, backgroundColor: textColor + "08" }]}>
-        <Animated.View style={[styles.tabIndicator, { width: tabW, backgroundColor: accentColor, transform: [{ translateX: indicatorX }] }]} />
-        {TABS.map((label, i) => (
-          <TouchableOpacity key={label} style={[styles.tabBtn, { width: tabW }]} onPress={() => goTab(i)}>
-            <Text style={[styles.tabLabel, { color: activeTab === i ? accentColor : textColor + "60", fontWeight: activeTab === i ? "700" : "500" }]}>
-              {label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <View style={{ flex: 1, paddingTop: insets.top + 80 }}>
+        {/* Row (Tabs) First */}
+        <View style={[styles.tabBar, { backgroundColor: textColor + "08", marginBottom: 16 }]}>
+          <Animated.View style={[styles.tabIndicator, { width: tabW, backgroundColor: accentColor, transform: [{ translateX: indicatorX }] }]} />
+          {TABS.map((label, i) => (
+            <TouchableOpacity key={label} style={[styles.tabBtn, { width: tabW }]} onPress={() => goTab(i)}>
+              <Text style={[styles.tabLabel, { color: activeTab === i ? accentColor : textColor + "60", fontWeight: activeTab === i ? "700" : "500" }]}>
+                {label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <View style={{ flex: 1, marginTop: insets.top + 122 }}>
-        <PagerView
-          ref={pagerRef}
-          style={{ flex: 1 }}
-          initialPage={0}
-          onPageSelected={e => {
-            const p = e.nativeEvent.position;
-            setActiveTab(p);
-            Animated.spring(tabAnim, { toValue: p, useNativeDriver: true, tension: 80, friction: 12 }).start();
-          }}
-        >
-          <View key="songs"><SongsTab tracks={tracks} /></View>
-          <View key="artists"><ArtistsTab artists={artists} /></View>
-          <View key="albums"><AlbumsTab albums={albums} /></View>
-          <View key="folders"><FoldersTab folders={folders} /></View>
-        </PagerView>
+        {/* Then Search Bar */}
+        <SearchBar
+          query={searchQuery}
+          onChangeText={setSearchQuery}
+          onSearchPress={() => setSearchQuery("")}
+          autoFocus={false}
+        />
+
+        {/* Then Songs */}
+        <View style={{ flex: 1 }}>
+          <PagerView
+            ref={pagerRef}
+            style={{ flex: 1 }}
+            initialPage={0}
+            onPageSelected={e => {
+              const p = e.nativeEvent.position;
+              setActiveTab(p);
+              Animated.spring(tabAnim, { toValue: p, useNativeDriver: true, tension: 80, friction: 12 }).start();
+            }}
+          >
+            <View key="songs"><SongsTab tracks={tracks} query={searchQuery} /></View>
+            <View key="artists"><ArtistsTab artists={artists} /></View>
+            <View key="albums"><AlbumsTab albums={albums} /></View>
+            <View key="folders"><FoldersTab folders={folders} /></View>
+          </PagerView>
+        </View>
       </View>
     </View>
   );
@@ -372,19 +371,13 @@ const styles = StyleSheet.create({
   progressTrack: { width: "100%", height: 6, borderRadius: 3, overflow: "hidden", marginTop: 8 },
   progressFill: { height: "100%", borderRadius: 3 },
   tabBar: {
-    position: "absolute", left: 16, right: 16, height: 44,
+    height: 44, marginHorizontal: 16,
     borderRadius: 12, flexDirection: "row", overflow: "hidden", zIndex: 10,
   },
   tabIndicator: { position: "absolute", height: 44, borderRadius: 12, opacity: 0.18 },
   tabBtn: { height: 44, alignItems: "center", justifyContent: "center" },
   tabLabel: { fontSize: 13, letterSpacing: 0.2 },
   tabContainer: { flex: 1 },
-  // Search
-  searchBox: {
-    flexDirection: "row", alignItems: "center", marginHorizontal: 16,
-    marginBottom: 10, marginTop: 4, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12,
-  },
-  searchInput: { flex: 1, fontSize: 15 },
   // Song row
   songRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, paddingHorizontal: 4, gap: 12, height: 68 },
   songIdx: { width: 48, height: 48, borderRadius: 10, alignItems: "center", justifyContent: "center", overflow: "hidden" },

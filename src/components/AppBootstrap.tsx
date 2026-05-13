@@ -17,6 +17,9 @@ import {
   updateDerivedDarkMode,
 } from "../redux/store/theme/themeSlice";
 import { showBanner } from "../redux/store/ui/uiSlice";
+import { audioPlayer } from "../services/audio/AudioPlayerService";
+import { setIsPlaying, setProgress, setCurrentTrack, setPlaybackError } from "../redux/store/player/playerSlice";
+import { updateTracks } from "../redux/store/localLibrary/localLibrarySlice";
 
 interface AppBootstrapProps {
   children: React.ReactNode;
@@ -49,6 +52,14 @@ export function AppBootstrap({ children }: AppBootstrapProps) {
       showBanner
     });
     DownloadService.init();
+
+    audioPlayer.injectRedux(store.dispatch, store.getState, {
+      setIsPlaying,
+      setProgress,
+      setCurrentTrack,
+      setPlaybackError,
+      updateTracks
+    });
   }, []);
 
   useEffect(() => {

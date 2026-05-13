@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Track } from '../../types';
 import { useAccentColor } from '../../hooks/use-theme-color';
+import { Ionicons } from "@expo/vector-icons";
 
 // Carousel Dimensions
 interface AlbumArtCarouselProps {
@@ -112,6 +113,11 @@ const CarouselItem = ({
             style={[styles.albumArt, { width: '100%', height: '100%', borderRadius: 24 }]}
             contentFit="cover"
           />
+          {!track.image && (
+            <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center' }]}>
+              <Ionicons name="musical-notes" size={itemWidth * 0.3} color={useAccentColor() + "40"} />
+            </View>
+          )}
         </Animated.View>
       </Animated.View>
     </View>

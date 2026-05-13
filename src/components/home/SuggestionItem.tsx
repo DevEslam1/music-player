@@ -18,11 +18,16 @@ const SuggestionItemInner = ({
   const accentColor = useAccentColor();
   return (
     <TouchableOpacity style={styles.suggestionItem} onPress={onPress}>
-      <Image
-        source={{ uri: track.image || "https://picsum.photos/200" }}
-        style={styles.suggestionImage}
-        contentFit="cover"
-      />
+      <View style={[styles.suggestionImage, { backgroundColor: accentColor + "10", justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }]}>
+        <Ionicons name="musical-notes" size={20} color={accentColor} />
+        {track.image && (
+          <Image
+            source={{ uri: track.image }}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+          />
+        )}
+      </View>
       <View style={styles.suggestionInfo}>
         <Text
           style={[styles.suggestionTitle, { color: textColor }]}
