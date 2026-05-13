@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { AuthService } from "../../../services/api/authService";
 import { User } from "../../../types";
 import { clearAuthTokens } from "../../../services/auth/session";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const fetchProfile = createAsyncThunk<
   User,
@@ -64,6 +65,8 @@ const authSlice = createSlice({
       state.isLoggedIn = true;
       state.isGuestMode = false;
       state.currentUser = action.payload;
+      // Persist user to storage
+      AsyncStorage.setItem('current_user', JSON.stringify(action.payload)).catch(e => console.warn('Failed to persist user:', e));
     },
     loginFailure: (state, action: PayloadAction<string>) => {
       state.loading = false;
@@ -74,12 +77,18 @@ const authSlice = createSlice({
       state.isGuestMode = false;
       state.currentUser = null;
       state.loading = false;
+      AsyncStorage.removeItem('current_user').catch(e => console.warn('Failed to clear persisted user:', e));
     },
     setGuestMode: (state, action: PayloadAction<boolean>) => {
       state.isGuestMode = action.payload;
     },
     setFirstLaunch: (state, action: PayloadAction<boolean>) => {
       state.isFirstLaunch = action.payload;
+    },
+    hydrateUser: (state, action: PayloadAction<User>) => {
+      state.currentUser = action.payload;
+      state.isLoggedIn = true;
+      state.isGuestMode = false;
     },
   },
   extraReducers: (builder) => {
@@ -91,6 +100,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.isLoggedIn = true;
         state.currentUser = action.payload;
+        AsyncStorage.setItem('current_user', JSON.stringify(action.payload)).catch(e => console.warn('Failed to persist user:', e));
       })
       .addCase(fetchProfile.rejected, (state, action) => {
         state.loading = false;
@@ -104,6 +114,7 @@ const authSlice = createSlice({
         state.isGuestMode = false;
         state.currentUser = null;
         state.loading = false;
+        AsyncStorage.removeItem('current_user').catch(e => console.warn('Failed to clear persisted user:', e));
       })
       .addCase(logoutAction.rejected, (state, action) => {
         state.loading = false;
@@ -119,6 +130,7 @@ export const {
   logoutCompleted,
   setGuestMode,
   setFirstLaunch,
+  hydrateUser,
 } = authSlice.actions;
 export const selectAuthLoading = (state: any) => state.auth.loading;
 export default authSlice.reducer;

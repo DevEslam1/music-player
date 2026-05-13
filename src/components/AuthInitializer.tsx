@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fetchProfile, setFirstLaunch } from '../redux/store/auth/authSlice';
+import { fetchProfile, setFirstLaunch, hydrateUser } from '../redux/store/auth/authSlice';
 import { AppDispatch } from '../redux/store/store';
 import { CustomSplash } from './CustomSplash';
 import { useState } from 'react';
@@ -57,14 +57,28 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) =>
         const firstLaunch = await AsyncStorage.getItem('@is_first_launch');
         if (!isCancelled) dispatch(setFirstLaunch(firstLaunch === null));
 
+        // Hydrate user from storage for immediate access
+        const savedUser = await AsyncStorage.getItem('current_user');
+        if (savedUser && !isCancelled) {
+          try {
+            dispatch(hydrateUser(JSON.parse(savedUser)));
+          } catch (e) {
+            console.warn('Failed to parse saved user:', e);
+          }
+        }
+
         const token = await getAccessToken();
         if (token && !isCancelled) {
-          await dispatch(fetchProfile()).unwrap();
+          // Background refresh, don't block the app if we already hydrated
+          dispatch(fetchProfile());
         }
         if (!isCancelled) setAuthReady(true);
-      } catch (error) {
+      } catch (error: any) {
         if (!isCancelled) {
-          showAppBanner('Session expired. Please log in again.', 'warning');
+          // Only show session expired if it's a definitive auth failure
+          if (error.response && [400, 401].includes(error.response.status)) {
+            showAppBanner('Session expired. Please log in again.', 'warning');
+          }
           setAuthReady(true);
         }
       } finally {

@@ -110,9 +110,13 @@ axiosClient.interceptors.response.use(
 
       applyAuthorizationHeader(originalRequest, nextAccessToken);
       return axiosClient(originalRequest);
-    } catch (refreshError) {
-      await clearAuthTokens();
-      await notifyUnauthorized();
+    } catch (refreshError: any) {
+      // Only clear tokens and notify if it's a definitive auth failure (400 or 401)
+      // If it's a network error (no response), we keep the tokens and let the original request fail
+      if (refreshError.response && [400, 401].includes(refreshError.response.status)) {
+        await clearAuthTokens();
+        await notifyUnauthorized();
+      }
       return Promise.reject(refreshError);
     }
   },
