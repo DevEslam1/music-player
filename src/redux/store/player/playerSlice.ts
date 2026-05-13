@@ -10,6 +10,7 @@ interface PlayerState {
   isShuffled: boolean;
   repeatMode: 'off' | 'track' | 'queue';
   error: string | null;
+  sleepTimerEndAt: number | null; // Timestamp when audio should pause
 }
 
 const initialState: PlayerState = {
@@ -21,6 +22,7 @@ const initialState: PlayerState = {
   isShuffled: false,
   repeatMode: 'off',
   error: null,
+  sleepTimerEndAt: null,
 };
 
 const playerSlice = createSlice({
@@ -33,6 +35,34 @@ const playerSlice = createSlice({
     },
     setQueue: (state, action: PayloadAction<Track[]>) => {
       state.queue = action.payload;
+    },
+    playNext: (state, action: PayloadAction<Track>) => {
+      const track = action.payload;
+      // If empty queue, just set as queue
+      if (state.queue.length === 0) {
+        state.queue = [track];
+        return;
+      }
+      
+      const currentIdx = state.currentTrack ? state.queue.findIndex(t => t.id === state.currentTrack?.id) : -1;
+      
+      // If track is already in queue, remove it first to avoid duplicates
+      state.queue = state.queue.filter(t => t.id !== track.id);
+      
+      if (currentIdx !== -1) {
+        // Insert right after current
+        state.queue.splice(currentIdx + 1, 0, track);
+      } else {
+        // Fallback: add to beginning
+        state.queue.unshift(track);
+      }
+    },
+    addToQueue: (state, action: PayloadAction<Track>) => {
+      const track = action.payload;
+      // If already in queue, ignore
+      if (!state.queue.some(t => t.id === track.id)) {
+        state.queue.push(track);
+      }
     },
     setIsPlaying: (state, action: PayloadAction<boolean>) => {
       state.isPlaying = action.payload;
@@ -52,6 +82,9 @@ const playerSlice = createSlice({
     setPlaybackError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
       state.isPlaying = false;
+    },
+    setSleepTimer: (state, action: PayloadAction<number | null>) => {
+      state.sleepTimerEndAt = action.payload;
     }
   },
 });
@@ -59,10 +92,13 @@ const playerSlice = createSlice({
 export const { 
   setCurrentTrack, 
   setQueue, 
+  playNext,
+  addToQueue,
   setIsPlaying, 
   setProgress, 
   toggleShuffle, 
   toggleRepeat,
-  setPlaybackError
+  setPlaybackError,
+  setSleepTimer
 } = playerSlice.actions;
 export default playerSlice.reducer;

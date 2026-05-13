@@ -21,6 +21,7 @@ import { saveThemePreferences } from "../../services/storage/themePreferences";
 import { ACCENT_COLORS } from "../../constants/theme";
 import { setAutoDownloadEnabled } from "../../redux/store/downloads/downloadsSlice";
 import { ExcludedFoldersModal } from "../../components/settings/ExcludedFoldersModal";
+import { SleepTimerModal } from "../../components/settings/SleepTimerModal";
 import { 
   setExcludedFolders, 
   setMinFileSize, 
@@ -28,8 +29,10 @@ import {
   clearLocalLibrary,
   scanLocalLibrary 
 } from "../../redux/store/localLibrary/localLibrarySlice";
+import { setSleepTimer } from "../../redux/store/player/playerSlice";
 import { saveLocalMusicPreferences, loadLocalMusicPreferences } from "../../services/storage/localMusicPreferences";
 import React, { useState, useEffect } from "react";
+import { showBanner } from "../../redux/store/ui/uiSlice";
 
 export default function SettingsScreen() {
   const navigation = useNavigation<any>();
@@ -41,6 +44,8 @@ export default function SettingsScreen() {
     useSelector((state: RootState) => state.localLibrary);
   
   const [foldersModalVisible, setFoldersModalVisible] = useState(false);
+  const [sleepTimerVisible, setSleepTimerVisible] = useState(false);
+  const sleepTimerEndAt = useSelector((state: RootState) => state.player.sleepTimerEndAt);
   
   // Use allFolders if available, otherwise fall back to current folders
   const availableFolders = allFolders.length > 0 ? allFolders : folders;
@@ -106,6 +111,17 @@ export default function SettingsScreen() {
     setFoldersModalVisible(false);
     // Rescan after closing modal if exclusions changed
     triggerRescan();
+  };
+
+  const handleSetSleepTimer = (minutes: number | null) => {
+    if (minutes === null) {
+      dispatch(setSleepTimer(null));
+      dispatch(showBanner({ message: "Sleep timer disabled", type: "success" }));
+    } else {
+      const ms = minutes * 60 * 1000;
+      dispatch(setSleepTimer(Date.now() + ms));
+      dispatch(showBanner({ message: `Sleep timer set for ${minutes} minutes`, type: "success" }));
+    }
   };
 
   const insets = useSafeAreaInsets();
@@ -229,6 +245,23 @@ export default function SettingsScreen() {
           </SettingItem>
         </View>
 
+        {/* ── Playback ────────────────────────────────────────────── */}
+        <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+          <Text style={[styles.sectionTitle, { color: accentColor }]}>Playback</Text>
+          <SettingItem
+            icon="timer-outline"
+            label="Sleep Timer"
+            onPress={() => setSleepTimerVisible(true)}
+          >
+            <View style={styles.itemRight}>
+              <Text style={styles.valueText}>
+                {sleepTimerEndAt ? `${Math.ceil((sleepTimerEndAt - Date.now()) / 60000)} min left` : "Off"}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+            </View>
+          </SettingItem>
+        </View>
+
         {/* ── Local Music Filters ──────────────────────────────────────── */}
         <View style={[styles.section, { backgroundColor: surfaceColor }]}>
           <Text style={[styles.sectionTitle, { color: accentColor }]}>Local Music</Text>
@@ -332,6 +365,13 @@ export default function SettingsScreen() {
         folders={availableFolders}
         excludedFolders={excludedFolders}
         onToggleFolder={handleToggleFolder}
+      />
+
+      <SleepTimerModal
+        visible={sleepTimerVisible}
+        onClose={() => setSleepTimerVisible(false)}
+        currentEndAt={sleepTimerEndAt}
+        onSelectTime={handleSetSleepTimer}
       />
     </View>
   );

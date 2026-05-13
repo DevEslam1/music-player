@@ -1,5 +1,7 @@
 import React, { useCallback } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Image } from "expo-image";
+import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -48,13 +50,15 @@ export default function LocalFolderDetailScreen() {
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   };
 
+  const TypedFlashList = FlashList as any;
+
   return (
     <View style={[styles.screen, { backgroundColor: bg }]}>
       <ScreenHeader screenTitle={folderName} onBack={() => navigation.goBack()} />
-
-      <FlatList
+      <TypedFlashList
         data={tracks}
-        keyExtractor={item => item.id}
+        keyExtractor={(item: LocalTrack) => item.id}
+        estimatedItemSize={68}
         contentContainerStyle={[styles.list, { paddingTop: insets.top + 90 }]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
@@ -78,13 +82,12 @@ export default function LocalFolderDetailScreen() {
             </View>
           </View>
         }
-        renderItem={({ item, index }) => (
+        renderItem={({ item, index }: { item: LocalTrack; index: number }) => (
           <TouchableOpacity style={styles.row} onPress={() => handlePlay(item, tracks)} activeOpacity={0.7}>
             <View style={[styles.imgContainer, { backgroundColor: accentColor + "12" }]}>
-              {item.image ? (
-                <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} contentFit="cover" />
-              ) : (
-                <Ionicons name="musical-notes" size={14} color={accentColor} />
+              <Ionicons name="musical-notes" size={14} color={accentColor} />
+              {!!item.image && item.image.length > 10 && (
+                <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
               )}
             </View>
             <View style={styles.info}>
@@ -124,7 +127,7 @@ const styles = StyleSheet.create({
   },
   actionBtnTxt: { color: "#fff", fontWeight: "700", fontSize: 15 },
   row: { flexDirection: "row", alignItems: "center", paddingVertical: 14, gap: 12 },
-  imgContainer: { width: 44, height: 44, borderRadius: 8, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  imgContainer: { width: 56, height: 56, borderRadius: 12, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   idx: { width: 28, fontSize: 13, fontWeight: "800", textAlign: "center" },
   info: { flex: 1 },
   trackTitle: { fontSize: 15, fontWeight: "700", marginBottom: 2 },

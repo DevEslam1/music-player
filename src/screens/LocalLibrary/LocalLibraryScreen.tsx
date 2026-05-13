@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity,
+  View, Text, StyleSheet, TouchableOpacity,
   TextInput, Animated, Dimensions,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -114,19 +115,22 @@ function SongsTab({ tracks, query }: { tracks: LocalTrack[]; query: string }) {
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   };
 
+  const TypedFlashList = FlashList as any;
+
   return (
     <View style={styles.tabContainer}>
-      <FlatList
+      <TypedFlashList
         data={filtered}
-        keyExtractor={item => item.id}
-        renderItem={({ item, index }) => (
+        keyExtractor={(item: LocalTrack) => item.id}
+        estimatedItemSize={68}
+        renderItem={({ item, index }: { item: LocalTrack; index: number }) => (
           <TouchableOpacity style={styles.songRow} onPress={() => handlePlay(item)} activeOpacity={0.7}>
             <View style={[styles.songIdx, { backgroundColor: accentColor + "12" }]}>
               <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center' }]}>
                 <Ionicons name="musical-notes" size={16} color={accentColor} />
               </View>
-              {item.image && (
-                <Image source={{ uri: item.image }} style={styles.songImg} contentFit="cover" />
+              {!!item.image && item.image.length > 10 && (
+                <Image source={{ uri: item.image }} style={styles.songImg} contentFit="cover" transition={200} />
               )}
             </View>
             <View style={styles.songInfo}>
@@ -140,7 +144,6 @@ function SongsTab({ tracks, query }: { tracks: LocalTrack[]; query: string }) {
             <View style={[styles.rowSeparator, { backgroundColor: textColor + "08" }]} />
           </TouchableOpacity>
         )}
-        getItemLayout={(_, i) => ({ length: 68, offset: 68 * i, index: i })}
         contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 16 }}
         showsVerticalScrollIndicator={false}
       />
@@ -153,21 +156,24 @@ function ArtistsTab({ artists }: { artists: LocalArtist[] }) {
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
   const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
+  const TypedFlashList = FlashList as any;
   return (
     <View style={styles.tabContainer}>
-      <FlatList
+      <TypedFlashList
         data={artists}
-        keyExtractor={item => item.name}
-        renderItem={({ item }) => (
+        keyExtractor={(item: LocalArtist) => item.name}
+        estimatedItemSize={78}
+        renderItem={({ item }: { item: LocalArtist }) => (
           <TouchableOpacity
             style={styles.rowItem}
             onPress={() => navigation.navigate("LocalArtistDetail", { artistName: item.name })}
             activeOpacity={0.7}
           >
             <View style={[styles.circleThumb, { backgroundColor: accentColor + "15" }]}>
-              {item.coverImage
-                ? <Image source={{ uri: item.coverImage }} style={StyleSheet.absoluteFill} contentFit="cover" />
-                : <Ionicons name="person" size={22} color={accentColor} />}
+              <Ionicons name="person" size={22} color={accentColor} />
+              {!!item.coverImage && item.coverImage.length > 10 && (
+                <Image source={{ uri: item.coverImage }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
+              )}
             </View>
             <View style={styles.rowInfo}>
               <Text style={[styles.rowTitle, { color: textColor }]} numberOfLines={1}>{item.name}</Text>
@@ -192,30 +198,33 @@ function AlbumsTab({ albums }: { albums: LocalAlbum[] }) {
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
   const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
+  const TypedFlashList = FlashList as any;
   const CARD = (SCREEN_WIDTH - 48) / 2;
   return (
     <View style={styles.tabContainer}>
-      <FlatList
+      <TypedFlashList
         data={albums}
-        keyExtractor={item => item.id}
+        keyExtractor={(item: LocalAlbum) => item.id}
         numColumns={2}
-        columnWrapperStyle={{ gap: 16, marginBottom: 16 }}
+        estimatedItemSize={CARD + 50}
         contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 16, paddingTop: 8 }}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={{ width: CARD }}
-            onPress={() => navigation.navigate("LocalAlbumDetail", { albumName: item.name })}
-            activeOpacity={0.8}
-          >
-            <View style={[styles.albumArt, { width: CARD, height: CARD, backgroundColor: accentColor + "20" }]}>
-              {item.coverImage
-                ? <Image source={{ uri: item.coverImage }} style={StyleSheet.absoluteFill} contentFit="cover" />
-                : <Ionicons name="disc-outline" size={40} color={accentColor + "60"} />}
-            </View>
-            <Text style={[styles.albumTitle, { color: textColor }]} numberOfLines={2}>{item.name}</Text>
-            <Text style={[styles.albumArtistTxt, { color: textColor + "60" }]} numberOfLines={1}>{item.artist}</Text>
-          </TouchableOpacity>
+        renderItem={({ item, index }: { item: LocalAlbum; index: number }) => (
+          <View style={{ width: "50%", paddingRight: index % 2 === 0 ? 8 : 0, paddingLeft: index % 2 === 1 ? 8 : 0, marginBottom: 16 }}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("LocalAlbumDetail", { albumName: item.name })}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.albumArt, { width: CARD, height: CARD, backgroundColor: accentColor + "20" }]}>
+                <Ionicons name="disc-outline" size={40} color={accentColor + "60"} />
+                {!!item.coverImage && item.coverImage.length > 10 && (
+                  <Image source={{ uri: item.coverImage }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
+                )}
+              </View>
+              <Text style={[styles.albumTitle, { color: textColor }]} numberOfLines={2}>{item.name}</Text>
+              <Text style={[styles.albumArtistTxt, { color: textColor + "60" }]} numberOfLines={1}>{item.artist}</Text>
+            </TouchableOpacity>
+          </View>
         )}
       />
     </View>
@@ -227,12 +236,14 @@ function FoldersTab({ folders }: { folders: LocalFolder[] }) {
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
   const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
+  const TypedFlashList = FlashList as any;
   return (
     <View style={styles.tabContainer}>
-      <FlatList
+      <TypedFlashList
         data={folders}
-        keyExtractor={item => item.path}
-        renderItem={({ item }) => (
+        keyExtractor={(item: LocalFolder) => item.path}
+        estimatedItemSize={78}
+        renderItem={({ item }: { item: LocalFolder }) => (
           <TouchableOpacity
             style={styles.rowItem}
             onPress={() => navigation.navigate("LocalFolderDetail", { folderPath: item.path, folderName: item.name })}
@@ -380,7 +391,7 @@ const styles = StyleSheet.create({
   tabContainer: { flex: 1 },
   // Song row
   songRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, paddingHorizontal: 4, gap: 12, height: 68 },
-  songIdx: { width: 48, height: 48, borderRadius: 10, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  songIdx: { width: 56, height: 56, borderRadius: 12, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   songImg: { width: "100%", height: "100%" },
   songIdxTxt: { fontSize: 13, fontWeight: "800" },
   songInfo: { flex: 1 },

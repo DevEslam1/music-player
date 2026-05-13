@@ -323,14 +323,13 @@ const MiniPlayerInner = () => {
 
             <Animated.View style={animatedContentStyle}>
               <Animated.View style={animatedImageContainerStyle}>
-                <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: accentColor + '15' }]}>
-                  <Ionicons name="musical-notes" size={20} color={accentColor} />
-                </View>
-                {currentTrack.image && (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: accentColor + '08' }]} />
+                {!!currentTrack.image && currentTrack.image.length > 10 && (
                   <Image
                     source={{ uri: currentTrack.image }}
                     style={StyleSheet.absoluteFill}
                     contentFit="cover"
+                    transition={200}
                   />
                 )}
                 <Animated.View style={[

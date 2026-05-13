@@ -6,6 +6,7 @@ import libraryReducer from "./library/librarySlice";
 import downloadsReducer from "./downloads/downloadsSlice";
 import uiReducer from "./ui/uiSlice";
 import localLibraryReducer from "./localLibrary/localLibrarySlice";
+import historyReducer from "./history/historySlice";
 
 export const store = configureStore({
   reducer: { 
@@ -16,6 +17,7 @@ export const store = configureStore({
     downloads: downloadsReducer,
     ui: uiReducer,
     localLibrary: localLibraryReducer,
+    history: historyReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -18,8 +18,9 @@ import {
 } from "../redux/store/theme/themeSlice";
 import { showBanner } from "../redux/store/ui/uiSlice";
 import { audioPlayer } from "../services/audio/AudioPlayerService";
-import { setIsPlaying, setProgress, setCurrentTrack, setPlaybackError } from "../redux/store/player/playerSlice";
+import { setIsPlaying, setProgress, setCurrentTrack, setPlaybackError, setSleepTimer } from "../redux/store/player/playerSlice";
 import { updateTracks } from "../redux/store/localLibrary/localLibrarySlice";
+import { addTrackToHistory } from "../redux/store/history/historySlice";
 
 interface AppBootstrapProps {
   children: React.ReactNode;
@@ -58,7 +59,9 @@ export function AppBootstrap({ children }: AppBootstrapProps) {
       setProgress,
       setCurrentTrack,
       setPlaybackError,
-      updateTracks
+      updateTracks,
+      setSleepTimer,
+      addTrackToHistory,
     });
   }, []);
 

@@ -1,28 +1,32 @@
 import { Image } from "expo-image";
 import React, { useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
+import { FlashList } from "@shopify/flash-list";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAccentColor, useThemeColor } from "../../hooks/use-theme-color";
 import { Track } from "../../types";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setQueue } from "../../redux/store/player/playerSlice";
-import { AppDispatch } from "../../redux/store/store";
+import { AppDispatch, RootState } from "../../redux/store/store";
 import { searchSongs } from "../../services/api/api";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { MainStack } from "../../navigation/AppNavigator";
+import { TrackOptionsModal } from "../../components/TrackOptionsModal";
 
 export default function TracksListScreen() {
   const insets = useSafeAreaInsets();
   const route = useRoute<RouteProp<MainStack, "TracksList">>();
   const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
   const dispatch = useDispatch<AppDispatch>();
-  const { title, tracks: initialTracks, query } = route.params;
+  const { title, query } = route.params;
 
-  const [tracksList, setTracksList] = useState<Track[]>(initialTracks || []);
+  const [tracksList, setTracksList] = useState<Track[]>(route.params.tracks || []);
+  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
+  const [isOptionsVisible, setIsOptionsVisible] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
@@ -66,18 +70,23 @@ export default function TracksListScreen() {
     );
   };
 
+  const openTrackOptions = (track: Track) => {
+    setSelectedTrack(track);
+    setIsOptionsVisible(true);
+  };
+
   const renderItem = ({ item, index }: { item: Track; index: number }) => (
     <TouchableOpacity
       style={styles.trackCard}
       onPress={() => handlePlayTrack(item)}
     >
       <Text style={styles.trackNumber}>{index + 1}</Text>
-      <View style={[styles.trackImage, { backgroundColor: accentColor + "10", justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }]}>
-        <Ionicons name="musical-notes" size={20} color={accentColor} />
-        {item.image && (
+      <View style={[styles.trackImage, { backgroundColor: accentColor + "08", overflow: 'hidden' }]}>
+        {!!item.image && item.image.length > 10 && (
           <Image
             source={{ uri: item.image }}
             style={StyleSheet.absoluteFill}
+            transition={200}
           />
         )}
       </View>
@@ -89,18 +98,25 @@ export default function TracksListScreen() {
           {item.artist}
         </Text>
       </View>
-      <Ionicons name="play-circle-outline" size={24} color={accentColor} />
+      <View style={styles.actionsContainer}>
+        <TouchableOpacity style={styles.moreBtn} onPress={() => openTrackOptions(item)}>
+          <Ionicons name="ellipsis-vertical" size={20} color="#94A3B8" />
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
+
+  const TypedFlashList = FlashList as any;
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
       <ScreenHeader screenTitle={title} onBack={() => navigation.goBack()} />
 
       <View style={{ flex: 1, paddingTop: insets.top + 85 }}>
-        <FlatList
+        <TypedFlashList
           data={tracksList}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item: Track) => item.id}
+          estimatedItemSize={68}
           renderItem={renderItem}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
@@ -109,6 +125,12 @@ export default function TracksListScreen() {
           ListFooterComponent={renderFooter}
         />
       </View>
+
+      <TrackOptionsModal 
+        isVisible={isOptionsVisible} 
+        onClose={() => setIsOptionsVisible(false)} 
+        track={selectedTrack} 
+      />
     </View>
   );
 }
@@ -138,9 +160,9 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   trackImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 12,
+    width: 56,
+    height: 56,
+    borderRadius: 14,
     marginRight: 16,
   },
   textContainer: {
@@ -159,5 +181,13 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     alignItems: "center",
     justifyContent: "center",
+  },
+  actionsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  moreBtn: {
+    padding: 8,
+    marginLeft: 4,
   },
 });

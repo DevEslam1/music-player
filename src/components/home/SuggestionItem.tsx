@@ -18,8 +18,7 @@ const SuggestionItemInner = ({
   const accentColor = useAccentColor();
   return (
     <TouchableOpacity style={styles.suggestionItem} onPress={onPress}>
-      <View style={[styles.suggestionImage, { backgroundColor: accentColor + "10", justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }]}>
-        <Ionicons name="musical-notes" size={20} color={accentColor} />
+      <View style={[styles.suggestionImage, { backgroundColor: accentColor + "08", overflow: 'hidden' }]}>
         {track.image && (
           <Image
             source={{ uri: track.image }}
@@ -60,9 +59,9 @@ const styles = StyleSheet.create({
     borderColor: "rgba(226, 232, 240, 0.3)", 
   },
   suggestionImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 56,
+    height: 56,
+    borderRadius: 14,
     marginRight: 16,
   },
   suggestionInfo: {

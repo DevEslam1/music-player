@@ -17,8 +17,7 @@ const TrackCardInner = ({
   const accentColor = useAccentColor();
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
-      <View style={[styles.imageContainer, { backgroundColor: accentColor + "10", borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', height: 150 }]}>
-        <Ionicons name="musical-notes" size={40} color={accentColor} />
+      <View style={[styles.imageContainer, { backgroundColor: accentColor + "08", borderRadius: 16, overflow: 'hidden', height: 150 }]}>
         {track.image && (
           <Image
             source={{ uri: track.image }}

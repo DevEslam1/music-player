@@ -44,8 +44,10 @@ class AudioPlayerService {
     setIsPlaying: any;
     setProgress: any;
     setCurrentTrack: any;
-    setPlaybackError: any;
-    updateTracks: any;
+    setPlaybackError?: (error: string | null) => void;
+    updateTracks?: (tracks: Track[]) => void;
+    setSleepTimer?: (time: number | null) => void;
+    addTrackToHistory?: (track: Track) => void;
   } | null = null;
 
   private constructor() {}
@@ -67,8 +69,10 @@ class AudioPlayerService {
       setIsPlaying: any;
       setProgress: any;
       setCurrentTrack: any;
-      setPlaybackError: any;
-      updateTracks: any;
+      setPlaybackError?: (error: string | null) => void;
+      updateTracks?: (tracks: Track[]) => void;
+      setSleepTimer?: (time: number | null) => void;
+      addTrackToHistory?: (track: Track) => void;
     }
   ) {
     this.dispatch = dispatch;
@@ -79,8 +83,17 @@ class AudioPlayerService {
   public async loadPlayTrack(track: Track) {
     this.currentLoadingTrackId = track.id;
 
+    // Log to Redux
+    if (this.actions?.setCurrentTrack) {
+      this.dispatch?.(this.actions.setCurrentTrack(track));
+    }
+    
+    // Add to history
+    if (this.actions?.addTrackToHistory) {
+      this.dispatch?.(this.actions.addTrackToHistory(track));
+    }
+
     try {
-      this.dispatch?.(this.actions?.setCurrentTrack(track));
       this.lastProgressDispatch = 0;
       
       const token = await getAccessToken();
@@ -205,6 +218,12 @@ class AudioPlayerService {
               : 30000;
 
             const now = Date.now();
+
+            if (state.sleepTimerEndAt && now >= state.sleepTimerEndAt) {
+              this.player?.pause();
+              this.dispatch?.(this.actions?.setIsPlaying(false));
+              this.dispatch?.(this.actions?.setSleepTimer(null));
+            }
 
             if (now - this.lastProgressDispatch >= 500 || status.didJustFinish) {
               this.dispatch?.(this.actions?.setProgress({

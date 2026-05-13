@@ -4,11 +4,11 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from "react-native
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useThemeColor, useColorScheme } from "../../hooks/use-theme-color";
+import { useThemeColor, useColorScheme, useAccentColor } from "../../hooks/use-theme-color";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../redux/store/store";
 import { toggleLikeSongAction, addTrackToPlaylistAction } from "../../redux/store/library/librarySlice";
-import { toggleShuffle, toggleRepeat } from "../../redux/store/player/playerSlice";
+import { toggleShuffle, toggleRepeat, setSleepTimer } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import PlaylistPicker from "../../components/PlaylistPicker";
 import Animated, { 
@@ -26,6 +26,8 @@ import { AlbumArtCarousel } from "../../components/NowPlaying/AlbumArtCarousel";
 import { TrackMetaInfo } from "../../components/NowPlaying/TrackMetaInfo";
 import { ProgressBar } from "../../components/NowPlaying/ProgressBar";
 import { PlaybackControls } from "../../components/NowPlaying/PlaybackControls";
+import { SleepTimerModal } from "../../components/settings/SleepTimerModal";
+import { showBanner } from "../../redux/store/ui/uiSlice";
 
 
 
@@ -40,12 +42,15 @@ export default function NowPlayingScreen() {
   const positionMillis = useSelector((state: RootState) => state.player.positionMillis);
   const durationMillis = useSelector((state: RootState) => state.player.durationMillis);
   const likedSongs = useSelector((state: RootState) => state.library.likedSongs);
+  const sleepTimerEndAt = useSelector((state: RootState) => state.player.sleepTimerEndAt);
   const [isPickerVisible, setIsPickerVisible] = React.useState(false);
+  const [isSleepTimerVisible, setIsSleepTimerVisible] = React.useState(false);
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const accentColor = useAccentColor();
 
   const currentIndex = currentTrack && queue.length > 0 
     ? queue.findIndex(t => t.id === currentTrack?.id) 
@@ -127,6 +132,17 @@ export default function NowPlayingScreen() {
   const onPrevious = useCallback(() => audioPlayer.playPrevious(), []);
   const onNext = useCallback(() => audioPlayer.playNext(), []);
 
+  const handleSetSleepTimer = useCallback((minutes: number | null) => {
+    if (minutes === null) {
+      dispatch(setSleepTimer(null));
+      dispatch(showBanner({ message: "Sleep timer disabled", type: "success" }));
+    } else {
+      const ms = minutes * 60 * 1000;
+      dispatch(setSleepTimer(Date.now() + ms));
+      dispatch(showBanner({ message: `Sleep timer set for ${minutes} minutes`, type: "success" }));
+    }
+  }, [dispatch]);
+
   if (!currentTrack) return null;
 
   return (
@@ -160,7 +176,16 @@ export default function NowPlayingScreen() {
             <Ionicons name="arrow-back" size={26} color={textColor} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: textColor }]}>Playing Now</Text>
-          <View style={styles.headerButton} /> 
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => setIsSleepTimerVisible(true)}
+          >
+            <Ionicons 
+              name={sleepTimerEndAt ? "timer" : "timer-outline"} 
+              size={24} 
+              color={sleepTimerEndAt ? accentColor : textColor} 
+            />
+          </TouchableOpacity> 
         </View>
 
         {/* 1. Album Art Carousel */}
@@ -194,6 +219,7 @@ export default function NowPlayingScreen() {
           onPlayPause={onPlayPause}
           onPrevious={onPrevious}
           onNext={onNext}
+          onOpenQueue={() => navigation.navigate("Queue")}
           textColor={textColor}
         />
 
@@ -209,6 +235,13 @@ export default function NowPlayingScreen() {
           isVisible={isPickerVisible} 
           onClose={() => setIsPickerVisible(false)}
           onSelect={handleAddToPlaylist}
+        />
+
+        <SleepTimerModal
+          visible={isSleepTimerVisible}
+          onClose={() => setIsSleepTimerVisible(false)}
+          currentEndAt={sleepTimerEndAt}
+          onSelectTime={handleSetSleepTimer}
         />
       </SafeAreaView>
     </View>

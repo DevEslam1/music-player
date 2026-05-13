@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
@@ -17,6 +18,7 @@ import { batchDownloadTracksAction } from "../../redux/store/downloads/downloads
 import { MainStack } from "../../navigation/AppNavigator";
 import { DownloadButton } from "../../components/DownloadButton";
 import { ScreenHeader } from "../../components/ScreenHeader";
+import { TrackOptionsModal } from "../../components/TrackOptionsModal";
 
 export default function PlaylistDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -27,6 +29,8 @@ export default function PlaylistDetailScreen() {
 
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
+  const [isOptionsVisible, setIsOptionsVisible] = useState(false);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
 
   const backgroundColor = useThemeColor({}, "background");
@@ -71,6 +75,11 @@ export default function PlaylistDetailScreen() {
     }
   };
 
+  const openTrackOptions = (track: Track) => {
+    setSelectedTrack(track);
+    setIsOptionsVisible(true);
+  };
+
   const renderItem = ({ item, index }: { item: Track, index: number }) => (
     <View style={styles.trackCard}>
       <Text style={styles.trackNumber}>{index + 1}</Text>
@@ -78,7 +87,16 @@ export default function PlaylistDetailScreen() {
         style={styles.trackInfo} 
         onPress={() => handlePlayTrack(item)}
       >
-        <Image source={{ uri: item.image || "https://picsum.photos/200" }} style={styles.trackImage} />
+        <View style={[styles.trackImage, { backgroundColor: accentColor + '08', overflow: 'hidden' }]}>
+          {!!item.image && item.image.length > 10 && (
+            <Image 
+              source={{ uri: item.image }} 
+              style={StyleSheet.absoluteFill} 
+              contentFit="cover"
+              transition={200}
+            />
+          )}
+        </View>
         <View style={styles.textContainer}>
           <Text style={[styles.trackName, { color: textColor }]} numberOfLines={1}>{item.name}</Text>
           <Text style={styles.trackArtist} numberOfLines={1}>{item.artist}</Text>
@@ -86,6 +104,12 @@ export default function PlaylistDetailScreen() {
       </TouchableOpacity>
       <View style={styles.actionsContainer}>
         <DownloadButton track={item} size={22} color={textColor} />
+        <TouchableOpacity 
+          style={styles.moreBtn} 
+          onPress={() => openTrackOptions(item)}
+        >
+          <Ionicons name="ellipsis-vertical" size={20} color={textColor} />
+        </TouchableOpacity>
         <TouchableOpacity 
           style={styles.removeBtn} 
           onPress={() => handleRemoveTrack(item.id)}
@@ -95,6 +119,8 @@ export default function PlaylistDetailScreen() {
       </View>
     </View>
   );
+
+  const TypedFlashList = FlashList as any;
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
@@ -126,10 +152,11 @@ export default function PlaylistDetailScreen() {
           <Text style={styles.emptySubtext}>Add some songs from your library or search!</Text>
         </View>
       ) : (
-        <FlatList
+        <TypedFlashList
           data={tracks}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => renderItem({ item, index })}
+          keyExtractor={(item: Track) => item.id}
+          estimatedItemSize={68}
+          renderItem={({ item, index }: { item: Track; index: number }) => renderItem({ item, index })}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -141,9 +168,15 @@ export default function PlaylistDetailScreen() {
           }
         />
       )}
+      </View>
+
+      <TrackOptionsModal 
+        isVisible={isOptionsVisible} 
+        onClose={() => setIsOptionsVisible(false)} 
+        track={selectedTrack} 
+      />
     </View>
-  </View>
-);
+  );
 }
 
 const styles = StyleSheet.create({
@@ -208,9 +241,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   trackImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
+    width: 56,
+    height: 56,
+    borderRadius: 12,
     marginRight: 16,
   },
   textContainer: {
@@ -228,6 +261,10 @@ const styles = StyleSheet.create({
   actionsContainer: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  moreBtn: {
+    padding: 8,
+    marginLeft: 4,
   },
   removeBtn: {
     padding: 8,

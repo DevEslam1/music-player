@@ -53,10 +53,11 @@ export default function HomeScreen() {
     loadingStates,
   } = useSelector((state: RootState) => state.library);
   
-  const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
   const { advancedBlurEnabled, blurIntensity } = useBlurSettings();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
+  const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
+  const recentTracks = useSelector((state: RootState) => state.history.recentTracks);
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -146,6 +147,15 @@ export default function HomeScreen() {
           trackList={homeFeed.recommended}
           handlePlayTrack={handlePlayTrack}
         />
+
+        {/* Recently Played Section */}
+        {recentTracks.length > 0 && (
+          <TrackList
+            label="Recently Played"
+            trackList={recentTracks}
+            handlePlayTrack={handlePlayTrack}
+          />
+        )}
 
         {/* Liked Songs / Favorites Section */}
         <Text style={[styles.sectionTitle, { color: textColor }]}>

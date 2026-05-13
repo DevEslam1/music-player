@@ -21,6 +21,7 @@ interface PlaybackControlsProps {
   onPlayPause: () => void;
   onPrevious: () => void;
   onNext: () => void;
+  onOpenQueue: () => void;
   textColor: string;
 }
 
@@ -35,6 +36,7 @@ export const PlaybackControls = React.memo(({
   onPlayPause,
   onPrevious,
   onNext,
+  onOpenQueue,
   textColor
 }: PlaybackControlsProps) => {
   const accentColor = useAccentColor();
@@ -45,7 +47,15 @@ export const PlaybackControls = React.memo(({
     <View>
       {/* Secondary Controls (Shuffle/Repeat) */}
       <View style={styles.secondaryControls}>
-        <Ionicons name="volume-medium-outline" size={24} color={textColor} />
+        <TouchableOpacity
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            onOpenQueue();
+          }}
+          style={styles.secondaryBtnLeft}
+        >
+          <Ionicons name="list-outline" size={24} color={textColor} />
+        </TouchableOpacity>
         <View style={styles.rightSecondaryControls}>
           <TouchableOpacity
             onPress={() => {
@@ -140,6 +150,11 @@ const styles = StyleSheet.create({
   rightSecondaryControls: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  secondaryBtnLeft: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 4,
   },
   secondaryBtn: {
     marginLeft: 24,

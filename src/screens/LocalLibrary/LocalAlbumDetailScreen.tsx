@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -69,21 +70,24 @@ export default function LocalAlbumDetailScreen() {
   const totalDuration = tracks.reduce((acc, t) => acc + t.duration, 0);
   const totalMin = Math.round(totalDuration / 60000);
 
+  const TypedFlashList = FlashList as any;
+
   return (
     <View style={[styles.screen, { backgroundColor: bg }]}>
       <ScreenHeader screenTitle={albumName} onBack={() => navigation.goBack()} />
-
-      <FlatList
+      <TypedFlashList
         data={tracks}
-        keyExtractor={item => item.id}
+        keyExtractor={(item: LocalTrack) => item.id}
+        estimatedItemSize={68}
         contentContainerStyle={[styles.list, { paddingTop: insets.top + 90 }]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View style={styles.hero}>
             <View style={[styles.albumCover, { backgroundColor: accentColor + "20" }]}>
-              {coverImage
-                ? <Image source={{ uri: coverImage }} style={StyleSheet.absoluteFill} contentFit="cover" />
-                : <Ionicons name="disc-outline" size={60} color={accentColor + "60"} />}
+              <Ionicons name="disc-outline" size={60} color={accentColor + "60"} />
+              {!!coverImage && coverImage.length > 10 && (
+                <Image source={{ uri: coverImage }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
+              )}
             </View>
             <Text style={[styles.albumTitle, { color: textColor }]}>{albumName}</Text>
             <Text style={[styles.albumArtist, { color: accentColor }]}>{artist}</Text>
@@ -102,13 +106,12 @@ export default function LocalAlbumDetailScreen() {
             </View>
           </View>
         }
-        renderItem={({ item, index }) => (
+        renderItem={({ item, index }: { item: LocalTrack; index: number }) => (
           <TouchableOpacity style={styles.row} onPress={() => handlePlay(item, tracks)} activeOpacity={0.7}>
             <View style={[styles.imgContainer, { backgroundColor: accentColor + "12" }]}>
-              {item.image ? (
-                <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} contentFit="cover" />
-              ) : (
-                <Ionicons name="musical-notes" size={14} color={accentColor} />
+              <Ionicons name="musical-notes" size={14} color={accentColor} />
+              {!!item.image && item.image.length > 10 && (
+                <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
               )}
             </View>
             <View style={styles.info}>
@@ -150,7 +153,7 @@ const styles = StyleSheet.create({
   },
   actionBtnTxt: { color: "#fff", fontWeight: "700", fontSize: 15 },
   row: { flexDirection: "row", alignItems: "center", paddingVertical: 14, gap: 12 },
-  imgContainer: { width: 44, height: 44, borderRadius: 8, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  imgContainer: { width: 56, height: 56, borderRadius: 12, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   idx: { width: 28, fontSize: 13, fontWeight: "800", textAlign: "center" },
   info: { flex: 1 },
   trackTitle: { fontSize: 15, fontWeight: "700" },

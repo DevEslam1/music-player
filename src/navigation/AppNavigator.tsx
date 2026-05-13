@@ -16,6 +16,7 @@ import SupportScreen from "../screens/Support/SupportScreen";
 import LocalArtistDetailScreen from "../screens/LocalLibrary/LocalArtistDetailScreen";
 import LocalAlbumDetailScreen from "../screens/LocalLibrary/LocalAlbumDetailScreen";
 import LocalFolderDetailScreen from "../screens/LocalLibrary/LocalFolderDetailScreen";
+import QueueScreen from "../screens/Queue/QueueScreen";
 
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store/store";
@@ -36,6 +37,7 @@ export type MainStack = {
   LocalArtistDetail: { artistName: string };
   LocalAlbumDetail: { albumName: string };
   LocalFolderDetail: { folderPath: string; folderName: string };
+  Queue: undefined;
 };
 
 const Stack = createNativeStackNavigator<MainStack>();
@@ -85,6 +87,7 @@ const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
             <Stack.Screen name="LocalArtistDetail" component={LocalArtistDetailScreen} />
             <Stack.Screen name="LocalAlbumDetail" component={LocalAlbumDetailScreen} />
             <Stack.Screen name="LocalFolderDetail" component={LocalFolderDetailScreen} />
+            <Stack.Screen name="Queue" component={QueueScreen} />
           </Stack.Group>
         )}
       </Stack.Navigator>
