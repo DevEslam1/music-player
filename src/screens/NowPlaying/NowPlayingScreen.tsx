@@ -153,7 +153,7 @@ export default function NowPlayingScreen() {
           <Image 
             source={{ uri: currentTrack.image }} 
             style={StyleSheet.absoluteFill}
-            blurRadius={Platform.OS === 'ios' ? 80 : 30} 
+            blurRadius={Platform.OS === 'ios' ? 60 : 20} 
           />
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor }]} />

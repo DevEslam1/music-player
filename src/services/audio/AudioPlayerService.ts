@@ -349,8 +349,8 @@ class AudioPlayerService {
     // If artwork is a data URI, check its size. 
     // Android MediaMetadata has a limit on the total bundle size (often ~100KB-500KB).
     // Large base64 strings will cause the native call to be rejected.
-    if (metadata.artworkUrl?.startsWith('data:') && metadata.artworkUrl.length > 200000) {
-      console.log("⚠️ Metadata artwork too large for lockscreen, omitting base64 data");
+    if (metadata.artworkUrl?.startsWith('data:') && metadata.artworkUrl.length > 100000) {
+      console.log("⚠️ Metadata artwork too large for lockscreen (>100KB), omitting base64 data to prevent crash");
       return { ...metadata, artworkUrl: undefined };
     }
     return metadata;

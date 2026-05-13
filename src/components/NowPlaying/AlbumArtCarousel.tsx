@@ -12,6 +12,7 @@ import Animated, {
 import { Track } from '../../types';
 import { useAccentColor } from '../../hooks/use-theme-color';
 import { Ionicons } from "@expo/vector-icons";
+const AnimatedExpoImage = Animated.createAnimatedComponent(Image);
 
 // Carousel Dimensions
 interface AlbumArtCarouselProps {
@@ -87,14 +88,14 @@ const CarouselItem = ({
         style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', zIndex: -1 }]}
         pointerEvents="none"
       >
-        <Animated.Image 
+        <AnimatedExpoImage 
           source={track.image ? { uri: track.image } : undefined}
           style={[
             styles.glowBackground, 
             glowStyle,
             { width: coverSize, height: coverSize, borderRadius: coverSize }
           ]}
-          blurRadius={Platform.OS === 'ios' ? 60 : 30}
+          blurRadius={Platform.OS === 'ios' ? 60 : 20}
         />
       </View>
 
