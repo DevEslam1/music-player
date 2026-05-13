@@ -38,6 +38,7 @@ interface AuthState {
   loading: boolean;
   failed: string | null;
   isLoggedIn: boolean;
+  isGuestMode: boolean;
   isFirstLaunch: boolean | null; // null means checking
 }
 
@@ -46,6 +47,7 @@ const initialState: AuthState = {
   loading: false,
   failed: null,
   isLoggedIn: false,
+  isGuestMode: false,
   isFirstLaunch: null,
 };
 
@@ -60,6 +62,7 @@ const authSlice = createSlice({
     loginSuccess: (state, action: PayloadAction<User>) => {
       state.loading = false;
       state.isLoggedIn = true;
+      state.isGuestMode = false;
       state.currentUser = action.payload;
     },
     loginFailure: (state, action: PayloadAction<string>) => {
@@ -68,8 +71,12 @@ const authSlice = createSlice({
     },
     logoutCompleted: (state) => {
       state.isLoggedIn = false;
+      state.isGuestMode = false;
       state.currentUser = null;
       state.loading = false;
+    },
+    setGuestMode: (state, action: PayloadAction<boolean>) => {
+      state.isGuestMode = action.payload;
     },
     setFirstLaunch: (state, action: PayloadAction<boolean>) => {
       state.isFirstLaunch = action.payload;
@@ -94,6 +101,7 @@ const authSlice = createSlice({
       })
       .addCase(logoutAction.fulfilled, (state) => {
         state.isLoggedIn = false;
+        state.isGuestMode = false;
         state.currentUser = null;
         state.loading = false;
       })
@@ -109,6 +117,7 @@ export const {
   loginSuccess,
   loginFailure,
   logoutCompleted,
+  setGuestMode,
   setFirstLaunch,
 } = authSlice.actions;
 export const selectAuthLoading = (state: any) => state.auth.loading;

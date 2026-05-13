@@ -54,6 +54,7 @@ const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
   // Hide miniplayer during auth, now playing, or when route is not yet determined
   const hideMiniPlayer = isDrawerOpen || !currentRoute || ["Login", "SignUp", "NowPlaying", "Welcome"].includes(currentRoute);
   const isFirstLaunch = useSelector((state: RootState) => state.auth.isFirstLaunch);
+  const isGuestMode = useSelector((state: RootState) => state.auth.isGuestMode);
   const authLoading = useSelector((state: RootState) => state.auth.loading);
 
   const isAuthReady = isFirstLaunch !== null;
@@ -67,7 +68,7 @@ const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
         ) : isFirstLaunch ? (
           // 2. Onboarding Phase
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
-        ) : !isLoggedIn ? (
+        ) : (!isLoggedIn && !isGuestMode) ? (
           // 3. Auth Phase
           <Stack.Group>
             <Stack.Screen name="Login" component={LoginScreen} />

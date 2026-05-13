@@ -12,6 +12,8 @@ import { CustomTextInput } from "../../components/auth/CustomTextInput";
 import { CustomButton } from "../../components/CustomButton";
 import { useLoginScreenLogic } from "../../services/logic/loginScreenLogic";
 import { useAccentColor, useThemeColor } from "../../hooks/use-theme-color";
+import { useDispatch } from "react-redux";
+import { setGuestMode } from "../../redux/store/auth/authSlice";
 
 // Reusable Header
 import { AuthHeader } from "../../components/auth/AuthHeader";
@@ -26,6 +28,7 @@ export default function LoginScreen() {
     isFormValid,
     handleLogin,
   } = useLoginScreenLogic();
+  const dispatch = useDispatch();
 
   const navigation = useNavigation<any>();
   const backgroundColor = useThemeColor({}, "background");
@@ -109,6 +112,15 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Floating Action Button for Offline Access */}
+      <TouchableOpacity 
+        style={[styles.fab, { backgroundColor: accentColor }]} 
+        onPress={() => dispatch(setGuestMode(true))}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="cloud-offline-outline" size={28} color="#FFF" />
+      </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 }
@@ -160,5 +172,20 @@ const styles = StyleSheet.create({
   signUpLink: {
     fontSize: 14,
     fontWeight: "bold",
+  },
+  fab: {
+    position: "absolute",
+    right: 24,
+    bottom: 40,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
 });

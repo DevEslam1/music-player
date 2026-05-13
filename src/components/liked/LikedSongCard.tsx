@@ -57,7 +57,9 @@ export const LikedSongCard = React.memo(LikedSongCardInner);
 
 const styles = StyleSheet.create({
   card: {
-    width: "48%",
+    width: "100%",
+    paddingHorizontal: 8,
+    marginBottom: 20,
   },
   cardEdit: {
     opacity: 0.9,

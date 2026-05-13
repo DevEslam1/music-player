@@ -7,7 +7,7 @@ import { Image } from "expo-image";
 import { RootState } from "../redux/store/store";
 import { toggleTheme } from "../redux/store/theme/themeSlice";
 import { setDrawerOpen } from "../redux/store/ui/uiSlice";
-import { fetchProfile } from "../redux/store/auth/authSlice";
+import { fetchProfile, setGuestMode } from "../redux/store/auth/authSlice";
 import { useThemeColor, useAccentColor, useColorScheme, useBlurSettings } from "../hooks/use-theme-color";
 import { BlurView } from "expo-blur";
 import Constants from "expo-constants";
@@ -59,6 +59,7 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const isDarkMode = colorScheme === "dark";
   const user = useSelector((state: RootState) => state.auth.currentUser);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const isGuestMode = useSelector((state: RootState) => state.auth.isGuestMode);
   const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
   const isDrawerOpen = useDrawerStatus() === 'open';
   
@@ -125,16 +126,24 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
         <View style={styles.profileSection}>
           <TouchableOpacity 
             style={[styles.avatar, { backgroundColor: accentColor }]}
-            onPress={() => props.navigation.navigate("Profile")}
+            onPress={() => {
+              if (isGuestMode) {
+                dispatch(setGuestMode(false));
+              } else {
+                props.navigation.navigate("Profile");
+              }
+            }}
           >
-            <Ionicons name="person" size={24} color="#FFF" />
+            <Ionicons name={isGuestMode ? "log-in" : "person"} size={24} color="#FFF" />
           </TouchableOpacity>
           <View style={styles.userInfo}>
             <Text style={[styles.userName, { color: textColor }]} numberOfLines={1}>
-              {user?.name || user?.email?.split('@')[0] || "User"}
+              {isGuestMode ? "Guest User" : (user?.name || user?.email?.split('@')[0] || "User")}
             </Text>
             <View style={[styles.badge, { backgroundColor: accentColor + '30' }]}>
-              <Text style={[styles.userStatus, { color: accentColor }]}>PREMIUM</Text>
+              <Text style={[styles.userStatus, { color: accentColor }]}>
+                {isGuestMode ? "OFFLINE" : "PREMIUM"}
+              </Text>
             </View>
           </View>
         </View>
@@ -155,43 +164,61 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
         contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }} 
         showsVerticalScrollIndicator={false}
       >
-        <DrawerItem 
-          icon="home-outline" 
-          label="Home" 
-          textColor={textColor}
-          active={activeRoute === "Home"}
-          isDarkMode={isDarkMode}
-          onPress={() => props.navigation.navigate("Home")} 
-        />
-        <DrawerItem 
-          icon="search-outline" 
-          label="Search" 
-          textColor={textColor}
-          active={activeRoute === "Library"}
-          isDarkMode={isDarkMode}
-          onPress={() => props.navigation.navigate("Library")} 
-        />
+        {isGuestMode && (
+          <TouchableOpacity 
+            style={[styles.signInButton, { backgroundColor: accentColor }]}
+            onPress={() => dispatch(setGuestMode(false))}
+          >
+            <Ionicons name="log-in-outline" size={20} color="#FFF" />
+            <Text style={styles.signInButtonText}>Sign In to Account</Text>
+          </TouchableOpacity>
+        )}
+
+        {!isGuestMode && (
+          <>
+            <DrawerItem 
+              icon="home-outline" 
+              label="Home" 
+              textColor={textColor}
+              active={activeRoute === "Home"}
+              isDarkMode={isDarkMode}
+              onPress={() => props.navigation.navigate("Home")} 
+            />
+            <DrawerItem 
+              icon="search-outline" 
+              label="Search" 
+              textColor={textColor}
+              active={activeRoute === "Library"}
+              isDarkMode={isDarkMode}
+              onPress={() => props.navigation.navigate("Library")} 
+            />
+          </>
+        )}
         
         <View style={[styles.sectionHeader, { marginTop: 20 }]}>
           <Text style={[styles.sectionTitle, { color: textColor + '60' }]}>LIBRARY</Text>
         </View>
 
-        <DrawerItem 
-          icon="heart-outline" 
-          label="Liked Songs" 
-          textColor={textColor}
-          active={activeRoute === "LikedSongs"}
-          isDarkMode={isDarkMode}
-          onPress={() => props.navigation.navigate("LikedSongs")} 
-        />
-        <DrawerItem 
-          icon="list-outline" 
-          label="Playlists" 
-          textColor={textColor}
-          active={activeRoute === "Playlist"}
-          isDarkMode={isDarkMode}
-          onPress={() => props.navigation.navigate("Playlist")} 
-        />
+        {!isGuestMode && (
+          <>
+            <DrawerItem 
+              icon="heart-outline" 
+              label="Liked Songs" 
+              textColor={textColor}
+              active={activeRoute === "LikedSongs"}
+              isDarkMode={isDarkMode}
+              onPress={() => props.navigation.navigate("LikedSongs")} 
+            />
+            <DrawerItem 
+              icon="list-outline" 
+              label="Playlists" 
+              textColor={textColor}
+              active={activeRoute === "Playlist"}
+              isDarkMode={isDarkMode}
+              onPress={() => props.navigation.navigate("Playlist")} 
+            />
+          </>
+        )}
         <DrawerItem 
           icon="cloud-download-outline" 
           label="Downloads" 
@@ -211,14 +238,16 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
         
         <View style={[styles.divider, { backgroundColor: textColor + '20' }]} />
 
-        <DrawerItem 
-          icon="person-outline" 
-          label="Profile" 
-          textColor={textColor}
-          active={activeRoute === "Profile"}
-          isDarkMode={isDarkMode}
-          onPress={() => props.navigation.navigate("Profile")} 
-        />
+        {!isGuestMode && (
+          <DrawerItem 
+            icon="person-outline" 
+            label="Profile" 
+            textColor={textColor}
+            active={activeRoute === "Profile"}
+            isDarkMode={isDarkMode}
+            onPress={() => props.navigation.navigate("Profile")} 
+          />
+        )}
         <DrawerItem 
           icon="globe-outline" 
           label="Language" 
@@ -384,5 +413,25 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     letterSpacing: 1,
     textTransform: "uppercase",
+  },
+  signInButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 20,
+    marginVertical: 12,
+    paddingVertical: 14,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 4,
+    gap: 8,
+  },
+  signInButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "800",
   },
 });

@@ -11,6 +11,8 @@ import { useThemeColor } from "../hooks/use-theme-color";
 import { CustomDrawerContent } from "../components/CustomDrawerContent";
 import DownloadsScreen from "../screens/Downloads/DownloadsScreen";
 import LocalLibraryScreen from "../screens/LocalLibrary/LocalLibraryScreen";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store/store";
 
 export type drawerType = {
   Home: undefined;
@@ -29,10 +31,12 @@ const Drawer = createDrawerNavigator<drawerType>();
 
 const DrawerNavigator = () => {
   const backgroundColor = useThemeColor({}, "background");
+  const isGuestMode = useSelector((state: RootState) => state.auth.isGuestMode);
 
   return (
     <Drawer.Navigator
       id="LeftDrawer"
+      initialRouteName={isGuestMode ? "Downloads" : "Home"}
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
         headerShown: false,
