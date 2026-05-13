@@ -316,17 +316,6 @@ export default function LocalLibraryScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: bg }]}>
-      <ScreenHeader
-        screenTitle="Local Music"
-        leftIcon="menu-outline"
-        onBack={() => navigation.openDrawer()}
-        rightComponent={
-          <TouchableOpacity onPress={handleRescan} disabled={false}>
-            <Ionicons name="refresh-outline" size={22} color={textColor} />
-          </TouchableOpacity>
-        }
-      />
-
       <View style={{ flex: 1, paddingTop: insets.top + 80 }}>
         {/* Row (Tabs) First */}
         <View style={[styles.tabBar, { backgroundColor: textColor + "08", marginBottom: 16 }]}>
@@ -367,6 +356,17 @@ export default function LocalLibraryScreen() {
           </PagerView>
         </View>
       </View>
+
+      <ScreenHeader
+        screenTitle="Local Music"
+        leftIcon="menu-outline"
+        onBack={() => navigation.openDrawer()}
+        rightComponent={
+          <TouchableOpacity onPress={handleRescan} disabled={false}>
+            <Ionicons name="refresh-outline" size={22} color={textColor} />
+          </TouchableOpacity>
+        }
+      />
     </View>
   );
 }

@@ -110,7 +110,7 @@ export default function TracksListScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <ScreenHeader screenTitle={title} onBack={() => navigation.goBack()} />
+
 
       <View style={{ flex: 1, paddingTop: insets.top + 85 }}>
         <TypedFlashList
@@ -131,6 +131,7 @@ export default function TracksListScreen() {
         onClose={() => setIsOptionsVisible(false)} 
         track={selectedTrack} 
       />
+      <ScreenHeader screenTitle={title} onBack={() => navigation.goBack()} />
     </View>
   );
 }

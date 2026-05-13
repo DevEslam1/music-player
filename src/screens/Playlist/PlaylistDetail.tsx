@@ -124,21 +124,7 @@ export default function PlaylistDetailScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <ScreenHeader 
-        screenTitle={name}
-        rightComponent={
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            {isLoggedIn && (
-              <TouchableOpacity style={styles.headerButton} onPress={handleDownloadAll} disabled={tracks.length === 0}>
-                <Ionicons name="cloud-download-outline" size={24} color={textColor} style={{ opacity: tracks.length === 0 ? 0.5 : 1 }} />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity style={styles.headerButton} onPress={fetchPlaylistTracks}>
-              <Ionicons name="refresh-outline" size={24} color={textColor} />
-            </TouchableOpacity>
-          </View>
-        }
-      />
+
 
       <View style={{ flex: 1, paddingTop: insets.top + 85 }}>
         {loading ? (
@@ -174,6 +160,21 @@ export default function PlaylistDetailScreen() {
         isVisible={isOptionsVisible} 
         onClose={() => setIsOptionsVisible(false)} 
         track={selectedTrack} 
+      />
+      <ScreenHeader 
+        screenTitle={name}
+        rightComponent={
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            {isLoggedIn && (
+              <TouchableOpacity style={styles.headerButton} onPress={handleDownloadAll} disabled={tracks.length === 0}>
+                <Ionicons name="cloud-download-outline" size={24} color={textColor} style={{ opacity: tracks.length === 0 ? 0.5 : 1 }} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.headerButton} onPress={fetchPlaylistTracks}>
+              <Ionicons name="refresh-outline" size={24} color={textColor} />
+            </TouchableOpacity>
+          </View>
+        }
       />
     </View>
   );

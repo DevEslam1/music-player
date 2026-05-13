@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSelector, useDispatch } from "react-redux";
@@ -23,6 +23,7 @@ export default function QueueScreen() {
   const textColor = useThemeColor({}, "text");
   const surfaceColor = useThemeColor({}, "surface");
   const accentColor = useAccentColor();
+  const insets = useSafeAreaInsets();
 
   const handleDragEnd = ({ data }: { data: Track[] }) => {
     dispatch(setQueue(data));
@@ -91,14 +92,9 @@ export default function QueueScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <ScreenHeader
-        screenTitle="Playing Queue"
-        leftIcon="arrow-back"
-        onBack={() => navigation.goBack()}
-      />
       <View style={styles.listContainer}>
         {queue.length === 0 ? (
-          <View style={styles.emptyContainer}>
+          <View style={[styles.emptyContainer, { paddingTop: insets.top + 80, paddingBottom: insets.bottom + 100 }]}>
             <Ionicons name="musical-notes-outline" size={64} color={textColor + "50"} />
             <Text style={[styles.emptyText, { color: textColor + "80" }]}>Queue is empty</Text>
           </View>
@@ -108,10 +104,22 @@ export default function QueueScreen() {
             onDragEnd={handleDragEnd}
             keyExtractor={(item) => item.id.toString() + "-" + Math.random()}
             renderItem={renderItem}
-            contentContainerStyle={styles.flatlistContent}
+            contentContainerStyle={[
+              styles.flatlistContent, 
+              { 
+                paddingTop: insets.top + 85,
+                paddingBottom: insets.bottom + 110 
+              } 
+            ]}
           />
         )}
       </View>
+
+      <ScreenHeader
+        screenTitle="Playing Queue"
+        leftIcon="arrow-back"
+        onBack={() => navigation.goBack()}
+      />
     </View>
   );
 }
