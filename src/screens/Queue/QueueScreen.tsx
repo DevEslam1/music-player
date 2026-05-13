@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from "react-redux";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
 import { RootState, AppDispatch } from "../../redux/store/store";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
-import { setQueue, setCurrentTrack, setIsPlaying } from "../../redux/store/player/playerSlice";
+import { setQueue, setCurrentTrack, setIsPlaying, removeFromQueue } from "../../redux/store/player/playerSlice";
 import { Track } from "../../types";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import { ScreenHeader } from "../../components/ScreenHeader";
@@ -79,6 +79,12 @@ export default function QueueScreen() {
               {isCurrentTrack && isPlaying && (
                 <Ionicons name="volume-high" size={20} color={accentColor} style={{ marginRight: 16 }} />
               )}
+              <TouchableOpacity 
+                onPress={() => dispatch(removeFromQueue(item.id))}
+                style={styles.removeBtn}
+              >
+                <Ionicons name="close-circle-outline" size={22} color={textColor + "40"} />
+              </TouchableOpacity>
               <TouchableOpacity onLongPress={drag} style={styles.dragHandle}>
                 <Ionicons name="menu" size={24} color={textColor + "50"} />
               </TouchableOpacity>
@@ -169,6 +175,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   dragHandle: {
+    padding: 8,
+    marginLeft: 4,
+  },
+  removeBtn: {
     padding: 8,
     marginLeft: 8,
   },

@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import React, { useState, useCallback } from "react";
-import { Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, View, RefreshControl } from "react-native";
+import { Text, StyleSheet, ActivityIndicator, TouchableOpacity, View, RefreshControl } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 import { ScreenHeader } from "../../components/ScreenHeader";
@@ -16,6 +17,7 @@ export default function DownloadsScreen() {
   const accentColor = useAccentColor();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const TypedFlashList = FlashList as any;
 
   const {
     downloadedTracks,
@@ -78,10 +80,11 @@ export default function DownloadsScreen() {
         {loading ? (
           <ActivityIndicator size="large" color={accentColor} style={{ marginTop: 40 }} />
         ) : (
-          <FlatList
+          <TypedFlashList
             data={downloadedTracks}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item: any) => item.id}
             contentContainerStyle={styles.listContainer}
+            estimatedItemSize={74}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -89,7 +92,7 @@ export default function DownloadsScreen() {
                 tintColor={accentColor}
               />
             }
-            renderItem={({ item }) => (
+            renderItem={({ item }: any) => (
               <ReanimatedSwipeable renderRightActions={() => renderRightActions(item.id)}>
                 <TouchableOpacity 
                   style={[styles.trackItem, { backgroundColor }]}

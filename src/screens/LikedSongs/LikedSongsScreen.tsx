@@ -3,11 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -71,6 +71,8 @@ export default function LikedSongsScreen() {
   const accentColor = useAccentColor();
   const insets = useSafeAreaInsets();
 
+  const TypedFlashList = FlashList as any;
+
   return (
     <View style={[styles.container, { backgroundColor }]}>
       <ScreenHeader
@@ -121,15 +123,15 @@ export default function LikedSongsScreen() {
           </Text>
         </View>
       ) : (
-        <FlatList
+        <TypedFlashList
           data={likedSongs}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item: any) => item.id}
           numColumns={2}
+          estimatedItemSize={200}
           contentContainerStyle={[
             styles.listContainer, 
             { paddingTop: insets.top + 85 }
           ]}
-          columnWrapperStyle={styles.columnWrapper}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -138,7 +140,7 @@ export default function LikedSongsScreen() {
               tintColor={accentColor}
             />
           }
-          renderItem={({ item }) => (
+          renderItem={({ item }: any) => (
             <LikedSongCard
               item={item}
               onPress={() => handlePlay(item)}

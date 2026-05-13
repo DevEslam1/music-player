@@ -85,6 +85,9 @@ const playerSlice = createSlice({
     },
     setSleepTimer: (state, action: PayloadAction<number | null>) => {
       state.sleepTimerEndAt = action.payload;
+    },
+    removeFromQueue: (state, action: PayloadAction<string>) => {
+      state.queue = state.queue.filter(t => t.id !== action.payload);
     }
   },
 });
@@ -99,6 +102,7 @@ export const {
   toggleShuffle, 
   toggleRepeat,
   setPlaybackError,
-  setSleepTimer
+  setSleepTimer,
+  removeFromQueue
 } = playerSlice.actions;
 export default playerSlice.reducer;

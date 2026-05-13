@@ -3,14 +3,13 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  FlatList, 
   TouchableOpacity,
   TextInput,
   Alert,
-  ScrollView,
   ActivityIndicator,
   RefreshControl
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -49,6 +48,7 @@ export default function PlaylistScreen() {
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
+  const TypedFlashList = FlashList as any;
 
   React.useEffect(() => {
     if (!playlistsLastFetchedAt) {
@@ -125,7 +125,10 @@ export default function PlaylistScreen() {
         }
       />
 
-      <ScrollView 
+      <TypedFlashList
+        data={playlists}
+        keyExtractor={(item: any) => item.id}
+        estimatedItemSize={86}
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 85 }]}
         refreshControl={
           <RefreshControl
@@ -134,52 +137,47 @@ export default function PlaylistScreen() {
             tintColor={accentColor}
           />
         }
-      >
-        {isCreating && (
-          <View style={[styles.createForm, { backgroundColor: inputBg }]}>
-            <Text style={[styles.formTitle, { color: textColor }]}>New Playlist</Text>
-            <TextInput
-              style={[styles.input, { color: textColor, borderBottomColor: accentColor }]}
-              placeholder="Give it a name..."
-              placeholderTextColor="#94A3B8"
-              value={newPlaylistName}
-              onChangeText={setNewPlaylistName}
-              autoFocus
-              selectionColor={accentColor}
-            />
-            <View style={styles.createFormActions}>
-              <TouchableOpacity onPress={handleCreate} style={[styles.btnPrimary, { backgroundColor: accentColor }]}>
-                <Text style={{ color: "#FFF", fontWeight: "bold" }}>Create Now</Text>
+        ListHeaderComponent={
+          isCreating ? (
+            <View style={[styles.createForm, { backgroundColor: inputBg }]}>
+              <Text style={[styles.formTitle, { color: textColor }]}>New Playlist</Text>
+              <TextInput
+                style={[styles.input, { color: textColor, borderBottomColor: accentColor }]}
+                placeholder="Give it a name..."
+                placeholderTextColor="#94A3B8"
+                value={newPlaylistName}
+                onChangeText={setNewPlaylistName}
+                autoFocus
+                selectionColor={accentColor}
+              />
+              <View style={styles.createFormActions}>
+                <TouchableOpacity onPress={handleCreate} style={[styles.btnPrimary, { backgroundColor: accentColor }]}>
+                  <Text style={{ color: "#FFF", fontWeight: "bold" }}>Create Now</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={accentColor} />
+            </View>
+          ) : !isCreating ? (
+            <View style={styles.emptyContainer}>
+              <View style={[styles.emptyIconCircle, { backgroundColor: inputBg }]}>
+                <Ionicons name="musical-notes-outline" size={50} color={accentColor} />
+              </View>
+              <Text style={[styles.emptyText, { color: textColor }]}>Your music is waiting</Text>
+              <Text style={styles.emptySubtext}>Create specialized playlists for your moods or workout sessions.</Text>
+              <TouchableOpacity style={[styles.createFirstBtn, { backgroundColor: accentColor }]} onPress={() => setIsCreating(true)}>
+                <Text style={styles.createFirstText}>Create First Playlist</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        )}
-
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={accentColor} />
-          </View>
-        ) : playlists.length === 0 && !isCreating ? (
-          <View style={styles.emptyContainer}>
-            <View style={[styles.emptyIconCircle, { backgroundColor: inputBg }]}>
-              <Ionicons name="musical-notes-outline" size={50} color={accentColor} />
-            </View>
-            <Text style={[styles.emptyText, { color: textColor }]}>Your music is waiting</Text>
-            <Text style={styles.emptySubtext}>Create specialized playlists for your moods or workout sessions.</Text>
-            <TouchableOpacity style={[styles.createFirstBtn, { backgroundColor: accentColor }]} onPress={() => setIsCreating(true)}>
-              <Text style={styles.createFirstText}>Create First Playlist</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.listContainer}>
-            {playlists.map((playlist) => (
-              <React.Fragment key={playlist.id}>
-                {renderItem({ item: playlist })}
-              </React.Fragment>
-            ))}
-          </View>
-        )}
-      </ScrollView>
+          ) : null
+        }
+        renderItem={renderItem}
+      />
     </View>
   );
 }
