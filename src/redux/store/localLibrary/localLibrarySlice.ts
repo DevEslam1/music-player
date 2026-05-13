@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { LocalTrack, LocalAlbum, LocalArtist, LocalFolder } from "../../../types";
 import { LocalMusicService } from "../../../services/local/localMusicService";
+import { loadLocalMusicPreferences } from "../../../services/storage/localMusicPreferences";
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -19,6 +20,14 @@ interface LocalLibraryState {
   /** Album IDs (name-slugs) whose ID3 metadata has been fully enriched */
   enrichedAlbumIds: string[];
   error: string | null;
+  /** Scan filter: folder paths to exclude */
+  excludedFolders: string[];
+  /** Scan filter: minimum file size in bytes (0 = disabled) */
+  minFileSizeBytes: number;
+  /** Scan filter: minimum duration in seconds (0 = disabled) */
+  minDurationSeconds: number;
+  /** All folders found on device (before exclusion) — for the settings modal */
+  allFolders: LocalFolder[];
 }
 
 const initialState: LocalLibraryState = {
@@ -32,6 +41,10 @@ const initialState: LocalLibraryState = {
   lastScannedAt: null,
   enrichedAlbumIds: [],
   error: null,
+  excludedFolders: [],
+  minFileSizeBytes: 0,
+  minDurationSeconds: 0,
+  allFolders: [],
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -111,6 +124,12 @@ export const scanLocalLibrary = createAsyncThunk<
       return rejectWithValue("Permission denied");
     }
 
+    // Load user's scan filter preferences
+    const prefs = await loadLocalMusicPreferences();
+    dispatch(setExcludedFolders(prefs.excludedFolders));
+    dispatch(setMinFileSize(prefs.minFileSizeBytes));
+    dispatch(setMinDurationSeconds(prefs.minDurationSeconds));
+
     // Try loading from cache first (unless forced rescan)
     if (!args?.forceRescan) {
       const cached = await LocalMusicService.loadCache();
@@ -119,10 +138,17 @@ export const scanLocalLibrary = createAsyncThunk<
       }
     }
 
-    // Full scan with progress callback
-    const tracks = await LocalMusicService.scanDevice((scanned, total) => {
-      dispatch(setScanProgress({ scanned, total }));
-    });
+    // Full scan with progress callback + filters
+    const tracks = await LocalMusicService.scanDevice(
+      (scanned, total) => {
+        dispatch(setScanProgress({ scanned, total }));
+      },
+      {
+        excludedFolders: prefs.excludedFolders,
+        minFileSizeBytes: prefs.minFileSizeBytes,
+        minDurationSeconds: prefs.minDurationSeconds,
+      }
+    );
 
     // Cache the result
     await LocalMusicService.saveCache(tracks);
@@ -169,6 +195,15 @@ const localLibrarySlice = createSlice({
     clearLocalLibrary(state) {
       Object.assign(state, initialState);
     },
+    setExcludedFolders(state, action: PayloadAction<string[]>) {
+      state.excludedFolders = action.payload;
+    },
+    setMinFileSize(state, action: PayloadAction<number>) {
+      state.minFileSizeBytes = action.payload;
+    },
+    setMinDurationSeconds(state, action: PayloadAction<number>) {
+      state.minDurationSeconds = action.payload;
+    },
   },
   extraReducers(builder) {
     builder
@@ -182,7 +217,12 @@ const localLibrarySlice = createSlice({
         state.tracks = tracks;
         state.artists = buildArtists(tracks);
         state.albums = buildAlbums(tracks);
-        state.folders = buildFolders(tracks);
+        const allFolders = buildFolders(tracks);
+        state.folders = allFolders;
+        // Store all folders (including excluded) so the settings modal can show them
+        if (state.allFolders.length === 0 || allFolders.length > state.allFolders.length) {
+          state.allFolders = allFolders;
+        }
         state.scanStatus = "done";
         state.lastScannedAt = timestamp;
         state.error = null;
@@ -203,6 +243,9 @@ export const {
   updateEnrichedTracks,
   updateTracks,
   clearLocalLibrary,
+  setExcludedFolders,
+  setMinFileSize,
+  setMinDurationSeconds,
 } = localLibrarySlice.actions;
 
 export default localLibrarySlice.reducer;

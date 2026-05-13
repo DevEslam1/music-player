@@ -72,6 +72,7 @@ A full-featured music streaming and offline playback app built with React Native
 - **Lazy Enrichment**: Performance-optimized metadata extraction that enriches tracks as you browse.
 - **Smart Caching**: Indexed local library results are cached for 24 hours for instant startup.
 - **Hybrid Playback**: Local tracks work seamlessly with the existing queue, shuffle, and repeat systems.
+- **Scan Filters**: Advanced controls to exclude specific folders, filter by minimum file size (0–5 MB), and filter by minimum duration (0–120s) to keep the library clean.
 
 ### ❤️ Liked Songs
 - Grid view of all liked tracks
@@ -98,6 +99,7 @@ A full-featured music streaming and offline playback app built with React Native
 - Select accent color (dynamic theme color picker)
 - Toggle dark / light / system mode
 - Language selection
+- **Local Music Filtering**: Exclude specific folders from scanning and set minimum file size/duration thresholds to filter out ringtones and short audio clips.
 - Contact, FAQ, Terms of Service links
 
 ### 🌐 Connectivity

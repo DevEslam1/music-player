@@ -1,4 +1,5 @@
 import * as MediaLibrary from "expo-media-library";
+import * as FileSystem from "expo-file-system";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LocalTrack } from "../../types";
 import { PermissionStatus } from "../../redux/store/localLibrary/localLibrarySlice";
@@ -72,11 +73,20 @@ class LocalMusicServiceClass {
    * Calls onProgress(scanned, total) periodically.
    */
   async scanDevice(
-    onProgress?: (scanned: number, total: number) => void
+    onProgress?: (scanned: number, total: number) => void,
+    filters?: {
+      excludedFolders?: string[];
+      minFileSizeBytes?: number;
+      minDurationSeconds?: number;
+    }
   ): Promise<LocalTrack[]> {
     const tracks: LocalTrack[] = [];
     let cursor: string | undefined;
     let total = 0;
+
+    const excludedSet = new Set(filters?.excludedFolders ?? []);
+    const minSizeBytes = filters?.minFileSizeBytes ?? 0;
+    const minDurationMs = (filters?.minDurationSeconds ?? 0) * 1000;
 
     // Get a rough total first for progress display
     try {
@@ -103,8 +113,26 @@ class LocalMusicServiceClass {
         const audioExts = ["mp3", "m4a", "flac", "ogg", "aac", "wav", "opus", "wma", "alac"];
         if (!audioExts.includes(ext)) continue;
 
-        const { title, artist } = parseFilename(asset.filename);
         const { folderName, folderPath } = parseFolderFromUri(asset.uri);
+
+        // ── Filter: excluded folders ──────────────────────────────────────
+        if (excludedSet.size > 0 && excludedSet.has(folderPath)) continue;
+
+        // ── Filter: minimum duration ─────────────────────────────────────
+        const durationMs = Math.round((asset.duration ?? 0) * 1000);
+        if (minDurationMs > 0 && durationMs < minDurationMs) continue;
+
+        // ── Filter: minimum file size ────────────────────────────────────
+        if (minSizeBytes > 0) {
+          try {
+            const fileInfo = await FileSystem.getInfoAsync(asset.uri);
+            if (fileInfo.exists && 'size' in fileInfo && (fileInfo as any).size < minSizeBytes) continue;
+          } catch {
+            // If we can't check size, include the file
+          }
+        }
+
+        const { title, artist } = parseFilename(asset.filename);
 
         tracks.push({
           id: asset.id,
@@ -112,7 +140,7 @@ class LocalMusicServiceClass {
           artist,
           album: "Unknown Album",
           image: "",
-          duration: Math.round((asset.duration ?? 0) * 1000),
+          duration: durationMs,
           uri: asset.uri,
           previewUrl: asset.uri,
           folderName,

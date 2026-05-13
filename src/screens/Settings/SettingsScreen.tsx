@@ -20,6 +20,16 @@ import { ScreenHeader } from "../../components/ScreenHeader";
 import { saveThemePreferences } from "../../services/storage/themePreferences";
 import { ACCENT_COLORS } from "../../constants/theme";
 import { setAutoDownloadEnabled } from "../../redux/store/downloads/downloadsSlice";
+import { ExcludedFoldersModal } from "../../components/settings/ExcludedFoldersModal";
+import { 
+  setExcludedFolders, 
+  setMinFileSize, 
+  setMinDurationSeconds,
+  clearLocalLibrary,
+  scanLocalLibrary 
+} from "../../redux/store/localLibrary/localLibrarySlice";
+import { saveLocalMusicPreferences, loadLocalMusicPreferences } from "../../services/storage/localMusicPreferences";
+import React, { useState, useEffect } from "react";
 
 export default function SettingsScreen() {
   const navigation = useNavigation<any>();
@@ -27,12 +37,19 @@ export default function SettingsScreen() {
   const { isDarkMode, themeMode } = useSelector((state: RootState) => state.theme);
   const { advancedBlurEnabled, blurIntensity } = useBlurSettings();
   const autoDownloadEnabled = useSelector((state: RootState) => state.downloads.autoDownloadEnabled);
+  const { excludedFolders, minFileSizeBytes, minDurationSeconds, allFolders, folders } = 
+    useSelector((state: RootState) => state.localLibrary);
+  
+  const [foldersModalVisible, setFoldersModalVisible] = useState(false);
+  
+  // Use allFolders if available, otherwise fall back to current folders
+  const availableFolders = allFolders.length > 0 ? allFolders : folders;
   
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const surfaceColor = useThemeColor({}, "surface");
   const accentColor = useAccentColor();
-  const appVersion = Constants.expoConfig?.version ?? "2.2.0";
+  const appVersion = Constants.expoConfig?.version ?? "2.4.0";
 
   const handleUpdateThemeMode = (mode: "light" | "dark" | "system") => {
     dispatch(setThemeMode(mode));
@@ -48,6 +65,47 @@ export default function SettingsScreen() {
 
   const handleUpdateBlurIntensity = (val: number) => {
     dispatch(setBlurIntensity(val));
+  };
+
+  // ── Local Music filter handlers ────────────────────────────────────
+  const triggerRescan = () => {
+    dispatch(clearLocalLibrary());
+    dispatch(scanLocalLibrary({ forceRescan: true }));
+  };
+
+  const handleToggleFolder = async (folderPath: string) => {
+    const current = new Set(excludedFolders);
+    if (current.has(folderPath)) {
+      current.delete(folderPath);
+    } else {
+      current.add(folderPath);
+    }
+    const updated = Array.from(current);
+    dispatch(setExcludedFolders(updated));
+    const prefs = await loadLocalMusicPreferences();
+    await saveLocalMusicPreferences({ ...prefs, excludedFolders: updated });
+  };
+
+  const handleMinFileSizeChange = async (val: number) => {
+    const bytes = Math.round(val * 1_000_000); // MB → bytes
+    dispatch(setMinFileSize(bytes));
+    const prefs = await loadLocalMusicPreferences();
+    await saveLocalMusicPreferences({ ...prefs, minFileSizeBytes: bytes });
+    triggerRescan();
+  };
+
+  const handleMinDurationChange = async (val: number) => {
+    const seconds = Math.round(val);
+    dispatch(setMinDurationSeconds(seconds));
+    const prefs = await loadLocalMusicPreferences();
+    await saveLocalMusicPreferences({ ...prefs, minDurationSeconds: seconds });
+    triggerRescan();
+  };
+
+  const handleFoldersModalClose = () => {
+    setFoldersModalVisible(false);
+    // Rescan after closing modal if exclusions changed
+    triggerRescan();
   };
 
   const insets = useSafeAreaInsets();
@@ -171,6 +229,69 @@ export default function SettingsScreen() {
           </SettingItem>
         </View>
 
+        {/* ── Local Music Filters ──────────────────────────────────────── */}
+        <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+          <Text style={[styles.sectionTitle, { color: accentColor }]}>Local Music</Text>
+
+          {/* Excluded Folders */}
+          <SettingItem
+            icon="folder-outline"
+            label="Excluded Folders"
+            onPress={() => setFoldersModalVisible(true)}
+          >
+            <View style={styles.itemRight}>
+              <Text style={styles.valueText}>
+                {excludedFolders.length > 0 ? `${excludedFolders.length} excluded` : "None"}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+            </View>
+          </SettingItem>
+
+          {/* Minimum File Size Slider */}
+          <View style={styles.blurControl}>
+            <View style={styles.blurHeader}>
+              <Text style={[styles.blurLabel, { color: textColor }]}>Min File Size</Text>
+              <Text style={[styles.intensityValue, { color: accentColor }]}>
+                {minFileSizeBytes > 0 ? `${(minFileSizeBytes / 1_000_000).toFixed(1)} MB` : "Off"}
+              </Text>
+            </View>
+            <Slider
+              style={{ width: '100%', height: 40 }}
+              minimumValue={0}
+              maximumValue={5}
+              step={0.5}
+              value={minFileSizeBytes / 1_000_000}
+              onSlidingComplete={handleMinFileSizeChange}
+              minimumTrackTintColor={accentColor}
+              maximumTrackTintColor="rgba(148, 163, 184, 0.3)"
+              thumbTintColor={accentColor}
+            />
+            <Text style={styles.blurHint}>Filter out small files like ringtones and notifications.</Text>
+          </View>
+
+          {/* Minimum Duration Slider */}
+          <View style={styles.blurControl}>
+            <View style={styles.blurHeader}>
+              <Text style={[styles.blurLabel, { color: textColor }]}>Min Duration</Text>
+              <Text style={[styles.intensityValue, { color: accentColor }]}>
+                {minDurationSeconds > 0 ? `${minDurationSeconds}s` : "Off"}
+              </Text>
+            </View>
+            <Slider
+              style={{ width: '100%', height: 40 }}
+              minimumValue={0}
+              maximumValue={120}
+              step={5}
+              value={minDurationSeconds}
+              onSlidingComplete={handleMinDurationChange}
+              minimumTrackTintColor={accentColor}
+              maximumTrackTintColor="rgba(148, 163, 184, 0.3)"
+              thumbTintColor={accentColor}
+            />
+            <Text style={styles.blurHint}>Skip audio clips shorter than this duration.</Text>
+          </View>
+        </View>
+
         <View style={[styles.section, { backgroundColor: surfaceColor }]}>
           <Text style={[styles.sectionTitle, { color: accentColor }]}>Support</Text>
           <SettingItem 
@@ -203,6 +324,15 @@ export default function SettingsScreen() {
           </SettingItem>
         </View>
       </ScrollView>
+
+      {/* Excluded Folders Modal */}
+      <ExcludedFoldersModal
+        visible={foldersModalVisible}
+        onClose={handleFoldersModalClose}
+        folders={availableFolders}
+        excludedFolders={excludedFolders}
+        onToggleFolder={handleToggleFolder}
+      />
     </View>
   );
 }
