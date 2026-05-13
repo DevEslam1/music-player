@@ -65,8 +65,12 @@ class AudioPlayerService {
       // Check if we have a locally downloaded version of this track!
       const playerSource: any = {
         uri: track.previewUrl || track.uri,
-        headers,
       };
+
+      // Only attach headers if they are non-empty and it's not a local file
+      if (Object.keys(headers).length > 0 && !isLocalFile) {
+        playerSource.headers = headers;
+      }
 
       // Check if we have a locally downloaded version of this track.
       // getLocalUri() already verifies the file exists on disk — trust its result directly.

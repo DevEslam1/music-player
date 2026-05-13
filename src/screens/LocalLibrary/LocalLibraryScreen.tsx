@@ -136,15 +136,18 @@ function SongsTab({ tracks }: { tracks: LocalTrack[] }) {
         keyExtractor={item => item.id}
         renderItem={({ item, index }) => (
           <TouchableOpacity style={styles.songRow} onPress={() => handlePlay(item)} activeOpacity={0.7}>
-            <View style={[styles.songIdx, { backgroundColor: accentColor + "15" }]}>
+            <View style={[styles.songIdx, { backgroundColor: accentColor + "12" }]}>
               <Text style={[styles.songIdxTxt, { color: accentColor }]}>{index + 1}</Text>
             </View>
             <View style={styles.songInfo}>
               <Text style={[styles.songName, { color: textColor }]} numberOfLines={1}>{item.name}</Text>
-              <Text style={[styles.songArtist, { color: textColor + "60" }]} numberOfLines={1}>{item.artist}</Text>
+              <Text style={[styles.songArtist, { color: textColor + "50" }]} numberOfLines={1}>{item.artist}</Text>
             </View>
-            <Text style={[styles.songDur, { color: textColor + "50" }]}>{fmt(item.duration)}</Text>
-            <Ionicons name="play-circle-outline" size={26} color={accentColor} />
+            <View style={styles.songRight}>
+              <Text style={[styles.songDur, { color: textColor + "40" }]}>{fmt(item.duration)}</Text>
+              <Ionicons name="play-circle" size={24} color={accentColor} style={{ opacity: 0.9 }} />
+            </View>
+            <View style={[styles.rowSeparator, { backgroundColor: textColor + "08" }]} />
           </TouchableOpacity>
         )}
         getItemLayout={(_, i) => ({ length: 68, offset: 68 * i, index: i })}
@@ -171,19 +174,20 @@ function ArtistsTab({ artists }: { artists: LocalArtist[] }) {
             onPress={() => navigation.navigate("LocalArtistDetail", { artistName: item.name })}
             activeOpacity={0.7}
           >
-            <View style={[styles.circleThumb, { backgroundColor: accentColor + "20" }]}>
+            <View style={[styles.circleThumb, { backgroundColor: accentColor + "15" }]}>
               {item.coverImage
                 ? <Image source={{ uri: item.coverImage }} style={StyleSheet.absoluteFill} contentFit="cover" />
-                : <Ionicons name="person" size={24} color={accentColor} />}
+                : <Ionicons name="person" size={22} color={accentColor} />}
             </View>
             <View style={styles.rowInfo}>
               <Text style={[styles.rowTitle, { color: textColor }]} numberOfLines={1}>{item.name}</Text>
-              <Text style={[styles.rowMeta, { color: textColor + "60" }]}>
+              <Text style={[styles.rowMeta, { color: textColor + "50" }]}>
                 {item.trackCount} song{item.trackCount !== 1 ? "s" : ""}
                 {item.albumCount > 0 ? ` · ${item.albumCount} album${item.albumCount !== 1 ? "s" : ""}` : ""}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={17} color={textColor + "40"} />
+            <Ionicons name="chevron-forward" size={16} color={textColor + "30"} />
+            <View style={[styles.rowSeparator, { backgroundColor: textColor + "08", left: 78 }]} />
           </TouchableOpacity>
         )}
         contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 16 }}
@@ -244,16 +248,17 @@ function FoldersTab({ folders }: { folders: LocalFolder[] }) {
             onPress={() => navigation.navigate("LocalFolderDetail", { folderPath: item.path, folderName: item.name })}
             activeOpacity={0.7}
           >
-            <View style={[styles.folderThumb, { backgroundColor: accentColor + "15" }]}>
-              <Ionicons name="folder" size={28} color={accentColor} />
+            <View style={[styles.folderThumb, { backgroundColor: accentColor + "12" }]}>
+              <Ionicons name="folder" size={26} color={accentColor} />
             </View>
             <View style={styles.rowInfo}>
               <Text style={[styles.rowTitle, { color: textColor }]} numberOfLines={1}>{item.name}</Text>
-              <Text style={[styles.rowMeta, { color: textColor + "60" }]}>
+              <Text style={[styles.rowMeta, { color: textColor + "50" }]}>
                 {item.trackCount} song{item.trackCount !== 1 ? "s" : ""}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={17} color={textColor + "40"} />
+            <Ionicons name="chevron-forward" size={16} color={textColor + "30"} />
+            <View style={[styles.rowSeparator, { backgroundColor: textColor + "08", left: 78 }]} />
           </TouchableOpacity>
         )}
         contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 16 }}
@@ -379,18 +384,20 @@ const styles = StyleSheet.create({
   // Song row
   songRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, paddingHorizontal: 4, gap: 12, height: 68 },
   songIdx: { width: 34, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  songIdxTxt: { fontSize: 13, fontWeight: "700" },
+  songIdxTxt: { fontSize: 13, fontWeight: "800" },
   songInfo: { flex: 1 },
-  songName: { fontSize: 15, fontWeight: "600", marginBottom: 2 },
-  songArtist: { fontSize: 13 },
-  songDur: { fontSize: 12, marginRight: 4 },
+  songName: { fontSize: 15, fontWeight: "700", marginBottom: 2 },
+  songArtist: { fontSize: 12 },
+  songRight: { flexDirection: "row", alignItems: "center", gap: 10 },
+  songDur: { fontSize: 12 },
   // Generic row
-  rowItem: { flexDirection: "row", alignItems: "center", paddingVertical: 12, gap: 14 },
-  circleThumb: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center", overflow: "hidden" },
-  folderThumb: { width: 52, height: 52, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  rowItem: { flexDirection: "row", alignItems: "center", paddingVertical: 14, gap: 14 },
+  circleThumb: { width: 50, height: 50, borderRadius: 25, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  folderThumb: { width: 50, height: 50, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   rowInfo: { flex: 1 },
-  rowTitle: { fontSize: 16, fontWeight: "700", marginBottom: 2 },
+  rowTitle: { fontSize: 16, fontWeight: "700", marginBottom: 3 },
   rowMeta: { fontSize: 13 },
+  rowSeparator: { position: "absolute", bottom: 0, left: 58, right: 0, height: 1 },
   // Album grid
   albumArt: { borderRadius: 14, overflow: "hidden", alignItems: "center", justifyContent: "center", marginBottom: 8 },
   albumTitle: { fontSize: 14, fontWeight: "700", marginBottom: 2 },

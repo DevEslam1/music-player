@@ -87,13 +87,16 @@ export default function LocalArtistDetailScreen() {
         }
         renderItem={({ item, index }) => (
           <TouchableOpacity style={styles.row} onPress={() => handlePlay(item, tracks)} activeOpacity={0.7}>
-            <Text style={[styles.idx, { color: textColor + "50" }]}>{index + 1}</Text>
+            <Text style={[styles.idx, { color: textColor + "40" }]}>{index + 1}</Text>
             <View style={styles.info}>
               <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>{item.name}</Text>
-              <Text style={[styles.meta, { color: textColor + "60" }]} numberOfLines={1}>{item.album}</Text>
+              <Text style={[styles.meta, { color: textColor + "50" }]} numberOfLines={1}>{item.album}</Text>
             </View>
-            <Text style={[styles.dur, { color: textColor + "50" }]}>{fmt(item.duration)}</Text>
-            <Ionicons name="play-circle-outline" size={24} color={accentColor} />
+            <View style={styles.rightSide}>
+              <Text style={[styles.dur, { color: textColor + "40" }]}>{fmt(item.duration)}</Text>
+              <Ionicons name="play-circle" size={22} color={accentColor} style={{ opacity: 0.9 }} />
+            </View>
+            <View style={[styles.rowSeparator, { backgroundColor: textColor + "08" }]} />
           </TouchableOpacity>
         )}
       />
@@ -121,10 +124,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24, paddingVertical: 12, borderRadius: 30, borderWidth: 1.5,
   },
   actionBtnTxt: { color: "#fff", fontWeight: "700", fontSize: 15 },
-  row: { flexDirection: "row", alignItems: "center", paddingVertical: 12, gap: 12 },
-  idx: { width: 28, fontSize: 14, fontWeight: "600", textAlign: "center" },
+  row: { flexDirection: "row", alignItems: "center", paddingVertical: 14, gap: 12 },
+  idx: { width: 28, fontSize: 13, fontWeight: "800", textAlign: "center" },
   info: { flex: 1 },
-  title: { fontSize: 15, fontWeight: "600", marginBottom: 2 },
-  meta: { fontSize: 13 },
-  dur: { fontSize: 12, marginRight: 4 },
+  title: { fontSize: 15, fontWeight: "700", marginBottom: 2 },
+  meta: { fontSize: 12 },
+  rightSide: { flexDirection: "row", alignItems: "center", gap: 10 },
+  dur: { fontSize: 12 },
+  rowSeparator: { position: "absolute", bottom: 0, left: 40, right: 0, height: 1 },
 });
