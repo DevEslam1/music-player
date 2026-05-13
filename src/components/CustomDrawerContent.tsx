@@ -200,6 +200,14 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           isDarkMode={isDarkMode}
           onPress={() => props.navigation.navigate("Downloads")} 
         />
+        <DrawerItem 
+          icon="musical-notes-outline" 
+          label="Local Music" 
+          textColor={textColor}
+          active={activeRoute === "LocalLibrary"}
+          isDarkMode={isDarkMode}
+          onPress={() => props.navigation.navigate("LocalLibrary")} 
+        />
         
         <View style={[styles.divider, { backgroundColor: textColor + '20' }]} />
 

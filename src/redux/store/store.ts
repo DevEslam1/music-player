@@ -5,6 +5,7 @@ import playerReducer from "./player/playerSlice";
 import libraryReducer from "./library/librarySlice";
 import downloadsReducer from "./downloads/downloadsSlice";
 import uiReducer from "./ui/uiSlice";
+import localLibraryReducer from "./localLibrary/localLibrarySlice";
 
 export const store = configureStore({
   reducer: { 
@@ -14,6 +15,7 @@ export const store = configureStore({
     library: libraryReducer,
     downloads: downloadsReducer,
     ui: uiReducer,
+    localLibrary: localLibraryReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

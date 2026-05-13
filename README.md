@@ -65,6 +65,14 @@ A full-featured music streaming and offline playback app built with React Native
 - Add tracks to playlists
 - Like / Unlike directly from search results
 
+### 🎵 Local Music Library
+- **On-Device Scanning**: Automatically scan for audio files in device storage (Downloads, Music folders).
+- **Tabbed Browsing**: Modern swipe-enabled interface to browse local songs by **Song**, **Artist**, **Album**, and **Folder**.
+- **ID3 Metadata Extraction**: Automatic extraction of title, artist, album, and embedded cover art from MP3/M4A/FLAC files.
+- **Lazy Enrichment**: Performance-optimized metadata extraction that enriches tracks as you browse.
+- **Smart Caching**: Indexed local library results are cached for 24 hours for instant startup.
+- **Hybrid Playback**: Local tracks work seamlessly with the existing queue, shuffle, and repeat systems.
+
 ### ❤️ Liked Songs
 - Grid view of all liked tracks
 - Edit mode with swipe-to-remove badges
@@ -115,6 +123,8 @@ A full-featured music streaming and offline playback app built with React Native
 | State Management | Redux Toolkit |
 | Navigation | React Navigation (Native Stack + Drawer) |
 | Audio | expo-audio (background + lock screen) |
+| Media Library | expo-media-library (scanning local storage) |
+| Metadata | expo-music-info-2 (ID3 tag extraction) |
 | Glass-Morphism | expo-blur |
 | Images | expo-image (disk cache) |
 | Gestures | react-native-gesture-handler |
@@ -149,6 +159,7 @@ src/
 │   ├── NowPlaying/          # Full player
 │   ├── Profile/             # User profile
 │   ├── Settings/            # App settings
+│   ├── LocalLibrary/        # **NEW**: Local music tabs + detail views
 │   ├── Notifications/       # Notifications
 │   ├── Support/             # Support page
 │   ├── Contact/             # Contact form
@@ -162,9 +173,11 @@ src/
 │   ├── library/             # Track library cache
 │   ├── downloads/           # Downloaded tracks + progress
 │   ├── theme/               # Dark mode + accent color
+│   ├── localLibrary/        # **NEW**: Indexed local device tracks
 │   └── ui/                  # Global UI state (banner messages)
 ├── services/
 │   ├── api/                 # Axios client, auth, library, download services
+│   ├── local/               # **NEW**: Local device music scanning & ID3 logic
 │   ├── audio/               # AudioPlayerService singleton
 │   ├── auth/                # Token read/write (AsyncStorage)
 │   ├── logic/               # Screen logic hooks
@@ -242,6 +255,9 @@ Axios interceptors silently refresh expired access tokens using the stored refre
 ### Gesture-First Mini Player
 The mini player uses `react-native-gesture-handler`'s `Gesture.Pan()` API composed with `Gesture.Simultaneous()` so swipe-to-change-track and long-press-to-scrub can coexist without conflict, both running on the UI thread via Reanimated shared values.
 
+### Local Music Scanning & Caching
+The local library feature uses `expo-media-library` to recursively scan for audio assets. To handle large libraries (1000+ songs) efficiently, the scan is paginated and the results are indexed into Redux and cached in `AsyncStorage` with a 24-hour TTL. ID3 metadata (including cover art) is extracted "lazily" using `expo-music-info-2` only when a user navigates to a specific album or artist detail, ensuring the initial scan remains fast.
+
 ### Runtime Dependency Injection
 To prevent Metro bundler `Require cycle` loops that cause sporadic `undefined` errors (e.g. from circular imports like `components -> store -> slice -> service -> components`), services such as `DownloadService` leverage run-time dependency injection (`injectRedux`), initialized safely inside `AppBootstrap`.
 
@@ -256,6 +272,8 @@ To prevent Metro bundler `Require cycle` loops that cause sporadic `undefined` e
 | `FOREGROUND_SERVICE_AUDIO_PLAYBACK` | Lock screen controls (Android) |
 | `WAKE_LOCK` | Keep audio alive while screen is off |
 | `ACCESS_NETWORK_STATE` | Detect offline/online status |
+| `READ_MEDIA_AUDIO` | Access local audio files (Android 13+) |
+| `READ_EXTERNAL_STORAGE` | Access local audio files (Legacy Android) |
 
 ---
 

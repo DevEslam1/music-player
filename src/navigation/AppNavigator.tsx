@@ -13,6 +13,9 @@ import { WelcomeScreen } from "../screens/Auth";
 import { MiniPlayer } from "../components/MiniPlayer";
 import NotificationsScreen from "../screens/Notifications/NotificationsScreen";
 import SupportScreen from "../screens/Support/SupportScreen";
+import LocalArtistDetailScreen from "../screens/LocalLibrary/LocalArtistDetailScreen";
+import LocalAlbumDetailScreen from "../screens/LocalLibrary/LocalAlbumDetailScreen";
+import LocalFolderDetailScreen from "../screens/LocalLibrary/LocalFolderDetailScreen";
 
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store/store";
@@ -30,6 +33,9 @@ export type MainStack = {
   Welcome: undefined;
   Notifications: undefined;
   Support: undefined;
+  LocalArtistDetail: { artistName: string };
+  LocalAlbumDetail: { albumName: string };
+  LocalFolderDetail: { folderPath: string; folderName: string };
 };
 
 const Stack = createNativeStackNavigator<MainStack>();
@@ -76,6 +82,9 @@ const AppNavigator = ({ currentRoute }: AppNavigatorProps) => {
             <Stack.Screen name="TermsOfService" component={TermsScreen} />
             <Stack.Screen name="Notifications" component={NotificationsScreen} />
             <Stack.Screen name="Support" component={SupportScreen} />
+            <Stack.Screen name="LocalArtistDetail" component={LocalArtistDetailScreen} />
+            <Stack.Screen name="LocalAlbumDetail" component={LocalAlbumDetailScreen} />
+            <Stack.Screen name="LocalFolderDetail" component={LocalFolderDetailScreen} />
           </Stack.Group>
         )}
       </Stack.Navigator>

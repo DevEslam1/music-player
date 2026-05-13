@@ -54,7 +54,11 @@ class AudioPlayerService {
       this.lastProgressDispatch = 0;
       
       const token = await getAccessToken();
-      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+      const isLocalFile =
+        (track.uri ?? "").startsWith("file://") ||
+        (track.previewUrl ?? "").startsWith("file://");
+      const headers: Record<string, string> =
+        !isLocalFile && token ? { Authorization: `Bearer ${token}` } : {};
 
       await initAudioMode();
 

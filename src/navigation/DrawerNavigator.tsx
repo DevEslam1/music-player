@@ -9,14 +9,15 @@ import ContactScreen from "../screens/Contact/ContactScreen";
 import LanguageScreen from "../screens/Language/LanguageScreen";
 import { useThemeColor } from "../hooks/use-theme-color";
 import { CustomDrawerContent } from "../components/CustomDrawerContent";
-
 import DownloadsScreen from "../screens/Downloads/DownloadsScreen";
+import LocalLibraryScreen from "../screens/LocalLibrary/LocalLibraryScreen";
 
 export type drawerType = {
   Home: undefined;
   Playlist: undefined;
   LikedSongs: undefined;
   Downloads: undefined;
+  LocalLibrary: undefined;
   Profile: undefined;
   FAQ: undefined;
   Settings: undefined;
@@ -50,6 +51,7 @@ const DrawerNavigator = () => {
       <Drawer.Screen name="LikedSongs" component={LikedSongsScreen} />
       <Drawer.Screen name="Playlist" component={PlaylistScreen} />
       <Drawer.Screen name="Downloads" component={DownloadsScreen} />
+      <Drawer.Screen name="LocalLibrary" component={LocalLibraryScreen} />
       <Drawer.Screen name="Profile" component={ProfileScreen} />
       <Drawer.Screen name="FAQ" component={FAQScreen} />
       <Drawer.Screen name="Settings" component={SettingsScreen} />
