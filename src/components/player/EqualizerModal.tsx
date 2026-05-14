@@ -128,8 +128,9 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ visible, onClose
           style={[
             styles.modalContainer, 
             { 
-              backgroundColor: isDark ? 'rgba(21, 23, 24, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-              paddingBottom: Math.max(insets.bottom, 24)
+              backgroundColor: isDark ? '#151718' : '#FFFFFF',
+              paddingBottom: Math.max(insets.bottom, 24),
+              height: Dimensions.get('window').height * 0.85
             }
           ]}
         >

@@ -696,7 +696,7 @@ index b2409a0..a844341 100644
      }
  }
 diff --git a/node_modules/react-native-track-player/android/src/main/java/com/doublesymmetry/trackplayer/service/MusicService.kt b/node_modules/react-native-track-player/android/src/main/java/com/doublesymmetry/trackplayer/service/MusicService.kt
-index afa6b0f..f236843 100644
+index afa6b0f..c5a0f81 100644
 --- a/node_modules/react-native-track-player/android/src/main/java/com/doublesymmetry/trackplayer/service/MusicService.kt
 +++ b/node_modules/react-native-track-player/android/src/main/java/com/doublesymmetry/trackplayer/service/MusicService.kt
 @@ -31,9 +31,12 @@ import com.doublesymmetry.trackplayer.utils.BundleUtils
@@ -758,7 +758,7 @@ index afa6b0f..f236843 100644
              ?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
              ?.emit(event, payload)
      }
-@@ -851,4 +873,93 @@ class MusicService : HeadlessJsTaskService() {
+@@ -851,4 +873,89 @@ class MusicService : HeadlessJsTaskService() {
          const val DEFAULT_JUMP_INTERVAL = 15.0
          const val DEFAULT_STOP_FOREGROUND_GRACE_PERIOD = 5
      }
@@ -782,24 +782,20 @@ index afa6b0f..f236843 100644
 +
 +    @MainThread
 +    fun setEqualizerEnabled(enabled: Boolean): Boolean {
-+        if (!enabled) {
-+            try {
++        try {
++            if (!enabled) {
 +                equalizer?.enabled = false
 +                equalizer?.release()
-+            } catch (e: Exception) {
-+                Timber.e("Error disabling/releasing EQ: ${e.message}")
++                equalizer = null
++                return true
 +            }
-+            equalizer = null
-+            return false
-+        }
-+        
-+        val eq = ensureEqualizer()
-+        return try {
++            
++            val eq = ensureEqualizer()
 +            eq?.enabled = true
-+            true
++            return true
 +        } catch (e: Exception) {
-+            Timber.e("Error enabling EQ: ${e.message}")
-+            false
++            Timber.e("Error toggling EQ: ${e.message}")
++            return false
 +        }
 +    }
 +

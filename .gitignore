@@ -1,18 +1,18 @@
-node_modules
-CHANGELOG.md
+# Dependencies
+node_modules/
+
+# Expo / Build artifacts
 .expo/
-android/
-web/
-implementation_plan.md.resolved
 dist/
-CLAUDE.md
-tasks.md
-.gemini/
-.specify/
-GEMINI.md
-PRESENTATION_HIGHLIGHTS.md
-AGENTS.md
-google_slides_presentation.md
-presentaion.md
-ios/
-new updates.md
+web/
+android/build/
+ios/build/
+
+# IDE / System files
+.vscode/
+.DS_Store
+*.log
+tmp/
+
+# Keep native folders and documentation tracked
+# (Removed android/, ios/, CHANGELOG.md, AGENTS.md, etc. from ignore list)

@@ -28,6 +28,14 @@ A full-featured music streaming and offline playback app built with React Native
 - Repeat modes: off / repeat track / repeat queue
 - Shuffle mode
 
+### 🎛 Audio Equalizer (Android)
+
+- **Native 5-Band EQ**: Real-time frequency control (60Hz, 230Hz, 910Hz, 3.6kHz, 14kHz) for specialized audio tuning.
+- **Dynamic Presets**: 12 curated presets including Bass Boost, Rock, Pop, Jazz, Classical, and Vocal Booster.
+- **Custom Mode**: Save and persist custom band gains (+15dB to -15dB) across app restarts.
+- **Smart Session Sync**: Automatically attaches the native audio effect to the current playback session for zero-latency tuning.
+- **Premium Interface**: Sleek, theme-aware equalizer modal with haptic-enabled sliders.
+
 ### 📥 Offline / Downloads
 
 - **Bulk Download everything** via one-tap toggles on lists/playlists
@@ -299,6 +307,12 @@ To prevent Metro bundler `Require cycle` loops that cause sporadic `undefined` e
 ---
 
 ## Changelog
+
+### v2.7.0 (May 2026)
+
+- **🎛 Android Audio Equalizer**: Native 5-band frequency control with 12 presets and custom tuning.
+- **💾 EQ Persistence**: All equalizer settings (bands, presets, power state) are automatically saved and restored on startup.
+- **⚡ Native Bridge**: Optimized reflection-based audio session tracking in the Android Kotlin layer for reliable effect application.
 
 ### v2.6.0 (May 2026)
 
