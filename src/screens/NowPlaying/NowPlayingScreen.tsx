@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import React, { useRef, useEffect, useCallback } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Platform, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Platform, ScrollView, Share } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -128,6 +128,32 @@ export default function NowPlayingScreen() {
         track: currentTrack 
       }));
       setIsPickerVisible(false);
+    }
+  }, [currentTrack, dispatch]);
+
+  const handleShare = useCallback(async () => {
+    if (!currentTrack) return;
+    
+    try {
+      const message = `Check out "${currentTrack.name}" by ${currentTrack.artist} on GiG Player!\n\nListen here: ${currentTrack.previewUrl || currentTrack.uri}`;
+      
+      const result = await Share.share({
+        message,
+        title: `Share ${currentTrack.name}`,
+        url: currentTrack.previewUrl || currentTrack.uri, // iOS only
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error: any) {
+      dispatch(showBanner({ message: error.message, type: "error" }));
     }
   }, [currentTrack, dispatch]);
 
@@ -312,7 +338,7 @@ export default function NowPlayingScreen() {
           <TouchableOpacity
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              dispatch(showBanner({ message: "Share feature coming soon!", type: "warning" }));
+              handleShare();
             }}
             style={styles.bottomEdgeBtn}
           >
