@@ -55,6 +55,8 @@ export default function NowPlayingScreen() {
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
 
+  const lyricsScrollRef = useRef<ScrollView>(null);
+
   const currentIndex = currentTrack && queue.length > 0 
     ? queue.findIndex(t => t.id === currentTrack?.id) 
     : 0;
@@ -88,6 +90,12 @@ export default function NowPlayingScreen() {
       breathe.value = withTiming(0, { duration: 300 });
     }
   }, [isPlaying]);
+  useEffect(() => {
+    // Reset lyrics scroll when track changes
+    if (showLyrics) {
+      lyricsScrollRef.current?.scrollTo({ y: 0, animated: false });
+    }
+  }, [currentTrack?.id, showLyrics]);
 
   const animatedImageStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value + breathe.value * 0.015 }],
@@ -203,7 +211,10 @@ export default function NowPlayingScreen() {
           />
         ) : (
           <View style={styles.lyricsContainer}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              ref={lyricsScrollRef}
+              showsVerticalScrollIndicator={false}
+            >
               <Text style={[styles.lyricsText, { color: textColor }]}>
                 {currentTrack.name} by {currentTrack.artist}{"\n\n"}
                 Lyrics coming soon!{"\n\n"}
