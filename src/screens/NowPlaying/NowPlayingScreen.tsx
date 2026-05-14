@@ -61,20 +61,28 @@ export default function NowPlayingScreen() {
   const lyricsScrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchLyrics = async () => {
       if (!currentTrack) return;
       setIsLyricsLoading(true);
       try {
         const result = await LyricsService.getLyrics(currentTrack);
-        setLyrics(result);
+        if (isMounted) {
+          setLyrics(result);
+        }
       } catch (e) {
-        setLyrics([]);
+        if (isMounted) {
+          setLyrics([]);
+        }
       } finally {
-        setIsLyricsLoading(false);
+        if (isMounted) {
+          setIsLyricsLoading(false);
+        }
       }
     };
 
     fetchLyrics();
+    return () => { isMounted = false; };
   }, [currentTrack?.id]);
 
   // Find the active line based on current playback position
@@ -94,8 +102,8 @@ export default function NowPlayingScreen() {
   // Auto-scroll to active line
   useEffect(() => {
     if (showLyrics && activeLineIndex !== -1 && lyricsScrollRef.current) {
-      // Approximate height per line (40 for padding/text)
-      const scrollY = Math.max(0, activeLineIndex * 60 - 150); 
+      // Calculate scroll position to center the active line (approx 60px per line)
+      const scrollY = Math.max(0, activeLineIndex * 64 - 140); 
       lyricsScrollRef.current.scrollTo({ y: scrollY, animated: true });
     }
   }, [activeLineIndex, showLyrics]);
@@ -388,9 +396,6 @@ export default function NowPlayingScreen() {
           onPrevious={onPrevious}
           onNext={onNext}
           onOpenQueue={() => navigation.navigate("Queue")}
-          onToggleLyrics={() => dispatch(setShowLyrics(!showLyrics))}
-          showLyrics={showLyrics}
-          artist={currentTrack.artist}
           textColor={textColor}
         />
 

@@ -22,10 +22,6 @@ interface PlaybackControlsProps {
   onPrevious: () => void;
   onNext: () => void;
   onOpenQueue: () => void;
-  onToggleLyrics: () => void;
-  showLyrics: boolean;
-  artist?: string;
-  onShare?: () => void;
   textColor: string;
 }
 
@@ -41,10 +37,6 @@ export const PlaybackControls = React.memo(({
   onPrevious,
   onNext,
   onOpenQueue,
-  onToggleLyrics,
-  showLyrics,
-  artist,
-  onShare,
   textColor
 }: PlaybackControlsProps) => {
   const accentColor = useAccentColor();
@@ -179,12 +171,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  edgeBtn: {
-    padding: 12,
-    width: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   mainControls: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -210,15 +196,4 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
-  miniSubtitle: {
-    alignItems: 'center',
-    width: 60,
-    marginRight: 8,
-  },
-  miniArtistText: {
-    fontSize: 10,
-    fontWeight: '600',
-    opacity: 0.7,
-    textAlign: 'center',
-  }
 });

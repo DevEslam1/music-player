@@ -4,6 +4,7 @@ import { LibraryService } from "../../../services/api/libraryService";
 import { getRecommendedSongs, searchSongs } from "../../../services/api/api";
 import { DownloadService } from "../../../services/api/downloadService";
 import { RootState } from "../store";
+import { showBanner } from "../ui/uiSlice";
 
 
 const HOME_FEED_TTL_MS = 5 * 60 * 1000;
@@ -64,11 +65,17 @@ export const toggleLikeSongAction = createAsyncThunk<
     // Auto-download logic
     const state = getState();
     const isNowLiked = !state.library.likedSongs.some((t) => t.id === track.id);
-    // If it *is* now being liked and auto-download is on
-    if (isNowLiked && state.downloads.autoDownloadEnabled) {
-      DownloadService.downloadTrack(track).catch((e) => {
-        console.warn("Auto-download failed", e);
-      });
+    
+    if (isNowLiked) {
+      dispatch(showBanner({ message: `"${track.name}" added to Favorites ❤️`, type: "success" }));
+      // If auto-download is on
+      if (state.downloads.autoDownloadEnabled) {
+        DownloadService.downloadTrack(track).catch((e) => {
+          console.warn("Auto-download failed", e);
+        });
+      }
+    } else {
+      dispatch(showBanner({ message: `"${track.name}" removed from Favorites`, type: "warning" }));
     }
 
     return track;

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
 
@@ -36,46 +36,50 @@ export function SleepTimerModal({ visible, onClose, currentEndAt, onSelectTime }
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <View style={[styles.modalContent, { backgroundColor }]}>
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: textColor }]}>Sleep Timer</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={24} color={textColor} />
-            </TouchableOpacity>
-          </View>
-          
-          {remainingMinutes !== null && (
-            <View style={[styles.activeInfo, { backgroundColor: accentColor + "20" }]}>
-              <Ionicons name="timer-outline" size={20} color={accentColor} />
-              <Text style={[styles.activeText, { color: accentColor }]}>
-                Stops in ~{remainingMinutes} min
-              </Text>
-            </View>
-          )}
-
-          <ScrollView style={styles.optionsList}>
-            {options.map((opt, i) => {
-              const isSelected = opt.value === null && !currentEndAt;
-              return (
-                <TouchableOpacity 
-                  key={i} 
-                  style={[styles.optionItem, { borderBottomColor: textColor + "15" }]}
-                  onPress={() => {
-                    onSelectTime(opt.value);
-                    onClose();
-                  }}
-                >
-                  <Text style={[styles.optionText, { color: textColor }]}>{opt.label}</Text>
-                  {isSelected && (
-                    <Ionicons name="checkmark" size={24} color={accentColor} />
-                  )}
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback>
+            <View style={[styles.modalContent, { backgroundColor }]}>
+              <View style={styles.header}>
+                <Text style={[styles.title, { color: textColor }]}>Sleep Timer</Text>
+                <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+                  <Ionicons name="close" size={24} color={textColor} />
                 </TouchableOpacity>
-              )
-            })}
-          </ScrollView>
+              </View>
+              
+              {remainingMinutes !== null && (
+                <View style={[styles.activeInfo, { backgroundColor: accentColor + "20" }]}>
+                  <Ionicons name="timer-outline" size={20} color={accentColor} />
+                  <Text style={[styles.activeText, { color: accentColor }]}>
+                    Stops in ~{remainingMinutes} min
+                  </Text>
+                </View>
+              )}
+
+              <ScrollView style={styles.optionsList}>
+                {options.map((opt, i) => {
+                  const isSelected = opt.value === null && !currentEndAt;
+                  return (
+                    <TouchableOpacity 
+                      key={i} 
+                      style={[styles.optionItem, { borderBottomColor: textColor + "15" }]}
+                      onPress={() => {
+                        onSelectTime(opt.value);
+                        onClose();
+                      }}
+                    >
+                      <Text style={[styles.optionText, { color: textColor }]}>{opt.label}</Text>
+                      {isSelected && (
+                        <Ionicons name="checkmark" size={24} color={accentColor} />
+                      )}
+                    </TouchableOpacity>
+                  )
+                })}
+              </ScrollView>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }
