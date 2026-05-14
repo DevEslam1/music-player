@@ -44,10 +44,11 @@ export default function SignUpScreen() {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor }]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <View style={{ flex: 1, backgroundColor }}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
       {/* 1. Shared Auth Header with Back Button */}
       <AuthHeader 
         title="Create Account" 
@@ -101,6 +102,7 @@ export default function SignUpScreen() {
         </View>
       </View>
     </KeyboardAvoidingView>
+  </View>
   );
 }
 

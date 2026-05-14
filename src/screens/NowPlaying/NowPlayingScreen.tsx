@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import React, { useRef, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Platform, ScrollView } from "react-native";
+import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -23,11 +24,11 @@ import Animated, {
 
 // Slicing these into smaller components for better performance and clean code! 
 import { AlbumArtCarousel } from "../../components/NowPlaying/AlbumArtCarousel";
-import { TrackMetaInfo } from "../../components/NowPlaying/TrackMetaInfo";
 import { ProgressBar } from "../../components/NowPlaying/ProgressBar";
 import { PlaybackControls } from "../../components/NowPlaying/PlaybackControls";
+import { DownloadButton } from "../../components/DownloadButton";
 import { SleepTimerModal } from "../../components/settings/SleepTimerModal";
-import { showBanner } from "../../redux/store/ui/uiSlice";
+import { setShowLyrics, showBanner } from "../../redux/store/ui/uiSlice";
 
 
 
@@ -46,7 +47,7 @@ export default function NowPlayingScreen() {
   const sleepTimerEndAt = useSelector((state: RootState) => state.player.sleepTimerEndAt);
   const [isPickerVisible, setIsPickerVisible] = React.useState(false);
   const [isSleepTimerVisible, setIsSleepTimerVisible] = React.useState(false);
-  const [showLyrics, setShowLyrics] = React.useState(false);
+  const showLyrics = useSelector((state: RootState) => state.ui.showLyrics);
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   
@@ -213,17 +214,56 @@ export default function NowPlayingScreen() {
           </View>
         )}
 
-        {/* 2. Track Meta Info (Title, Artist, Like, Playlist, Download) */}
-        <TrackMetaInfo 
-          track={currentTrack}
-          isLiked={isLiked}
-          isGuestMode={isGuestMode}
-          onToggleLike={onToggleLike}
-          onAddToPlaylist={() => setIsPickerVisible(true)}
+        {/* 2. Track Info: Title + Artist (single source of truth) */}
+        <View style={styles.trackInfoArea}>
+          <View style={styles.trackInfoRow}>
+            <DownloadButton track={currentTrack} size={24} color={textColor} />
+            <View style={styles.trackInfoCenter}>
+              <Text style={[styles.trackTitle, { color: textColor }]} numberOfLines={1}>
+                {currentTrack.name}
+              </Text>
+              <Text style={[styles.trackArtist, { color: `${textColor}99` }]} numberOfLines={1}>
+                {currentTrack.artist}
+              </Text>
+            </View>
+            <View style={styles.trackInfoActions}>
+              {!isGuestMode && (
+                <>
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setIsPickerVisible(true);
+                    }}
+                    style={{ marginRight: 16 }}
+                  >
+                    <Ionicons name="add-circle-outline" size={26} color={textColor} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                      onToggleLike();
+                    }}
+                  >
+                    <Ionicons
+                      name={isLiked ? 'heart' : 'heart-outline'}
+                      size={24}
+                      color={isLiked ? accentColor : textColor}
+                    />
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {/* 3. Progress Bar */}
+        <ProgressBar 
+          positionMillis={positionMillis}
+          durationMillis={durationMillis}
+          onSeek={handleSeek}
           textColor={textColor}
         />
 
-        {/* 3. Secondary Controls & Progress Bar */}
         <PlaybackControls 
           isPlaying={isPlaying}
           isShuffled={isShuffled}
@@ -236,18 +276,38 @@ export default function NowPlayingScreen() {
           onPrevious={onPrevious}
           onNext={onNext}
           onOpenQueue={() => navigation.navigate("Queue")}
-          onToggleLyrics={() => setShowLyrics(!showLyrics)}
+          onToggleLyrics={() => dispatch(setShowLyrics(!showLyrics))}
           showLyrics={showLyrics}
+          artist={currentTrack.artist}
           textColor={textColor}
         />
 
-        {/* 4. Progress Bar Slider */}
-        <ProgressBar 
-          positionMillis={positionMillis}
-          durationMillis={durationMillis}
-          onSeek={handleSeek}
-          textColor={textColor}
-        />
+        {/* 5. Bottom Fixed Actions (End of Screen) */}
+        <View style={styles.bottomFixedActions}>
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              dispatch(setShowLyrics(!showLyrics));
+            }}
+            style={styles.bottomEdgeBtn}
+          >
+            <Ionicons 
+              name="text-outline" 
+              size={26} 
+              color={showLyrics ? accentColor : textColor} 
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              dispatch(showBanner({ message: "Share feature coming soon!", type: "warning" }));
+            }}
+            style={styles.bottomEdgeBtn}
+          >
+            <Ionicons name="share-social-outline" size={26} color={textColor} />
+          </TouchableOpacity>
+        </View>
 
         <PlaylistPicker 
           isVisible={isPickerVisible} 
@@ -305,5 +365,49 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     opacity: 0.9,
     fontWeight: '600',
+  },
+  trackInfoArea: {
+    paddingHorizontal: 24,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  trackInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  trackInfoCenter: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
+  trackTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  trackArtist: {
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  trackInfoActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bottomFixedActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+    marginTop: 'auto',
+    marginBottom: 10,
+    paddingTop: 20,
+  },
+  bottomEdgeBtn: {
+    padding: 10,
+    width: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
   }
 });

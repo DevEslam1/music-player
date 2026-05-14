@@ -48,8 +48,9 @@ export default function LoginScreen() {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor }]}
+    <View style={{ flex: 1, backgroundColor }}>
+      <KeyboardAvoidingView
+        style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       {/* Centered Auth Header */}
@@ -122,6 +123,7 @@ export default function LoginScreen() {
         <Ionicons name="cloud-offline-outline" size={28} color="#FFF" />
       </TouchableOpacity>
     </KeyboardAvoidingView>
+  </View>
   );
 }
 

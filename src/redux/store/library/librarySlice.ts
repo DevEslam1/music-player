@@ -234,6 +234,9 @@ const librarySlice = createSlice({
       const filtered = state.recentSearches.filter((t) => t.id !== track.id);
       state.recentSearches = [track, ...filtered].slice(0, 5);
     },
+    clearRecentSearches: (state) => {
+      state.recentSearches = [];
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -310,7 +313,7 @@ const librarySlice = createSlice({
   },
 });
 
-export const { addToRecentSearches } = librarySlice.actions;
+export const { addToRecentSearches, clearRecentSearches } = librarySlice.actions;
 
 export const selectLikedSongsLoading = (state: { library: LibraryState }) =>
   state.library.loadingStates.likedSongs === "loading";

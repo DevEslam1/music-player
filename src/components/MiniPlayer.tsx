@@ -83,6 +83,8 @@ const MiniPlayerInner = () => {
   const compactProgress = useSharedValue(0);
   const startCompactProgress = useSharedValue(0);
   const startTranslateX = useSharedValue(0);
+  const volume = useSharedValue(1);
+  const showVolumeIndicator = useSharedValue(0); // 0 = hidden, 1 = visible
   const gestureDirection = useSharedValue<'horizontal' | 'vertical' | null>(null);
   const rotation = useSharedValue(0);
 
@@ -177,6 +179,12 @@ const MiniPlayerInner = () => {
           compactProgress.value = newCompact;
           if (startCompactProgress.value > 0.5) {
             translateX.value = startTranslateX.value * newCompact;
+          } else {
+            // Volume control on vertical swipe when not compact
+            const delta = -e.translationY / 200;
+            volume.value = Math.max(0, Math.min(1, 1 + delta));
+            showVolumeIndicator.value = 1;
+            runOnJS(audioPlayer.setVolume)(volume.value);
           }
         } else if (gestureDirection.value === 'horizontal') {
           if (startCompactProgress.value < 0.5) {
@@ -203,6 +211,7 @@ const MiniPlayerInner = () => {
             compactProgress.value = withSpring(0, { damping: 20, stiffness: 200 });
             translateX.value = withSpring(0, { damping: 20, stiffness: 200 });
           }
+          showVolumeIndicator.value = withTiming(0, { duration: 500 });
         } else if (gestureDirection.value === 'horizontal') {
           if (startCompactProgress.value < 0.5) {
             if (e.translationX < -SWIPE_THRESHOLD) {
@@ -379,6 +388,8 @@ const MiniPlayerInner = () => {
               </Animated.View>
             </Animated.View>
           </TouchableOpacity>
+          
+          <VolumeIndicator volume={volume} visible={showVolumeIndicator} accentColor={accentColor} />
 
           {/* Swipe direction hints */}
           <SwipeHintArrows translateX={translateX} accentColor={accentColor} compactProgress={compactProgress} />
@@ -418,6 +429,32 @@ function SwipeHintArrows({
 }
 
 export const MiniPlayer = React.memo(MiniPlayerInner);
+
+// ─── Volume Indicator ────────────────────────────────────────────────────────
+function VolumeIndicator({ volume, visible, accentColor }: { volume: SharedValue<number>, visible: SharedValue<number>, accentColor: string }) {
+  const style = useAnimatedStyle(() => ({
+    opacity: withTiming(visible.value, { duration: 200 }),
+    transform: [{ scale: withSpring(visible.value ? 1 : 0.8) }],
+  }));
+
+  const barStyle = useAnimatedStyle(() => ({
+    height: `${volume.value * 100}%` as any,
+  }));
+
+  return (
+    <Animated.View style={[styles.volumeIndicator, style]}>
+      <View style={styles.volumeBarBg}>
+        <Animated.View style={[styles.volumeBarFill, { backgroundColor: accentColor }, barStyle]} />
+      </View>
+      <Ionicons 
+        name={volume.value === 0 ? "volume-mute" : volume.value < 0.5 ? "volume-low" : "volume-high"} 
+        size={20} 
+        color="#FFF" 
+        style={{ marginTop: 8 }}
+      />
+    </Animated.View>
+  );
+}
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
@@ -488,4 +525,29 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
   },
+  volumeIndicator: {
+    position: 'absolute',
+    right: 20,
+    top: -100,
+    width: 40,
+    height: 120,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 20,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  volumeBarBg: {
+    width: 6,
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 3,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+  },
+  volumeBarFill: {
+    width: '100%',
+    borderRadius: 3,
+  }
 });

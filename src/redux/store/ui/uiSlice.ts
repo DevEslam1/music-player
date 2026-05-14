@@ -11,6 +11,7 @@ export interface BannerState {
 interface UIState {
   banner: BannerState;
   isDrawerOpen: boolean;
+  showLyrics: boolean;
 }
 
 const initialState: UIState = {
@@ -20,6 +21,7 @@ const initialState: UIState = {
     type: "info",
   },
   isDrawerOpen: false,
+  showLyrics: false,
 };
 
 const uiSlice = createSlice({
@@ -40,8 +42,11 @@ const uiSlice = createSlice({
     setDrawerOpen: (state, action: PayloadAction<boolean>) => {
       state.isDrawerOpen = action.payload;
     },
+    setShowLyrics: (state, action: PayloadAction<boolean>) => {
+      state.showLyrics = action.payload;
+    },
   },
 });
 
-export const { showBanner, hideBanner, setDrawerOpen } = uiSlice.actions;
+export const { showBanner, hideBanner, setDrawerOpen, setShowLyrics } = uiSlice.actions;
 export default uiSlice.reducer;

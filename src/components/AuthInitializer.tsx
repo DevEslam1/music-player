@@ -17,6 +17,8 @@ import {
 import { Appearance } from 'react-native';
 import { getAccessToken } from '../services/auth/session';
 import { loadThemePreferences } from '../services/storage/themePreferences';
+import { loadUIPreferences } from '../services/storage/uiPreferences';
+import { setShowLyrics } from '../redux/store/ui/uiSlice';
 import { showAppBanner } from './OfflineBanner';
 
 interface AuthInitializerProps {
@@ -48,6 +50,13 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) =>
           if (prefs.accentColor) dispatch(setAccentColor(prefs.accentColor));
           if (prefs.advancedBlurEnabled !== undefined) dispatch(setAdvancedBlurEnabled(prefs.advancedBlurEnabled));
           if (prefs.blurIntensity !== undefined) dispatch(setBlurIntensity(prefs.blurIntensity));
+        }
+
+        const uiPrefs = await loadUIPreferences();
+        if (uiPrefs && !isCancelled) {
+          if (uiPrefs.showLyrics !== undefined) {
+            dispatch(setShowLyrics(uiPrefs.showLyrics));
+          }
         }
       } finally {
         if (!isCancelled) dispatch(setThemeHydrated(true));

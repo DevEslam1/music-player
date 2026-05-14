@@ -16,7 +16,8 @@ import {
 import { 
   updateDerivedDarkMode,
 } from "../redux/store/theme/themeSlice";
-import { showBanner } from "../redux/store/ui/uiSlice";
+import { showBanner, setShowLyrics } from "../redux/store/ui/uiSlice";
+import { saveUIPreferences } from "../services/storage/uiPreferences";
 import { audioPlayer } from "../services/audio/AudioPlayerService";
 import { setIsPlaying, setProgress, setCurrentTrack, setPlaybackError, setSleepTimer } from "../redux/store/player/playerSlice";
 import { updateTracks } from "../redux/store/localLibrary/localLibrarySlice";
@@ -30,6 +31,7 @@ export function AppBootstrap({ children }: AppBootstrapProps) {
   const dispatch = useDispatch<AppDispatch>();
   const systemColorScheme = useSystemColorScheme();
   const theme = useSelector((state: RootState) => state.theme, shallowEqual);
+  const showLyrics = useSelector((state: RootState) => state.ui.showLyrics);
   const { isDarkMode, accentColor, themeMode, advancedBlurEnabled, blurIntensity, hasHydrated: hasHydratedTheme } = theme;
 
   useEffect(() => {
@@ -86,6 +88,14 @@ export function AppBootstrap({ children }: AppBootstrapProps) {
       console.warn("Failed to persist theme preferences:", error);
     });
   }, [accentColor, hasHydratedTheme, isDarkMode, themeMode, advancedBlurEnabled, blurIntensity]);
+  
+  useEffect(() => {
+    if (!hasHydratedTheme) return;
+    
+    saveUIPreferences({ showLyrics }).catch((error) => {
+      console.warn("Failed to persist UI preferences:", error);
+    });
+  }, [showLyrics, hasHydratedTheme]);
 
   return <>{children}</>;
 }

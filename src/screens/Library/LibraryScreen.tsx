@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Platform,
+  ScrollView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from "react-redux";
@@ -21,7 +22,7 @@ import { SearchBar } from "../../components/library/SearchBar";
 import { SearchItem } from "../../components/library/SearchItem";
 import PlaylistPicker from "../../components/PlaylistPicker";
 import { setAutoDownloadEnabled, batchDownloadTracksAction } from "../../redux/store/downloads/downloadsSlice";
-import { fetchHomeFeed } from "../../redux/store/library/librarySlice";
+import { fetchHomeFeed, clearRecentSearches } from "../../redux/store/library/librarySlice";
 
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
@@ -40,6 +41,17 @@ export default function LibraryScreen() {
     recentSearches,
     suggestions,
   } = useLibraryScreenLogic();
+  
+  const history = useSelector((state: RootState) => state.history.recentTracks);
+  const localTracks = useSelector((state: RootState) => state.localLibrary.tracks);
+  
+  const mostPlayed = [...history]
+    .sort((a, b) => (b.playCount || 0) - (a.playCount || 0))
+    .slice(0, 15);
+    
+  const recentlyAdded = [...likedSongs, ...localTracks]
+    .sort((a, b) => b.id.localeCompare(a.id)) // Proxy for 'recently added' using ID or just reverse order
+    .slice(0, 15);
   
   const dispatch = useDispatch<AppDispatch>();
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
@@ -101,7 +113,45 @@ export default function LibraryScreen() {
 
     return (
       <View style={{ flex: 1 }}>
-        <Text style={[styles.sectionTitle, { color: textColor }]}>{title}</Text>
+        {/* Smart Playlists Section */}
+        <Text style={[styles.sectionTitle, { color: textColor }]}>Smart Playlists</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.smartPlaylistContainer}>
+          <TouchableOpacity 
+            style={[styles.smartCard, { backgroundColor: accentColor + '22' }]}
+            onPress={() => handlePlayTrack(recentlyAdded[0], recentlyAdded)}
+          >
+            <Ionicons name="sparkles" size={24} color={accentColor} />
+            <Text style={[styles.smartTitle, { color: textColor }]}>Recently Added</Text>
+            <Text style={styles.smartSubtitle}>{recentlyAdded.length} tracks</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.smartCard, { backgroundColor: accentColor + '22' }]}
+            onPress={() => handlePlayTrack(mostPlayed[0], mostPlayed)}
+          >
+            <Ionicons name="stats-chart" size={24} color={accentColor} />
+            <Text style={[styles.smartTitle, { color: textColor }]}>Most Played</Text>
+            <Text style={styles.smartSubtitle}>Your Top Mix</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.smartCard, { backgroundColor: accentColor + '22' }]}
+            onPress={() => handlePlayTrack(likedSongs[0], likedSongs)}
+          >
+            <Ionicons name="heart" size={24} color={accentColor} />
+            <Text style={[styles.smartTitle, { color: textColor }]}>Liked Songs</Text>
+            <Text style={styles.smartSubtitle}>{likedSongs.length} tracks</Text>
+          </TouchableOpacity>
+        </ScrollView>
+
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: textColor, flex: 1 }]}>{title}</Text>
+          {showRecent && (
+            <TouchableOpacity onPress={() => dispatch(clearRecentSearches())}>
+              <Text style={{ color: accentColor, marginRight: 16, fontSize: 14 }}>Clear All</Text>
+            </TouchableOpacity>
+          )}
+        </View>
         <FlatList
           data={dataToShow}
           renderItem={({ item }) => (
@@ -224,5 +274,32 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 10,
     marginBottom: 10,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  smartPlaylistContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  smartCard: {
+    width: 140,
+    height: 140,
+    borderRadius: 24,
+    padding: 16,
+    marginRight: 12,
+    justifyContent: 'flex-end',
+  },
+  smartTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 8,
+  },
+  smartSubtitle: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 2,
   },
 });

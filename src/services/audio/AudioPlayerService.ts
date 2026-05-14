@@ -341,6 +341,11 @@ class AudioPlayerService {
     this.player.seekTo(positionMillis / 1000); 
   }
 
+  public setVolume(volume: number) {
+    if (!this.player) return;
+    this.player.volume = Math.max(0, Math.min(1, volume));
+  }
+
   /**
    * Sanitizes metadata for native lockscreen consumption.
    * Android MediaSession can reject metadata if base64 artwork is too large.

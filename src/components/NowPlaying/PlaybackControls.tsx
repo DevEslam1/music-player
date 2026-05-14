@@ -24,6 +24,8 @@ interface PlaybackControlsProps {
   onOpenQueue: () => void;
   onToggleLyrics: () => void;
   showLyrics: boolean;
+  artist?: string;
+  onShare?: () => void;
   textColor: string;
 }
 
@@ -41,6 +43,8 @@ export const PlaybackControls = React.memo(({
   onOpenQueue,
   onToggleLyrics,
   showLyrics,
+  artist,
+  onShare,
   textColor
 }: PlaybackControlsProps) => {
   const accentColor = useAccentColor();
@@ -61,19 +65,6 @@ export const PlaybackControls = React.memo(({
           <Ionicons name="list-outline" size={24} color={textColor} />
         </TouchableOpacity>
         
-        <TouchableOpacity
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            onToggleLyrics();
-          }}
-          style={styles.secondaryBtn}
-        >
-          <Ionicons 
-            name="text-outline" 
-            size={24} 
-            color={showLyrics ? accentColor : textColor} 
-          />
-        </TouchableOpacity>
         <View style={styles.rightSecondaryControls}>
           <TouchableOpacity
             onPress={() => {
@@ -123,7 +114,7 @@ export const PlaybackControls = React.memo(({
         >
           <Ionicons
             name="play-skip-back-outline"
-            size={32}
+            size={36}
             color={prevEnabled ? textColor : `${textColor}44`}
           />
         </TouchableOpacity>
@@ -135,7 +126,7 @@ export const PlaybackControls = React.memo(({
           }}
           style={[styles.playPauseBtn, { backgroundColor: accentColor, shadowColor: accentColor }]}
         >
-          <Ionicons name={isPlaying ? 'pause' : 'play'} size={44} color="#FFF" />
+          <Ionicons name={isPlaying ? 'pause' : 'play'} size={48} color="#FFF" />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -148,7 +139,7 @@ export const PlaybackControls = React.memo(({
         >
           <Ionicons
             name="play-skip-forward-outline"
-            size={32}
+            size={36}
             color={nextEnabled ? textColor : `${textColor}44`}
           />
         </TouchableOpacity>
@@ -183,11 +174,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 2,
   },
+  centerGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  edgeBtn: {
+    padding: 12,
+    width: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   mainControls: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 20,
+    marginTop: 20,
   },
   controlBtn: {
     padding: 16,
@@ -207,4 +210,15 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
+  miniSubtitle: {
+    alignItems: 'center',
+    width: 60,
+    marginRight: 8,
+  },
+  miniArtistText: {
+    fontSize: 10,
+    fontWeight: '600',
+    opacity: 0.7,
+    textAlign: 'center',
+  }
 });

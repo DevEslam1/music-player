@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import AppNavigator from "./src/navigation/AppNavigator";
-import { Provider, useSelector } from "react-redux";
+import { Provider } from "react-redux";
 import { AuthInitializer } from "./src/components/AuthInitializer";
-import { store, RootState } from "./src/redux/store/store";
+import { store } from "./src/redux/store/store";
 import { 
-  NavigationContainer 
+  NavigationContainer,
+  DefaultTheme,
+  DarkTheme,
 } from "@react-navigation/native";
 import { navigationRef } from "./src/navigation/navigationUtils";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -15,14 +17,24 @@ import { ErrorBoundary } from "./src/components/ErrorBoundary";
 import { AppBootstrap } from "./src/components/AppBootstrap";
 
 import { useColorScheme } from "./src/hooks/use-theme-color";
+import { Colors } from "./src/constants/theme";
 
 function RootContent() {
   const [currentRoute, setCurrentRoute] = useState<string | undefined>();
   const colorScheme = useColorScheme();
 
+  const navigationTheme = {
+    ...(colorScheme === "dark" ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(colorScheme === "dark" ? DarkTheme.colors : DefaultTheme.colors),
+      background: Colors[colorScheme].background,
+    },
+  };
+
   return (
     <NavigationContainer
       ref={navigationRef}
+      theme={navigationTheme}
       onReady={() => {
         setCurrentRoute(navigationRef.getCurrentRoute()?.name);
       }}
