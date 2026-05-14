@@ -88,6 +88,9 @@ const playerSlice = createSlice({
     },
     removeFromQueue: (state, action: PayloadAction<string>) => {
       state.queue = state.queue.filter(t => t.id !== action.payload);
+    },
+    clearQueue: (state) => {
+      state.queue = [];
     }
   },
 });
@@ -103,6 +106,7 @@ export const {
   toggleRepeat,
   setPlaybackError,
   setSleepTimer,
-  removeFromQueue
+  removeFromQueue,
+  clearQueue
 } = playerSlice.actions;
 export default playerSlice.reducer;

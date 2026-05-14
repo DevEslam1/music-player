@@ -7,6 +7,8 @@ export interface Track {
   duration: number;
   uri: string;
   previewUrl: string;
+  lastPlayedAt?: number;
+  playCount?: number;
 }
 
 export interface Playlist {

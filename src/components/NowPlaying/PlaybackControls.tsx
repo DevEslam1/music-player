@@ -22,6 +22,8 @@ interface PlaybackControlsProps {
   onPrevious: () => void;
   onNext: () => void;
   onOpenQueue: () => void;
+  onToggleLyrics: () => void;
+  showLyrics: boolean;
   textColor: string;
 }
 
@@ -37,6 +39,8 @@ export const PlaybackControls = React.memo(({
   onPrevious,
   onNext,
   onOpenQueue,
+  onToggleLyrics,
+  showLyrics,
   textColor
 }: PlaybackControlsProps) => {
   const accentColor = useAccentColor();
@@ -55,6 +59,20 @@ export const PlaybackControls = React.memo(({
           style={styles.secondaryBtnLeft}
         >
           <Ionicons name="list-outline" size={24} color={textColor} />
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            onToggleLyrics();
+          }}
+          style={styles.secondaryBtn}
+        >
+          <Ionicons 
+            name="text-outline" 
+            size={24} 
+            color={showLyrics ? accentColor : textColor} 
+          />
         </TouchableOpacity>
         <View style={styles.rightSecondaryControls}>
           <TouchableOpacity

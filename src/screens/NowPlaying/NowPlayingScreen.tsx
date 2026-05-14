@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import React, { useRef, useEffect, useCallback } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Platform, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -46,6 +46,7 @@ export default function NowPlayingScreen() {
   const sleepTimerEndAt = useSelector((state: RootState) => state.player.sleepTimerEndAt);
   const [isPickerVisible, setIsPickerVisible] = React.useState(false);
   const [isSleepTimerVisible, setIsSleepTimerVisible] = React.useState(false);
+  const [showLyrics, setShowLyrics] = React.useState(false);
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   
@@ -189,15 +190,28 @@ export default function NowPlayingScreen() {
           </TouchableOpacity> 
         </View>
 
-        {/* 1. Album Art Carousel */}
-        <AlbumArtCarousel 
-          queue={queue}
-          currentTrack={currentTrack}
-          currentIndex={currentIndex}
-          onTrackChange={onTrackChange}
-          animatedImageStyle={animatedImageStyle}
-          glowIntensity={glowIntensity}
-        />
+        {/* 1. Album Art Carousel OR Lyrics */}
+        {!showLyrics ? (
+          <AlbumArtCarousel 
+            queue={queue}
+            currentTrack={currentTrack}
+            currentIndex={currentIndex}
+            onTrackChange={onTrackChange}
+            animatedImageStyle={animatedImageStyle}
+            glowIntensity={glowIntensity}
+          />
+        ) : (
+          <View style={styles.lyricsContainer}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={[styles.lyricsText, { color: textColor }]}>
+                {currentTrack.name} by {currentTrack.artist}{"\n\n"}
+                Lyrics coming soon!{"\n\n"}
+                We are working on bringing real-time synchronized lyrics to GiG Player.{"\n\n"}
+                Stay tuned for the next update.
+              </Text>
+            </ScrollView>
+          </View>
+        )}
 
         {/* 2. Track Meta Info (Title, Artist, Like, Playlist, Download) */}
         <TrackMetaInfo 
@@ -222,6 +236,8 @@ export default function NowPlayingScreen() {
           onPrevious={onPrevious}
           onNext={onNext}
           onOpenQueue={() => navigation.navigate("Queue")}
+          onToggleLyrics={() => setShowLyrics(!showLyrics)}
+          showLyrics={showLyrics}
           textColor={textColor}
         />
 
@@ -274,5 +290,20 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
+  },
+  lyricsContainer: {
+    flex: 1,
+    marginHorizontal: 30,
+    marginVertical: 40,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: 24,
+    padding: 24,
+  },
+  lyricsText: {
+    fontSize: 20,
+    lineHeight: 32,
+    textAlign: 'center',
+    opacity: 0.9,
+    fontWeight: '600',
   }
 });

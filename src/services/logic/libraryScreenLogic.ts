@@ -23,16 +23,26 @@ export function useLibraryScreenLogic() {
   const { likedSongs, recentSearches, homeFeed } = useSelector(
     (state: RootState) => state.library,
   );
+  const { tracks: localTracks } = useSelector(
+    (state: RootState) => state.localLibrary,
+  );
   const activeQuery = useRef<string>("");
 
   const fetchResults = async (searchQuery: string) => {
     activeQuery.current = searchQuery;
     setLoading(true);
 
+    const queryLower = searchQuery.toLowerCase();
     const localLiked = likedSongs.filter(
       (s) =>
-        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.artist.toLowerCase().includes(searchQuery.toLowerCase()),
+        s.name.toLowerCase().includes(queryLower) ||
+        s.artist.toLowerCase().includes(queryLower),
+    );
+
+    const localDevice = localTracks.filter(
+      (s) =>
+        s.name.toLowerCase().includes(queryLower) ||
+        s.artist.toLowerCase().includes(queryLower),
     );
 
     try {
@@ -41,8 +51,17 @@ export function useLibraryScreenLogic() {
       if (activeQuery.current !== searchQuery) return;
 
       const combined = [...localLiked];
+      
+      // Add local device tracks if not already in liked
+      localDevice.forEach((lt) => {
+        if (!combined.find((c) => c.id === lt.id)) {
+          combined.push(lt);
+        }
+      });
+
+      // Add remote tracks
       remoteTracks.forEach((rt) => {
-        if (!combined.find((lt) => lt.id === rt.id)) {
+        if (!combined.find((c) => c.id === rt.id)) {
           combined.push(rt);
         }
       });

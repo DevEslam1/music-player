@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from "react-redux";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
 import { RootState, AppDispatch } from "../../redux/store/store";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
-import { setQueue, setCurrentTrack, setIsPlaying, removeFromQueue } from "../../redux/store/player/playerSlice";
+import { setQueue, setCurrentTrack, setIsPlaying, removeFromQueue, clearQueue } from "../../redux/store/player/playerSlice";
 import { Track } from "../../types";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import { ScreenHeader } from "../../components/ScreenHeader";
@@ -108,7 +108,7 @@ export default function QueueScreen() {
           <DraggableFlatList
             data={queue}
             onDragEnd={handleDragEnd}
-            keyExtractor={(item) => item.id.toString() + "-" + Math.random()}
+            keyExtractor={(item) => item.id}
             renderItem={renderItem}
             contentContainerStyle={[
               styles.flatlistContent, 
@@ -125,6 +125,13 @@ export default function QueueScreen() {
         screenTitle="Playing Queue"
         leftIcon="arrow-back"
         onBack={() => navigation.goBack()}
+        rightComponent={
+          queue.length > 0 ? (
+            <TouchableOpacity onPress={() => dispatch(clearQueue())}>
+              <Text style={{ color: accentColor, fontWeight: "600" }}>Clear All</Text>
+            </TouchableOpacity>
+          ) : null
+        }
       />
     </View>
   );

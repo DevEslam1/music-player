@@ -58,6 +58,9 @@ export default function HomeScreen() {
   const isDarkMode = colorScheme === "dark";
   const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
   const recentTracks = useSelector((state: RootState) => state.history.recentTracks);
+  const mostPlayedTracks = [...recentTracks]
+    .sort((a, b) => (b.playCount || 0) - (a.playCount || 0))
+    .slice(0, 10);
 
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -153,6 +156,15 @@ export default function HomeScreen() {
           <TrackList
             label="Recently Played"
             trackList={recentTracks}
+            handlePlayTrack={handlePlayTrack}
+          />
+        )}
+        
+        {/* Most Played Section */}
+        {mostPlayedTracks.length > 0 && mostPlayedTracks[0].playCount && mostPlayedTracks[0].playCount > 1 && (
+          <TrackList
+            label="Most Played"
+            trackList={mostPlayedTracks}
             handlePlayTrack={handlePlayTrack}
           />
         )}
