@@ -12,6 +12,7 @@ import { useThemeColor, useAccentColor, useColorScheme, useBlurSettings } from "
 import { MainStack } from "../navigation/AppNavigator";
 import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { OfflineIndicator } from "./OfflineIndicator";
 
 type ScreenHeaderProps = {
   screenTitle?: string;
@@ -20,6 +21,7 @@ type ScreenHeaderProps = {
   rightComponent?: React.ReactNode;
   leftIcon?: React.ComponentProps<typeof Ionicons>["name"];
   onBack?: () => void;
+  showOfflineIndicator?: boolean;
 };
 
 export function ScreenHeader({
@@ -29,6 +31,7 @@ export function ScreenHeader({
   rightComponent,
   leftIcon = "arrow-back",
   onBack,
+  showOfflineIndicator = true,
 }: ScreenHeaderProps) {
   const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
   const { advancedBlurEnabled, blurIntensity } = useBlurSettings();
@@ -42,7 +45,7 @@ export function ScreenHeader({
     <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
       {advancedBlurEnabled ? (
         <BlurView
-          intensity={blurIntensity * 0.6} // Headers look better with slightly less intensity than sliders
+          intensity={blurIntensity * 0.6}
           tint={isDarkMode ? "dark" : "light"}
           style={[
             styles.header,
@@ -53,18 +56,29 @@ export function ScreenHeader({
             }
           ]}
         >
-          {headerContent(leftIcon, onBack, navigation, screenTitle, textColor, rightComponent, postIcon, onPostPress, accentColor)}
+          {headerContent(leftIcon, onBack, navigation, screenTitle, textColor, rightComponent, postIcon, onPostPress, accentColor, showOfflineIndicator)}
         </BlurView>
       ) : (
         <View style={[styles.header, { backgroundColor: isDarkMode ? "rgba(30, 41, 59, 1)" : "rgba(255, 255, 255, 1)" }]}>
-          {headerContent(leftIcon, onBack, navigation, screenTitle, textColor, rightComponent, postIcon, onPostPress, accentColor)}
+          {headerContent(leftIcon, onBack, navigation, screenTitle, textColor, rightComponent, postIcon, onPostPress, accentColor, showOfflineIndicator)}
         </View>
       )}
     </View>
   );
 }
 
-function headerContent(leftIcon: any, onBack: any, navigation: any, screenTitle: any, textColor: any, rightComponent: any, postIcon: any, onPostPress: any, accentColor: any) {
+function headerContent(
+  leftIcon: any, 
+  onBack: any, 
+  navigation: any, 
+  screenTitle: any, 
+  textColor: any, 
+  rightComponent: any, 
+  postIcon: any, 
+  onPostPress: any, 
+  accentColor: any,
+  showOfflineIndicator: boolean
+) {
   return (
     <>
       <TouchableOpacity
@@ -73,18 +87,24 @@ function headerContent(leftIcon: any, onBack: any, navigation: any, screenTitle:
       >
         <Ionicons name={leftIcon} size={26} color={textColor} />
       </TouchableOpacity>
+      
       {screenTitle && (
-        <Text style={[styles.headerTitle, { color: textColor }]}>
+        <Text style={[styles.headerTitle, { color: textColor }]} numberOfLines={1}>
           {screenTitle}
         </Text>
       )}
-      {rightComponent ? rightComponent : postIcon ? (
-        <TouchableOpacity onPress={onPostPress} style={styles.headerButton}>
-          <Ionicons name={postIcon} size={26} color={accentColor} />
-        </TouchableOpacity>
-      ) : (
-        <View style={styles.headerButton} />
-      )}
+      
+      <View style={styles.rightSection}>
+        {showOfflineIndicator && <OfflineIndicator color={accentColor} />}
+        
+        {rightComponent ? rightComponent : postIcon ? (
+          <TouchableOpacity onPress={onPostPress} style={styles.headerButton}>
+            <Ionicons name={postIcon} size={26} color={accentColor} />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.headerButton} />
+        )}
+      </View>
     </>
   );
 }
@@ -101,9 +121,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    height: 60,
-    borderRadius: 20,
+    paddingHorizontal: 16,
+    height: 64,
+    borderRadius: 22,
     marginHorizontal: 12,
     overflow: "hidden",
     shadowColor: "#000",
@@ -123,6 +143,12 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     textAlign: "center",
     flex: 1,
+    marginHorizontal: 8,
     letterSpacing: -0.5,
   },
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  }
 });

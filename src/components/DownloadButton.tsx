@@ -57,9 +57,9 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       showAppBanner('Starting download…', 'info');
       
-      DownloadService.downloadTrack(track).catch(e => {
-        console.warn('DownloadTrack failed:', e);
-      });
+      await DownloadService.downloadTrack(track);
+      // Success is handled by the service/Redux listeners usually, 
+      // but let's at least ensure we await to catch errors.
     } catch (e: any) {
       dispatch(setDownloadProgress({ trackId: track.id, progress: 0, status: 'error', errorMessage: e.message }));
       showAppBanner(e.message || 'Download failed.', 'error');

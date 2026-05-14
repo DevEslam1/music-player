@@ -1,18 +1,19 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import NetInfo from '@react-native-community/netinfo';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { navigationRef } from '../navigation/navigationUtils';
 import { useSelector, useDispatch } from 'react-redux';
 import { useAccentColor } from '../hooks/use-theme-color';
 import { RootState } from '../redux/store/store';
-import { showBanner, hideBanner, BannerType } from '../redux/store/ui/uiSlice';
+import { hideBanner, BannerType } from '../redux/store/ui/uiSlice';
 
 // ─── Color map by banner type ────────────────────────────────────────────────
 
@@ -36,67 +37,48 @@ export const OfflineBanner = () => {
   const accentColor = useAccentColor();
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const banner = useSelector((state: RootState) => state.ui.banner);
-  const { width: screenWidth } = useWindowDimensions();
 
   // ── offline state ──────────────────────────────
   const [isOffline, setIsOffline] = React.useState(false);
-  const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   // ── shared values ──────────────────────────────
   const translateY = useSharedValue(-200);
-  const bannerLeft = useSharedValue(20);
-  const bannerRight = useSharedValue(20);
   const fabTranslateY = useSharedValue(-100);
 
   // ── auto-hide timer ref ────────────────────────
   const autoHideTimer = useRef<NodeJS.Timeout | null>(null);
-  const collapseTimer = useRef<NodeJS.Timeout | null>(null);
 
   // ── Net listener ──────────────────────────────
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       const offline = state.isConnected === false || state.isInternetReachable === false;
+      const wasOffline = isOffline;
       setIsOffline(offline);
 
-      if (offline) {
-        // Offline: show full banner, collapse after 5s
+      if (offline && !wasOffline) {
+        // Just became offline: show banner briefly
         translateY.value = insets.top + 10;
-        setIsCollapsed(false);
-        bannerLeft.value = 20;
-        bannerRight.value = 20;
-
-        collapseTimer.current = setTimeout(() => {
-          setIsCollapsed(true);
-          bannerRight.value = 55;
-          bannerLeft.value = screenWidth - 55 - 42;
-        }, 5000);
-      } else {
-        // Back online: clear offline banner
-        if (!banner.visible) {
+        if (autoHideTimer.current) clearTimeout(autoHideTimer.current);
+        autoHideTimer.current = setTimeout(() => {
           translateY.value = -200;
-        }
-        setIsCollapsed(false);
-        bannerLeft.value = 20;
-        bannerRight.value = 20;
-        if (collapseTimer.current) clearTimeout(collapseTimer.current);
+        }, 4000);
+      } else if (!offline && wasOffline) {
+        // Back online
+        translateY.value = -200;
       }
     });
 
     return () => {
       unsubscribe();
-      if (collapseTimer.current) clearTimeout(collapseTimer.current);
+      if (autoHideTimer.current) clearTimeout(autoHideTimer.current);
     };
-  }, [insets.top, screenWidth, banner.visible]);
+  }, [insets.top, isOffline]);
 
   // ── App-banner messages (non-offline) ─────────
   useEffect(() => {
     if (banner.visible && !isOffline) {
-      bannerLeft.value = 20;
-      bannerRight.value = 20;
-      setIsCollapsed(false);
       translateY.value = insets.top + 10;
 
-      // Auto-hide after 3s
       if (autoHideTimer.current) clearTimeout(autoHideTimer.current);
       autoHideTimer.current = setTimeout(() => {
         dispatch(hideBanner());
@@ -114,8 +96,8 @@ export const OfflineBanner = () => {
 
   // ── FAB positioning ───────────────────────────
   useEffect(() => {
-    const playerOffset = hasCurrentTrack ? 85 : 0;
-    fabTranslateY.value = isOffline ? insets.bottom + 20 + playerOffset : -100;
+    const playerOffset = hasCurrentTrack ? 90 : 0;
+    fabTranslateY.value = isOffline ? insets.bottom + 25 + playerOffset : -100;
   }, [insets.bottom, hasCurrentTrack, isOffline]);
 
   // ── Determine what to display ─────────────────
@@ -125,20 +107,13 @@ export const OfflineBanner = () => {
     ? 'Connection Lost • Working Offline'
     : banner.message;
 
-  // Use accent only for info type; otherwise use fixed type color
   const bannerColor =
     activeType === 'info' ? `${accentColor}F2` : `${config.color}F0`;
 
   // ── Animated styles ───────────────────────────
   const animatedStyle = useAnimatedStyle(() => ({
     top: withSpring(translateY.value, { damping: 15, stiffness: 100 }),
-    left: withSpring(bannerLeft.value),
-    right: withSpring(bannerRight.value),
     height: 42,
-    borderRadius: isCollapsed ? 21 : 30,
-    paddingHorizontal: withSpring(isCollapsed ? 0 : 16),
-    justifyContent: 'center',
-    alignItems: 'center',
   }));
 
   const fabAnimatedStyle = useAnimatedStyle(() => ({
@@ -152,12 +127,10 @@ export const OfflineBanner = () => {
         pointerEvents="none"
       >
         <View style={styles.content}>
-          <View style={[styles.iconCircle, isCollapsed && { backgroundColor: 'transparent', width: '100%' }]}>
-            <Ionicons name={config.icon} size={isCollapsed ? 20 : 16} color="#FFF" />
+          <View style={styles.iconCircle}>
+            <Ionicons name={config.icon} size={16} color="#FFF" />
           </View>
-          {!isCollapsed && (
-            <Text style={styles.text} numberOfLines={1}>{displayMessage}</Text>
-          )}
+          <Text style={styles.text} numberOfLines={1}>{displayMessage}</Text>
         </View>
       </Animated.View>
 
@@ -169,7 +142,8 @@ export const OfflineBanner = () => {
             activeOpacity={0.8}
             onPress={() => {
               if (navigationRef.isReady()) {
-                (navigationRef as any).navigate('Downloads');
+                // Fixed: use nested navigation for Drawer items
+                (navigationRef as any).navigate('Drawer', { screen: 'Downloads' });
               }
             }}
           >
@@ -183,11 +157,8 @@ export const OfflineBanner = () => {
 
 // ─── Helper: dispatch from outside React (services, logic files) ──────────────
 import { store } from '../redux/store/store';
+import { showBanner } from '../redux/store/ui/uiSlice';
 
-/**
- * Use this in service files / logic files instead of Alert.alert.
- * e.g. showAppBanner("Login failed.", "error")
- */
 export function showAppBanner(message: string, type: BannerType = 'error') {
   store.dispatch(showBanner({ message, type }));
 }
