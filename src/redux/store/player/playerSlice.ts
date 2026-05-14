@@ -11,6 +11,11 @@ interface PlayerState {
   repeatMode: 'off' | 'track' | 'queue';
   error: string | null;
   sleepTimerEndAt: number | null; // Timestamp when audio should pause
+  equalizerSettings: {
+    enabled: boolean;
+    bandLevels: number[];
+    currentPreset: string | null;
+  };
 }
 
 const initialState: PlayerState = {
@@ -23,6 +28,11 @@ const initialState: PlayerState = {
   repeatMode: 'off',
   error: null,
   sleepTimerEndAt: null,
+  equalizerSettings: {
+    enabled: false,
+    bandLevels: [0, 0, 0, 0, 0],
+    currentPreset: null,
+  },
 };
 
 const playerSlice = createSlice({
@@ -91,6 +101,9 @@ const playerSlice = createSlice({
     },
     clearQueue: (state) => {
       state.queue = [];
+    },
+    setEqualizerSettings: (state, action: PayloadAction<Partial<PlayerState['equalizerSettings']>>) => {
+      state.equalizerSettings = { ...state.equalizerSettings, ...action.payload };
     }
   },
 });
@@ -107,6 +120,7 @@ export const {
   setPlaybackError,
   setSleepTimer,
   removeFromQueue,
-  clearQueue
+  clearQueue,
+  setEqualizerSettings
 } = playerSlice.actions;
 export default playerSlice.reducer;

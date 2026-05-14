@@ -1,5 +1,6 @@
 import React, { useCallback } from "react";
-import { Text, FlatList, StyleSheet, View } from "react-native";
+import { Text, StyleSheet, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { Track } from "../../types";
 import { TrackCard } from "./TrackCard";
 import { useThemeColor } from "../../hooks/use-theme-color";
@@ -18,6 +19,7 @@ export function TrackList({
   horizontal = true,
 }: TrackListProps) {
   const textColor = useThemeColor({}, "text");
+  const TypedFlashList = FlashList as any;
 
   
   const renderItem = useCallback(
@@ -42,25 +44,25 @@ export function TrackList({
   return label ? (
     <View>
       <Text style={[styles.sectionTitle, { color: textColor }]}>{label}</Text>
-      <FlatList
+      <TypedFlashList
         horizontal={horizontal}
         showsHorizontalScrollIndicator={false}
         data={trackList}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item: Track) => item.id}
         contentContainerStyle={styles.listContainer}
         renderItem={renderItem}
-        {...flatListPerformanceProps}
+        estimatedItemSize={150}
       />
     </View>
   ) : (
-    <FlatList
+    <TypedFlashList
       horizontal
       showsHorizontalScrollIndicator={false}
       data={trackList}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(item: Track) => item.id}
       contentContainerStyle={styles.listContainer}
       renderItem={renderItem}
-      {...flatListPerformanceProps}
+      estimatedItemSize={150}
     />
   );
 }

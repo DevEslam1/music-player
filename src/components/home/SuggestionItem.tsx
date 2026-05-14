@@ -9,10 +9,12 @@ import { useAccentColor } from "../../hooks/use-theme-color";
 const SuggestionItemInner = ({
   track,
   onPress,
+  onOpenOptions,
   textColor,
 }: {
   track: Track;
   onPress: () => void;
+  onOpenOptions: () => void;
   textColor: string;
 }) => {
   const accentColor = useAccentColor();
@@ -39,7 +41,12 @@ const SuggestionItemInner = ({
         </Text>
       </View>
       <View style={styles.actions}>
-        <Ionicons name="play-circle-outline" size={28} color={accentColor} />
+        <TouchableOpacity onPress={onOpenOptions}>
+          <Ionicons name="ellipsis-vertical" size={20} color="#94A3B8" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onPress}>
+          <Ionicons name="play-circle-outline" size={28} color={accentColor} />
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );

@@ -15,9 +15,7 @@
       "supportsTablet": true,
       "buildNumber": "2.5.0",
       "infoPlist": {
-        "UIBackgroundModes": [
-          "audio"
-        ]
+        "UIBackgroundModes": ["audio"]
       },
       "bundleIdentifier": "com.eslamm2500.musicplayer"
     },
@@ -46,7 +44,6 @@
       "favicon": "./assets/app-icon.png"
     },
     "plugins": [
-
       [
         "expo-media-library",
         {

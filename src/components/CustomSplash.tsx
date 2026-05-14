@@ -106,10 +106,25 @@ export const CustomSplash = memo(() => {
 
   // Wave shimmer
   const shimmerX = useSharedValue(0);
-  const waveOffsets = Array.from({ length: WAVE_SEGMENTS }, () => useSharedValue(0));
+
+  // Wave offsets - fixed hooks to satisfy React Rules of Hooks
+  const w0 = useSharedValue(0);
+  const w1 = useSharedValue(0);
+  const w2 = useSharedValue(0);
+  const w3 = useSharedValue(0);
+  const w4 = useSharedValue(0);
+  const w5 = useSharedValue(0);
+  const w6 = useSharedValue(0);
+  const waveOffsets = [w0, w1, w2, w3, w4, w5, w6];
 
   // Music notes
-  const noteProgresses = Array.from({ length: NOTE_COUNT }, () => useSharedValue(0));
+  const n0 = useSharedValue(0);
+  const n1 = useSharedValue(0);
+  const n2 = useSharedValue(0);
+  const n3 = useSharedValue(0);
+  const n4 = useSharedValue(0);
+  const n5 = useSharedValue(0);
+  const noteProgresses = [n0, n1, n2, n3, n4, n5];
 
   useEffect(() => {
     if (!loaded) return;

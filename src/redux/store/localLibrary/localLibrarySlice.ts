@@ -1,7 +1,8 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction, createSelector } from "@reduxjs/toolkit";
 import { LocalTrack, LocalAlbum, LocalArtist, LocalFolder } from "../../../types";
 import { LocalMusicService } from "../../../services/local/localMusicService";
 import { loadLocalMusicPreferences } from "../../../services/storage/localMusicPreferences";
+import { RootState } from "../store";
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -28,6 +29,7 @@ interface LocalLibraryState {
   minDurationSeconds: number;
   /** All folders found on device (before exclusion) — for the settings modal */
   allFolders: LocalFolder[];
+  sortOrder: "name" | "date" | "duration";
 }
 
 const initialState: LocalLibraryState = {
@@ -45,6 +47,7 @@ const initialState: LocalLibraryState = {
   minFileSizeBytes: 0,
   minDurationSeconds: 0,
   allFolders: [],
+  sortOrder: "name",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -139,9 +142,14 @@ export const scanLocalLibrary = createAsyncThunk<
     }
 
     // Full scan with progress callback + filters
+    let lastDispatch = 0;
     const tracks = await LocalMusicService.scanDevice(
       (scanned, total) => {
-        dispatch(setScanProgress({ scanned, total }));
+        const now = Date.now();
+        if (now - lastDispatch > 300 || scanned === total) {
+          dispatch(setScanProgress({ scanned, total }));
+          lastDispatch = now;
+        }
       },
       {
         excludedFolders: prefs.excludedFolders,
@@ -204,6 +212,9 @@ const localLibrarySlice = createSlice({
     setMinDurationSeconds(state, action: PayloadAction<number>) {
       state.minDurationSeconds = action.payload;
     },
+    setSortOrder(state, action: PayloadAction<"name" | "date" | "duration">) {
+      state.sortOrder = action.payload;
+    },
   },
   extraReducers(builder) {
     builder
@@ -246,17 +257,50 @@ export const {
   setExcludedFolders,
   setMinFileSize,
   setMinDurationSeconds,
+  setSortOrder,
 } = localLibrarySlice.actions;
 
 export default localLibrarySlice.reducer;
 
 // ─── Selectors ────────────────────────────────────────────────────────────────
 
-export const selectTracksByAlbum = (tracks: LocalTrack[], albumName: string) =>
-  tracks.filter(t => (t.album || "Unknown Album") === albumName);
+const selectLocalLibraryState = (state: RootState) => state.localLibrary;
 
-export const selectTracksByArtist = (tracks: LocalTrack[], artistName: string) =>
-  tracks.filter(t => t.artist === artistName);
+export const selectTracks = createSelector(
+  [selectLocalLibraryState],
+  (library) => library.tracks
+);
 
-export const selectTracksByFolder = (tracks: LocalTrack[], folderPath: string) =>
-  tracks.filter(t => t.folderPath === folderPath);
+export const selectSortedTracks = createSelector(
+  [selectTracks, (state: RootState) => state.localLibrary.sortOrder],
+  (tracks, sortOrder) => {
+    const sorted = [...tracks];
+    switch (sortOrder) {
+      case "name":
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      case "duration":
+        return sorted.sort((a, b) => b.duration - a.duration);
+      case "date":
+        // Since we don't have a direct 'date' in LocalTrack right now, 
+        // we'll use ID if it's a proxy for date, or just return as is.
+        return sorted.sort((a, b) => b.id.localeCompare(a.id));
+      default:
+        return sorted;
+    }
+  }
+);
+
+export const selectTracksByAlbum = createSelector(
+  [selectTracks, (_state: RootState, albumName: string) => albumName],
+  (tracks, albumName) => tracks.filter(t => (t.album || "Unknown Album") === albumName)
+);
+
+export const selectTracksByArtist = createSelector(
+  [selectTracks, (_state: RootState, artistName: string) => artistName],
+  (tracks, artistName) => tracks.filter(t => t.artist === artistName)
+);
+
+export const selectTracksByFolder = createSelector(
+  [selectTracks, (_state: RootState, folderPath: string) => folderPath],
+  (tracks, folderPath) => tracks.filter(t => t.folderPath === folderPath)
+);

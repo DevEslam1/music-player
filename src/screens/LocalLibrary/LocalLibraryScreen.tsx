@@ -13,7 +13,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import PagerView from "react-native-pager-view";
 
 import { RootState, AppDispatch } from "../../redux/store/store";
-import { scanLocalLibrary } from "../../redux/store/localLibrary/localLibrarySlice";
+import { scanLocalLibrary, setSortOrder, selectSortedTracks } from "../../redux/store/localLibrary/localLibrarySlice";
 import { setQueue } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
 import { useThemeColor, useAccentColor } from "../../hooks/use-theme-color";
@@ -92,7 +92,19 @@ function EmptyLibrary({ onRescan }: { onRescan: () => void }) {
 }
 
 // ─── Songs Tab ────────────────────────────────────────────────────────────────
-function SongsTab({ tracks, query }: { tracks: LocalTrack[]; query: string }) {
+function SongsTab({ 
+  tracks, 
+  query, 
+  selectionMode, 
+  selectedIds, 
+  toggleSelection 
+}: { 
+  tracks: LocalTrack[]; 
+  query: string;
+  selectionMode: boolean;
+  selectedIds: Set<string>;
+  toggleSelection: (id: string) => void;
+}) {
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
   const dispatch = useDispatch<AppDispatch>();
@@ -105,10 +117,14 @@ function SongsTab({ tracks, query }: { tracks: LocalTrack[]; query: string }) {
     : tracks;
 
   const handlePlay = useCallback(async (track: LocalTrack) => {
+    if (selectionMode) {
+      toggleSelection(track.id);
+      return;
+    }
     dispatch(setQueue(filtered as any[]));
     await audioPlayer.loadPlayTrack(track as any);
     navigation.navigate("NowPlaying");
-  }, [filtered, dispatch, navigation]);
+  }, [filtered, dispatch, navigation, selectionMode, toggleSelection]);
 
   const fmt = (ms: number) => {
     const s = Math.floor(ms / 1000);
@@ -123,27 +139,41 @@ function SongsTab({ tracks, query }: { tracks: LocalTrack[]; query: string }) {
         data={filtered}
         keyExtractor={(item: LocalTrack) => item.id}
         estimatedItemSize={68}
-        renderItem={({ item, index }: { item: LocalTrack; index: number }) => (
-          <TouchableOpacity style={styles.songRow} onPress={() => handlePlay(item)} activeOpacity={0.7}>
-            <View style={[styles.songIdx, { backgroundColor: accentColor + "12" }]}>
-              <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center' }]}>
-                <Ionicons name="musical-notes" size={16} color={accentColor} />
+        renderItem={({ item, index }: { item: LocalTrack; index: number }) => {
+          const isSelected = selectedIds.has(item.id);
+          return (
+            <TouchableOpacity 
+              style={[styles.songRow, isSelected && { backgroundColor: accentColor + "15" }]} 
+              onPress={() => handlePlay(item)} 
+              onLongPress={() => toggleSelection(item.id)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.songIdx, { backgroundColor: isSelected ? accentColor : accentColor + "12" }]}>
+                <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center' }]}>
+                  {isSelected ? (
+                    <Ionicons name="checkmark" size={24} color="#fff" />
+                  ) : (
+                    <Ionicons name="musical-notes" size={16} color={accentColor} />
+                  )}
+                </View>
+                {!isSelected && !!item.image && item.image.length > 10 && (
+                  <Image source={{ uri: item.image }} style={styles.songImg} contentFit="cover" transition={200} />
+                )}
               </View>
-              {!!item.image && item.image.length > 10 && (
-                <Image source={{ uri: item.image }} style={styles.songImg} contentFit="cover" transition={200} />
+              <View style={styles.songInfo}>
+                <Text style={[styles.songName, { color: textColor }]} numberOfLines={1}>{item.name}</Text>
+                <Text style={[styles.songArtist, { color: textColor + "50" }]} numberOfLines={1}>{item.artist}</Text>
+              </View>
+              {!selectionMode && (
+                <View style={styles.songRight}>
+                  <Text style={[styles.songDur, { color: textColor + "40" }]}>{fmt(item.duration)}</Text>
+                  <Ionicons name="play-circle" size={24} color={accentColor} style={{ opacity: 0.9 }} />
+                </View>
               )}
-            </View>
-            <View style={styles.songInfo}>
-              <Text style={[styles.songName, { color: textColor }]} numberOfLines={1}>{item.name}</Text>
-              <Text style={[styles.songArtist, { color: textColor + "50" }]} numberOfLines={1}>{item.artist}</Text>
-            </View>
-            <View style={styles.songRight}>
-              <Text style={[styles.songDur, { color: textColor + "40" }]}>{fmt(item.duration)}</Text>
-              <Ionicons name="play-circle" size={24} color={accentColor} style={{ opacity: 0.9 }} />
-            </View>
-            <View style={[styles.rowSeparator, { backgroundColor: textColor + "08" }]} />
-          </TouchableOpacity>
-        )}
+              <View style={[styles.rowSeparator, { backgroundColor: textColor + "08" }]} />
+            </TouchableOpacity>
+          );
+        }}
         contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 16 }}
         showsVerticalScrollIndicator={false}
       />
@@ -275,8 +305,9 @@ export default function LocalLibraryScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
 
-  const { tracks, artists, albums, folders, scanStatus, scanProgress, permissionStatus } =
+  const { artists, albums, folders, scanStatus, scanProgress, permissionStatus, sortOrder } =
     useSelector((state: RootState) => state.localLibrary);
+  const tracks = useSelector(selectSortedTracks);
 
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();
@@ -284,8 +315,32 @@ export default function LocalLibraryScreen() {
 
   const [activeTab, setActiveTab] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const selectionMode = selectedIds.size > 0;
+
   const pagerRef = useRef<PagerView>(null);
   const tabAnim = useRef(new Animated.Value(0)).current;
+
+  const toggleSelection = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleBatchPlay = () => {
+    const toPlay = tracks.filter(t => selectedIds.has(t.id));
+    if (toPlay.length > 0) {
+      dispatch(setQueue(toPlay as any[]));
+      audioPlayer.loadPlayTrack(toPlay[0] as any);
+      navigation.navigate("NowPlaying");
+      clearSelection();
+    }
+  };
 
   useEffect(() => {
     if (scanStatus === "idle") dispatch(scanLocalLibrary(undefined));
@@ -313,6 +368,12 @@ export default function LocalLibraryScreen() {
     inputRange: TABS.map((_, i) => i),
     outputRange: TABS.map((_, i) => i * tabW),
   });
+
+  const cycleSort = () => {
+    const orders: ("name" | "date" | "duration")[] = ["name", "date", "duration"];
+    const next = orders[(orders.indexOf(sortOrder) + 1) % orders.length];
+    dispatch(setSortOrder(next));
+  };
 
   return (
     <View style={[styles.screen, { backgroundColor: bg }]}>
@@ -349,7 +410,15 @@ export default function LocalLibraryScreen() {
               Animated.spring(tabAnim, { toValue: p, useNativeDriver: true, tension: 80, friction: 12 }).start();
             }}
           >
-            <View key="songs"><SongsTab tracks={tracks} query={searchQuery} /></View>
+            <View key="songs">
+              <SongsTab 
+                tracks={tracks} 
+                query={searchQuery} 
+                selectionMode={selectionMode}
+                selectedIds={selectedIds}
+                toggleSelection={toggleSelection}
+              />
+            </View>
             <View key="artists"><ArtistsTab artists={artists} /></View>
             <View key="albums"><AlbumsTab albums={albums} /></View>
             <View key="folders"><FoldersTab folders={folders} /></View>
@@ -358,13 +427,28 @@ export default function LocalLibraryScreen() {
       </View>
 
       <ScreenHeader
-        screenTitle="Local Music"
-        leftIcon="menu-outline"
-        onBack={() => navigation.openDrawer()}
+        screenTitle={selectionMode ? `${selectedIds.size} selected` : "Local Music"}
+        leftIcon={selectionMode ? "close" : "menu-outline"}
+        onBack={selectionMode ? clearSelection : () => navigation.openDrawer()}
         rightComponent={
-          <TouchableOpacity onPress={handleRescan} disabled={false}>
-            <Ionicons name="refresh-outline" size={22} color={textColor} />
-          </TouchableOpacity>
+          selectionMode ? (
+            <TouchableOpacity onPress={handleBatchPlay}>
+              <Ionicons name="play" size={24} color={accentColor} />
+            </TouchableOpacity>
+          ) : (
+            <View style={{ flexDirection: 'row', gap: 16 }}>
+              <TouchableOpacity onPress={cycleSort}>
+                <Ionicons 
+                  name={sortOrder === 'name' ? 'text' : sortOrder === 'duration' ? 'time-outline' : 'calendar-outline'} 
+                  size={22} 
+                  color={textColor} 
+                />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleRescan}>
+                <Ionicons name="refresh-outline" size={22} color={textColor} />
+              </TouchableOpacity>
+            </View>
+          )
         }
       />
     </View>

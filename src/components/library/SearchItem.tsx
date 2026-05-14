@@ -60,7 +60,7 @@ const SearchItemInner = ({
       <View style={styles.cardActions}>
         {!hideDownload && <DownloadButton track={item} size={24} color={textColor} />}
         <TouchableOpacity onPress={onOpenPicker}>
-          <Ionicons name="add-circle-outline" size={26} color={textColor} />
+          <Ionicons name="ellipsis-vertical" size={22} color={textColor} />
         </TouchableOpacity>
         <TouchableOpacity onPress={onPlayTrack}>
           <Ionicons name="play-circle-outline" size={32} color={accentColor} />

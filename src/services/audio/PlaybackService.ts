@@ -7,6 +7,7 @@ import { audioPlayer } from './AudioPlayerService';
  */
 export const PlaybackService = async function() {
   TrackPlayer.addEventListener(Event.RemotePlay, () => {
+    console.log('🎧 PlaybackService: RemotePlay');
     audioPlayer.playPause();
   });
 

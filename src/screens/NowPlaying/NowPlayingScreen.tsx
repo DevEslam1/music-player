@@ -30,6 +30,7 @@ import { DownloadButton } from "../../components/DownloadButton";
 import { SleepTimerModal } from "../../components/settings/SleepTimerModal";
 import { setShowLyrics, showBanner } from "../../redux/store/ui/uiSlice";
 import { LyricsService, LyricsLine } from "../../services/api/lyricsService";
+import { EqualizerModal } from "../../components/player/EqualizerModal";
 
 
 
@@ -51,6 +52,7 @@ export default function NowPlayingScreen() {
   const showLyrics = useSelector((state: RootState) => state.ui.showLyrics);
   const [lyrics, setLyrics] = React.useState<LyricsLine[]>([]);
   const [isLyricsLoading, setIsLyricsLoading] = React.useState(false);
+  const [isEqualizerVisible, setIsEqualizerVisible] = React.useState(false);
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   
@@ -264,18 +266,33 @@ export default function NowPlayingScreen() {
             <Ionicons name="arrow-back" size={26} color={textColor} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: textColor }]}>Playing Now</Text>
-          <TouchableOpacity 
-            style={styles.headerButton}
-            onPress={() => setIsSleepTimerVisible(true)}
-          >
-            <Ionicons 
-              name={sleepTimerEndAt ? "timer" : "timer-outline"} 
-              size={24} 
-              color={sleepTimerEndAt ? accentColor : textColor} 
-            />
-          </TouchableOpacity> 
-        </View>
+          
+          <View style={{ flexDirection: 'row' }}>
+            <TouchableOpacity 
+              style={styles.headerButton}
+              onPress={() => setIsSleepTimerVisible(true)}
+            >
+              <Ionicons 
+                name={sleepTimerEndAt ? "timer" : "timer-outline"} 
+                size={24} 
+                color={sleepTimerEndAt ? accentColor : textColor} 
+              />
+            </TouchableOpacity> 
 
+            {Platform.OS === 'android' && (
+              <TouchableOpacity 
+                style={[styles.headerButton, { marginLeft: 8 }]}
+                onPress={() => setIsEqualizerVisible(true)}
+              >
+                <Ionicons 
+                  name="options-outline" 
+                  size={24} 
+                  color={textColor} 
+                />
+              </TouchableOpacity> 
+            )}
+          </View>
+        </View>
         {/* 1. Album Art Carousel OR Lyrics */}
         {!showLyrics ? (
           <AlbumArtCarousel 
@@ -436,6 +453,10 @@ export default function NowPlayingScreen() {
           currentEndAt={sleepTimerEndAt}
           onSelectTime={handleSetSleepTimer}
         />
+        <EqualizerModal 
+          visible={isEqualizerVisible} 
+          onClose={() => setIsEqualizerVisible(false)} 
+        />
       </SafeAreaView>
     </View>
   );
@@ -465,6 +486,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
   },
   lyricsContainer: {
     flex: 1,

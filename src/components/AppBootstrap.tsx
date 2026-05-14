@@ -19,9 +19,10 @@ import {
 import { showBanner, setShowLyrics } from "../redux/store/ui/uiSlice";
 import { saveUIPreferences } from "../services/storage/uiPreferences";
 import { audioPlayer } from "../services/audio/AudioPlayerService";
-import { setIsPlaying, setProgress, setCurrentTrack, setPlaybackError, setSleepTimer } from "../redux/store/player/playerSlice";
+import { setIsPlaying, setProgress, setCurrentTrack, setPlaybackError, setSleepTimer, setEqualizerSettings } from "../redux/store/player/playerSlice";
 import { updateTracks } from "../redux/store/localLibrary/localLibrarySlice";
 import { addTrackToHistory } from "../redux/store/history/historySlice";
+import { loadPlayerPreferences, savePlayerPreferences } from "../services/storage/playerPreferences";
 
 interface AppBootstrapProps {
   children: React.ReactNode;
@@ -32,6 +33,7 @@ export function AppBootstrap({ children }: AppBootstrapProps) {
   const systemColorScheme = useSystemColorScheme();
   const theme = useSelector((state: RootState) => state.theme, shallowEqual);
   const showLyrics = useSelector((state: RootState) => state.ui.showLyrics);
+  const eqSettings = useSelector((state: RootState) => state.player.equalizerSettings, shallowEqual);
   const { isDarkMode, accentColor, themeMode, advancedBlurEnabled, blurIntensity, hasHydrated: hasHydratedTheme } = theme;
 
   useEffect(() => {
@@ -64,6 +66,15 @@ export function AppBootstrap({ children }: AppBootstrapProps) {
       updateTracks,
       setSleepTimer,
       addTrackToHistory,
+      setEqualizerSettings,
+    });
+
+    // Restore Equalizer Settings
+    loadPlayerPreferences().then((prefs) => {
+      if (prefs?.equalizer) {
+        dispatch(setEqualizerSettings(prefs.equalizer));
+        audioPlayer.restoreEqualizerSettings(prefs.equalizer);
+      }
     });
   }, []);
 
@@ -96,6 +107,14 @@ export function AppBootstrap({ children }: AppBootstrapProps) {
       console.warn("Failed to persist UI preferences:", error);
     });
   }, [showLyrics, hasHydratedTheme]);
+
+  useEffect(() => {
+    if (!hasHydratedTheme) return;
+    
+    savePlayerPreferences({ equalizer: eqSettings }).catch((error) => {
+      console.warn("Failed to persist player preferences:", error);
+    });
+  }, [eqSettings, hasHydratedTheme]);
 
   return <>{children}</>;
 }

@@ -42,6 +42,9 @@ function triggerSeek(millis: number) {
 function triggerHapticLight() {
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 }
+function triggerSetVolume(vol: number) {
+  audioPlayer.setVolume(vol);
+}
 
 const GhostingImage = memo(({ image, isDarkMode }: { image: string, isDarkMode: boolean }) => (
   <Image 
@@ -184,7 +187,7 @@ const MiniPlayerInner = () => {
             const delta = -e.translationY / 200;
             volume.value = Math.max(0, Math.min(1, 1 + delta));
             showVolumeIndicator.value = 1;
-            runOnJS(audioPlayer.setVolume)(volume.value);
+            runOnJS(triggerSetVolume)(volume.value);
           }
         } else if (gestureDirection.value === 'horizontal') {
           if (startCompactProgress.value < 0.5) {
@@ -441,17 +444,37 @@ function VolumeIndicator({ volume, visible, accentColor }: { volume: SharedValue
     height: `${volume.value * 100}%` as any,
   }));
 
+  const muteStyle = useAnimatedStyle(() => ({
+    opacity: volume.value === 0 ? 1 : 0,
+    display: volume.value === 0 ? 'flex' : 'none',
+  }));
+
+  const lowStyle = useAnimatedStyle(() => ({
+    opacity: (volume.value > 0 && volume.value < 0.5) ? 1 : 0,
+    display: (volume.value > 0 && volume.value < 0.5) ? 'flex' : 'none',
+  }));
+
+  const highStyle = useAnimatedStyle(() => ({
+    opacity: volume.value >= 0.5 ? 1 : 0,
+    display: volume.value >= 0.5 ? 'flex' : 'none',
+  }));
+
   return (
     <Animated.View style={[styles.volumeIndicator, style]}>
       <View style={styles.volumeBarBg}>
         <Animated.View style={[styles.volumeBarFill, { backgroundColor: accentColor }, barStyle]} />
       </View>
-      <Ionicons 
-        name={volume.value === 0 ? "volume-mute" : volume.value < 0.5 ? "volume-low" : "volume-high"} 
-        size={20} 
-        color="#FFF" 
-        style={{ marginTop: 8 }}
-      />
+      <View style={{ marginTop: 8, height: 20, width: 20, justifyContent: 'center', alignItems: 'center' }}>
+        <Animated.View style={[StyleSheet.absoluteFill, muteStyle, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Ionicons name="volume-mute" size={20} color="#FFF" />
+        </Animated.View>
+        <Animated.View style={[StyleSheet.absoluteFill, lowStyle, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Ionicons name="volume-low" size={20} color="#FFF" />
+        </Animated.View>
+        <Animated.View style={[StyleSheet.absoluteFill, highStyle, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Ionicons name="volume-high" size={20} color="#FFF" />
+        </Animated.View>
+      </View>
     </Animated.View>
   );
 }

@@ -16,6 +16,7 @@ export function useLibraryScreenLogic() {
   const [results, setResults] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
   const [isPickerVisible, setIsPickerVisible] = useState(false);
+  const [isOptionsVisible, setIsOptionsVisible] = useState(false);
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
   const navigation = useNavigation<NativeStackNavigationProp<MainStack>>();
   const dispatch = useDispatch<AppDispatch>();
@@ -87,7 +88,7 @@ export function useLibraryScreenLogic() {
 
   const handleOpenPicker = (track: Track) => {
     setSelectedTrack(track);
-    setIsPickerVisible(true);
+    setIsOptionsVisible(true);
   };
 
   const handleAddToPlaylist = (playlistId: string) => {
@@ -110,6 +111,8 @@ export function useLibraryScreenLogic() {
     loading,
     isPickerVisible,
     setIsPickerVisible,
+    isOptionsVisible,
+    setIsOptionsVisible,
     selectedTrack,
     likedSongs,
     recentSearches,

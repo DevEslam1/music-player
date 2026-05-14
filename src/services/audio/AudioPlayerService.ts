@@ -6,12 +6,14 @@ import TrackPlayer, {
   RepeatMode as TrackPlayerRepeatMode
 } from "react-native-track-player";
 import { Track } from "../../types";
-import { Platform } from "react-native";
+import { Platform, NativeModules } from "react-native";
+const { TrackPlayerModule } = NativeModules;
 import { DownloadService } from "../api/downloadService";
 import { getAccessToken } from "../auth/session";
 import { LocalMusicService } from "../local/localMusicService";
 import { LocalTrack } from "../../types";
 import { LibraryService } from "../api/libraryService";
+import { Image } from "expo-image";
 
 /**
  * Audio Player Service (Refactored to react-native-track-player)
@@ -23,6 +25,7 @@ import { LibraryService } from "../api/libraryService";
 class AudioPlayerService {
   private static instance: AudioPlayerService;
   private isInitialized = false;
+  private setupPromise: Promise<void> | null = null;
   private currentLoadingTrackId: string | null = null;
   private lastProgressDispatch = 0;
 
@@ -37,6 +40,7 @@ class AudioPlayerService {
     updateTracks?: (tracks: Track[]) => void;
     setSleepTimer?: (time: number | null) => void;
     addTrackToHistory?: (track: Track) => void;
+    setEqualizerSettings?: (settings: any) => void;
   } | null = null;
 
   private constructor() {}
@@ -62,6 +66,7 @@ class AudioPlayerService {
       updateTracks?: (tracks: Track[]) => void;
       setSleepTimer?: (time: number | null) => void;
       addTrackToHistory?: (track: Track) => void;
+      setEqualizerSettings?: (settings: any) => void;
     }
   ) {
     this.dispatch = dispatch;
@@ -73,16 +78,27 @@ class AudioPlayerService {
   }
 
   private async setupPlayer() {
-    if (this.isInitialized) return;
+    if (this.setupPromise) return this.setupPromise;
 
-    try {
-      await TrackPlayer.setupPlayer({
-        waitForBuffer: true,
-      });
+    this.setupPromise = (async () => {
+      try {
+        await TrackPlayer.setupPlayer({
+          waitForBuffer: true,
+        });
+      } catch (e: any) {
+        // If it's already initialized, we don't treat it as a hard error
+        if (e.message?.includes('already been initialized')) {
+          console.log("TrackPlayer already initialized, skipping setup.");
+        } else {
+          this.setupPromise = null; // Allow retry on real errors
+          throw e;
+        }
+      }
 
       await TrackPlayer.updateOptions({
         android: {
           appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
+          alwaysPauseOnInterruption: true,
         },
         capabilities: [
           Capability.Play,
@@ -90,6 +106,7 @@ class AudioPlayerService {
           Capability.SkipToNext,
           Capability.SkipToPrevious,
           Capability.SeekTo,
+          Capability.Stop,
         ],
         compactCapabilities: [
           Capability.Play,
@@ -102,14 +119,15 @@ class AudioPlayerService {
           Capability.SkipToNext,
           Capability.SkipToPrevious,
           Capability.SeekTo,
+          Capability.Stop,
         ],
       });
 
       this.setupListeners();
       this.isInitialized = true;
-    } catch (e) {
-      console.error("TrackPlayer setup error:", e);
-    }
+    })();
+
+    return this.setupPromise;
   }
 
   private setupListeners() {
@@ -214,7 +232,7 @@ class AudioPlayerService {
               this.dispatch!(this.actions!.setCurrentTrack(enrichedTrack));
               TrackPlayer.updateMetadataForTrack(0, {
                 artwork: enrichedTrack.image,
-              });
+              }).catch(() => {});
             }
           }
         }).catch(() => {});
@@ -237,6 +255,8 @@ class AudioPlayerService {
         LibraryService.logPlay(track.id).catch(e => console.warn("Failed to log play:", e));
       }
 
+      this.prefetchNextTracks();
+
     } catch (e: any) {
       console.error("Audio Load Error:", e.message);
       this.dispatch?.(this.actions?.setPlaybackError(e.message));
@@ -253,18 +273,17 @@ class AudioPlayerService {
     }
   }
 
-  public async playNext() {
+  public async playNext(): Promise<void> {
     const state = this.getState?.().player;
-    if (!state.currentTrack || state.queue.length === 0) return;
-
-    const currentIndex = state.queue.findIndex((t: Track) => t.id === state.currentTrack?.id);
+    if (!state || state.queue.length === 0) return;
+    
+    const currentIndex = state.currentTrack ? state.queue.findIndex((t: Track) => t.id === state.currentTrack?.id) : -1;
     let nextIndex = currentIndex + 1;
 
     if (nextIndex >= state.queue.length) {
       if (state.repeatMode === 'queue') {
         nextIndex = 0;
       } else {
-        await TrackPlayer.pause();
         return;
       }
     }
@@ -315,6 +334,131 @@ class AudioPlayerService {
     if (!this.isInitialized) return;
     const tpMode = mode === 'track' ? TrackPlayerRepeatMode.Track : mode === 'queue' ? TrackPlayerRepeatMode.Queue : TrackPlayerRepeatMode.Off;
     await TrackPlayer.setRepeatMode(tpMode);
+  }
+
+  private prefetchNextTracks() {
+    const state = this.getState?.().player;
+    if (!state || !state.currentTrack || state.queue.length === 0) return;
+
+    const currentIndex = state.queue.findIndex((t: Track) => t.id === state.currentTrack?.id);
+    if (currentIndex === -1) return;
+
+    // Prefetch next 3 tracks
+    const nextTracks = [];
+    for (let i = 1; i <= 3; i++) {
+      const nextIndex = (currentIndex + i) % state.queue.length;
+      const track = state.queue[nextIndex];
+      if (track?.image) {
+        nextTracks.push(track.image);
+      }
+    }
+
+    if (nextTracks.length > 0) {
+      Image.prefetch(nextTracks);
+    }
+  }
+
+  // ─── Equalizer API ──────────────────────────────────────────────────────────
+
+  public async isEqualizerAvailable(): Promise<boolean> {
+    return Platform.OS === 'android';
+  }
+
+  public async setEqualizerEnabled(enabled: boolean): Promise<boolean> {
+    if (Platform.OS !== 'android') return false;
+    try {
+      const success = await TrackPlayerModule.setEqualizerEnabled(enabled);
+      if (success) {
+        this.dispatch?.(this.actions?.setEqualizerSettings?.({ enabled }));
+      }
+      return success;
+    } catch (e) {
+      console.error('EQ Error:', e);
+      return false;
+    }
+  }
+
+  public async getEqualizerBands(): Promise<{ count: number, bands: number[], levels: number[], min: number, max: number }> {
+    if (Platform.OS !== 'android') return { count: 0, bands: [], levels: [], min: 0, max: 0 };
+    try {
+      const data = await TrackPlayerModule.getEqualizerBands();
+      const bands: number[] = [];
+      const levels: number[] = [];
+      for (let i = 0; i < data.count; i++) {
+        bands.push(data[`band_${i}`]);
+        levels.push(data[`level_${i}`]);
+      }
+      return {
+        count: data.count,
+        bands,
+        levels,
+        min: data.min,
+        max: data.max
+      };
+    } catch (e) {
+      return { count: 0, bands: [], levels: [], min: 0, max: 0 };
+    }
+  }
+
+  public async setEqualizerBandLevel(band: number, level: number): Promise<void> {
+    if (Platform.OS !== 'android') return;
+    try {
+      await TrackPlayerModule.setEqualizerBandLevel(band, level);
+      const currentLevels = [...(this.getState?.().player.equalizerSettings.bandLevels || [0,0,0,0,0])];
+      currentLevels[band] = level;
+      this.dispatch?.(this.actions?.setEqualizerSettings?.({ bandLevels: currentLevels, currentPreset: null }));
+    } catch (e) {}
+  }
+
+  public async getEqualizerPresets(): Promise<string[]> {
+    if (Platform.OS !== 'android') return [];
+    try {
+      return await TrackPlayerModule.getEqualizerPresets();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  public async applyEqualizerPreset(index: number, name: string): Promise<void> {
+    if (Platform.OS !== 'android') return;
+    try {
+      await TrackPlayerModule.applyEqualizerPreset(index);
+      
+      // Fetch new levels after preset change
+      const data = await this.getEqualizerBands();
+      this.dispatch?.(this.actions?.setEqualizerSettings?.({ 
+        currentPreset: name,
+        bandLevels: data.levels 
+      }));
+    } catch (e) {}
+  }
+
+  public async restoreEqualizerSettings(settings: { enabled: boolean, bandLevels: number[], currentPreset: string | null }): Promise<void> {
+    if (Platform.OS !== 'android') return;
+    try {
+      // 1. Enable/Disable
+      await TrackPlayerModule.setEqualizerEnabled(settings.enabled);
+      
+      if (settings.enabled) {
+        // 2. Apply bands
+        for (let i = 0; i < settings.bandLevels.length; i++) {
+          await TrackPlayerModule.setEqualizerBandLevel(i, settings.bandLevels[i]);
+        }
+        
+        // 3. Apply preset if it exists (though levels might already be set)
+        if (settings.currentPreset) {
+          const presets = await this.getEqualizerPresets();
+          const index = presets.indexOf(settings.currentPreset);
+          if (index !== -1) {
+            // Note: Applying preset might overwrite the custom band levels above,
+            // so we do it in this order or just trust the levels.
+            // Usually, if there's a preset name, we should apply it first then the levels if they are custom.
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to restore EQ settings:", e);
+    }
   }
 }
 

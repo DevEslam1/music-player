@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   ActivityIndicator,
   TouchableOpacity,
   Platform,
   ScrollView,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,6 +20,7 @@ import { RootState, AppDispatch } from "../../redux/store/store";
 import { useLibraryScreenLogic } from "../../services/logic/libraryScreenLogic";
 import { SearchBar } from "../../components/library/SearchBar";
 import { SearchItem } from "../../components/library/SearchItem";
+import { TrackOptionsModal } from "../../components/TrackOptionsModal";
 import PlaylistPicker from "../../components/PlaylistPicker";
 import { setAutoDownloadEnabled, batchDownloadTracksAction } from "../../redux/store/downloads/downloadsSlice";
 import { fetchHomeFeed, clearRecentSearches } from "../../redux/store/library/librarySlice";
@@ -33,14 +34,19 @@ export default function LibraryScreen() {
     loading,
     fetchResults,
     handlePlayTrack,
-    handleOpenPicker,
-    isPickerVisible,
-    setIsPickerVisible,
-    handleAddToPlaylist,
     likedSongs,
     recentSearches,
     suggestions,
+    isPickerVisible,
+    setIsPickerVisible,
+    isOptionsVisible,
+    setIsOptionsVisible,
+    selectedTrack,
+    handleAddToPlaylist,
+    handleOpenPicker,
   } = useLibraryScreenLogic();
+
+  const TypedFlashList = FlashList as any;
   
   const history = useSelector((state: RootState) => state.history.recentTracks);
   const localTracks = useSelector((state: RootState) => state.localLibrary.tracks);
@@ -152,7 +158,7 @@ export default function LibraryScreen() {
             </TouchableOpacity>
           )}
         </View>
-        <FlatList
+        <TypedFlashList
           data={dataToShow}
           renderItem={({ item }) => (
             <SearchItem
@@ -165,6 +171,7 @@ export default function LibraryScreen() {
           )}
           keyExtractor={(item) => `empty-${item.id}`}
           contentContainerStyle={styles.listContainer}
+          estimatedItemSize={72}
         />
       </View>
     );
@@ -215,7 +222,7 @@ export default function LibraryScreen() {
       ) : (query === "" || results.length === 0) ? (
         renderEmptyState()
       ) : (
-        <FlatList
+        <TypedFlashList
           data={results}
           renderItem={({ item }) => (
             <SearchItem
@@ -228,8 +235,16 @@ export default function LibraryScreen() {
           )}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
+          estimatedItemSize={72}
         />
       )}
+
+      <TrackOptionsModal
+        isVisible={isOptionsVisible}
+        onClose={() => setIsOptionsVisible(false)}
+        track={selectedTrack}
+        onAddToPlaylist={() => setIsPickerVisible(true)}
+      />
 
       <PlaylistPicker
         isVisible={isPickerVisible}

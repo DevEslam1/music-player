@@ -15,6 +15,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Image } from "expo-image";
 import { BlurView } from "expo-blur";
 import { RootState, AppDispatch } from "../../redux/store/store";
+import { Track } from "../../types";
 import {
   fetchHomeFeed,
   fetchLikedSongs,
@@ -24,6 +25,7 @@ import { SuggestionItem } from "../../components/home/SuggestionItem";
 import { TrackList } from "../../components/home/TrackList";
 import { useHomeScreenLogic } from "../../services/logic/homeScreenLogic";
 import { HomeSkeleton } from "../../components/home/HomeSkeleton";
+import { TrackOptionsModal } from "../../components/TrackOptionsModal";
 
 // Smaller, reusable components for a cleaner codebase! 
 import { ScreenHeader } from "../../components/ScreenHeader";
@@ -44,6 +46,9 @@ export default function HomeScreen() {
   
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
+
+  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
+  const [isOptionsVisible, setIsOptionsVisible] = useState(false);
 
   const {
     likedSongs,
@@ -153,11 +158,25 @@ export default function HomeScreen() {
 
         {/* Recently Played Section */}
         {recentTracks.length > 0 && (
-          <TrackList
-            label="Recently Played"
-            trackList={recentTracks}
-            handlePlayTrack={handlePlayTrack}
-          />
+          <View>
+            <View style={styles.suggestionsHeader}>
+              <Text style={[styles.sectionTitle, { color: textColor, marginBottom: 0 }]}>
+                Recently Played
+              </Text>
+              <TouchableOpacity 
+                onPress={() => navigation.navigate("TracksList", { 
+                  title: "Recently Played", 
+                  tracks: recentTracks 
+                })}
+              >
+                <Text style={[styles.seeAll, { color: accentColor }]}>See all</Text>
+              </TouchableOpacity>
+            </View>
+            <TrackList
+              trackList={recentTracks.slice(0, 10)}
+              handlePlayTrack={handlePlayTrack}
+            />
+          </View>
         )}
         
         {/* Most Played Section */}
@@ -203,10 +222,20 @@ export default function HomeScreen() {
               track={item}
               textColor={textColor}
               onPress={() => handlePlayTrack(item, homeFeed.fullSuggestions)}
+              onOpenOptions={() => {
+                setSelectedTrack(item);
+                setIsOptionsVisible(true);
+              }}
             />
           ))}
         </View>
       </ScrollView>
+
+      <TrackOptionsModal
+        isVisible={isOptionsVisible}
+        onClose={() => setIsOptionsVisible(false)}
+        track={selectedTrack}
+      />
     </View>
   </View>
 );
