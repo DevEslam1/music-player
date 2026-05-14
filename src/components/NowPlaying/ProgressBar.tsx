@@ -2,54 +2,52 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Slider from '@react-native-community/slider';
 import * as Haptics from 'expo-haptics';
+import { useProgress } from 'react-native-track-player';
+import { useAccentColor } from '../../hooks/use-theme-color';
 
 /**
- * Junior Developer Advice:
- * I put the progress bar here alone. 
- * Why? Because music updates every second! If this was in the main file,
- * the whole screen would re-render 60 times a minute. 
- * 
- * Here, only this small piece updates. Super fast! 🚀
+ * Performance Tip:
+ * We use useProgress() hook from react-native-track-player.
+ * This hook is optimized for performance and won't trigger re-renders
+ * of the parent components.
  */
 
 interface ProgressBarProps {
-  positionMillis: number;
-  durationMillis: number;
   onSeek: (value: number) => void;
   textColor: string;
 }
 
-import { useAccentColor } from '../../hooks/use-theme-color';
-
 export const ProgressBar = React.memo(({
-  positionMillis,
-  durationMillis,
   onSeek,
   textColor
 }: ProgressBarProps) => {
+  const { position, duration } = useProgress(500); // Update every 500ms
   const accentColor = useAccentColor();
   
-  const formatTime = (millis: number) => {
-    const totalSeconds = Math.floor(millis / 1000);
-    const m = Math.floor(totalSeconds / 60);
-    const s = Math.floor(totalSeconds % 60);
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
     return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
   };
+
+  // Convert to millis for consistency if needed, but here we can just use seconds
+  const positionMillis = position * 1000;
+  const durationMillis = (duration || 30) * 1000;
 
   return (
     <View style={styles.progressContainer}>
       <View style={styles.timeRow}>
         <Text style={[styles.timeText, { color: textColor }]}>
-          {formatTime(positionMillis)}
+          {formatTime(position)}
         </Text>
         <Text style={[styles.timeText, { color: textColor }]}>
-          {formatTime(durationMillis)}
+          {formatTime(duration)}
         </Text>
       </View>
       <Slider
         style={styles.slider}
         minimumValue={0}
-        maximumValue={durationMillis || 30000}
+        maximumValue={durationMillis}
         value={positionMillis}
         onSlidingComplete={(val) => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

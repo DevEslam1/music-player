@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import React, { memo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from "react-native";
-import { shallowEqual, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "../redux/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import { audioPlayer } from "../services/audio/AudioPlayerService";
@@ -10,6 +10,7 @@ import { useAccentColor, useThemeColor, useColorScheme, useBlurSettings } from "
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
+import { useProgress } from 'react-native-track-player';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -55,13 +56,12 @@ import { BlurView } from "expo-blur";
 const MiniPlayerInner = () => {
   const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
   const isPlaying = useSelector((state: RootState) => state.player.isPlaying);
-  const { positionMillis, durationMillis } = useSelector(
-    (state: RootState) => ({
-      positionMillis: state.player.positionMillis,
-      durationMillis: state.player.durationMillis,
-    }),
-    shallowEqual,
-  );
+  
+  // Use native TrackPlayer progress for perfectly synced bar
+  const { position, duration } = useProgress(500);
+  const positionMillis = position * 1000;
+  const durationMillis = (duration || 30) * 1000;
+
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();

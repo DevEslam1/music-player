@@ -46,13 +46,7 @@
       "favicon": "./assets/app-icon.png"
     },
     "plugins": [
-      [
-        "expo-audio",
-        {
-          "microphonePermission": false,
-          "enableBackgroundPlayback": true
-        }
-      ],
+
       [
         "expo-media-library",
         {

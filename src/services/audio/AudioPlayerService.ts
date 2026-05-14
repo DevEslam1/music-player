@@ -1,4 +1,10 @@
-import { createAudioPlayer, AudioPlayer, setAudioModeAsync } from "expo-audio";
+import TrackPlayer, { 
+  Capability, 
+  Event, 
+  State as PlayerState,
+  AppKilledPlaybackBehavior,
+  RepeatMode as TrackPlayerRepeatMode
+} from "react-native-track-player";
 import { Track } from "../../types";
 import { Platform } from "react-native";
 import { DownloadService } from "../api/downloadService";
@@ -8,33 +14,16 @@ import { LocalTrack } from "../../types";
 import { LibraryService } from "../api/libraryService";
 
 /**
- * Audio Player Service
- * Lock Screen Note (Expo SDK 55):
- * - Only play/pause, seek-forward (+10s), and seek-backward (-10s) are supported natively in expo-audio 55.
- * - Next/Previous track buttons are NOT available — the native MediaSession callback
- *   in expo-audio's Android implementation currently omits these actions.
- * - AudioPlaylist API is available but currently lacks native lock screen integration.
+ * Audio Player Service (Refactored to react-native-track-player)
+ * - Full Lock Screen controls (Next, Previous, Play, Pause, Seek)
+ * - Native Media Session integration
+ * - Background playback stability
  */
-
-const initAudioMode = async () => {
-  try {
-    await setAudioModeAsync({
-      playsInSilentMode: true,
-      shouldPlayInBackground: true,
-      interruptionMode: 'doNotMix',
-    });
-  } catch (e) {
-    console.warn("Failed to set audio mode:", e);
-  }
-};
-
-initAudioMode();
 
 class AudioPlayerService {
   private static instance: AudioPlayerService;
-  private player: AudioPlayer | null = null;
+  private isInitialized = false;
   private currentLoadingTrackId: string | null = null;
-  private subscriptions: { remove: () => void }[] = [];
   private lastProgressDispatch = 0;
 
   // Injected Redux dependencies to avoid cycles
@@ -78,9 +67,103 @@ class AudioPlayerService {
     this.dispatch = dispatch;
     this.getState = getState;
     this.actions = actions;
+    
+    // Once Redux is injected, we can start the initialization
+    this.setupPlayer().catch(e => console.error("Failed to setup TrackPlayer:", e));
+  }
+
+  private async setupPlayer() {
+    if (this.isInitialized) return;
+
+    try {
+      await TrackPlayer.setupPlayer({
+        waitForBuffer: true,
+      });
+
+      await TrackPlayer.updateOptions({
+        android: {
+          appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
+        },
+        capabilities: [
+          Capability.Play,
+          Capability.Pause,
+          Capability.SkipToNext,
+          Capability.SkipToPrevious,
+          Capability.SeekTo,
+        ],
+        compactCapabilities: [
+          Capability.Play,
+          Capability.Pause,
+          Capability.SkipToNext,
+        ],
+        notificationCapabilities: [
+          Capability.Play,
+          Capability.Pause,
+          Capability.SkipToNext,
+          Capability.SkipToPrevious,
+          Capability.SeekTo,
+        ],
+      });
+
+      this.setupListeners();
+      this.isInitialized = true;
+    } catch (e) {
+      console.error("TrackPlayer setup error:", e);
+    }
+  }
+
+  private setupListeners() {
+    TrackPlayer.addEventListener(Event.PlaybackState, ({ state }) => {
+      const isPlaying = state === PlayerState.Playing;
+      this.dispatch?.(this.actions?.setIsPlaying(isPlaying));
+    });
+
+    TrackPlayer.addEventListener(Event.PlaybackActiveTrackChanged, ({ track }) => {
+      if (track && track.id !== this.getState?.().player.currentTrack?.id) {
+        // Find track in our original queue to get the full object
+        const originalTrack = this.getState?.().player.queue.find((t: Track) => t.id === track.id);
+        if (originalTrack) {
+          this.dispatch?.(this.actions?.setCurrentTrack(originalTrack));
+        }
+      }
+    });
+
+    TrackPlayer.addEventListener(Event.PlaybackQueueEnded, () => {
+      this.playNext();
+    });
+
+    // We still need a progress sync for things like the sleep timer
+    // but the UI will use useProgress() hook directly.
+    setInterval(async () => {
+      if (!this.isInitialized) return;
+      const state = await TrackPlayer.getPlaybackState();
+      if (state.state !== PlayerState.Playing) return;
+
+      const progress = await TrackPlayer.getProgress();
+      const now = Date.now();
+      const playerState = this.getState?.().player;
+
+      // Sleep timer logic
+      if (playerState?.sleepTimerEndAt && now >= playerState.sleepTimerEndAt) {
+        await TrackPlayer.pause();
+        this.dispatch?.(this.actions?.setSleepTimer(null));
+        return;
+      }
+
+      // Progress sync (less frequent than UI)
+      if (now - this.lastProgressDispatch >= 1000) {
+        this.dispatch?.(this.actions?.setProgress({
+          position: progress.position * 1000,
+          duration: progress.duration * 1000,
+        }));
+        this.lastProgressDispatch = now;
+      }
+    }, 1000);
   }
 
   public async loadPlayTrack(track: Track) {
+    if (!this.isInitialized) await this.setupPlayer();
+    
     this.currentLoadingTrackId = track.id;
 
     // Log to Redux
@@ -100,160 +183,57 @@ class AudioPlayerService {
       const isLocalFile =
         (track.uri ?? "").startsWith("file://") ||
         (track.previewUrl ?? "").startsWith("file://");
+      
       const headers: Record<string, string> =
         !isLocalFile && token ? { Authorization: `Bearer ${token}` } : {};
 
-      await initAudioMode();
+      let sourceUri = track.previewUrl || track.uri;
 
-      // Check if we have a locally downloaded version of this track!
-      const playerSource: any = {
-        uri: track.previewUrl || track.uri,
-      };
-
-      // Only attach headers if they are non-empty and it's not a local file
-      if (Object.keys(headers).length > 0 && !isLocalFile) {
-        playerSource.headers = headers;
-      }
-
-      // Check if we have a locally downloaded version of this track.
-      // getLocalUri() already verifies the file exists on disk — trust its result directly.
-      // A second FileSystem.getInfoAsync call here used a different module import
-      // (expo-file-system vs expo-file-system/legacy), which caused inconsistent URI
-      // resolution and made the local check silently fail, falling back to streaming (broken offline).
+      // Check local cache
       try {
         const localUri = await DownloadService.getLocalUri(track.id);
         if (localUri) {
-          // Local playback: no headers — headers cause errors on file:// URIs
-          playerSource.uri = localUri;
-          delete playerSource.headers;
+          sourceUri = localUri;
           console.log("📂 OFFLINE MODE: Playing local file:", localUri);
-        } else if (playerSource.uri) {
-          // No local file — stream (enforce HTTPS)
-          playerSource.uri = playerSource.uri.replace(/^http:\/\//i, 'https://');
+        } else if (sourceUri) {
+          sourceUri = sourceUri.replace(/^http:\/\//i, 'https://');
         }
       } catch(e) {
         console.warn("❌ OFFLINE CHECK FAILED:", e);
-        if (playerSource.uri) playerSource.uri = playerSource.uri.replace(/^http:\/\//i, 'https://');
+        if (sourceUri) sourceUri = sourceUri.replace(/^http:\/\//i, 'https://');
       }
-
-      // expo-audio 55 AudioMetadata only supports: title, artist, albumTitle, artworkUrl
-      const metadata = this.sanitizeMetadata({
-        title: track.name,
-        artist: track.artist,
-        albumTitle: track.album || "GiG Player",
-        artworkUrl: track.image || undefined,
-      });
 
       // If local track and no image, enrich it on the fly!
       if (isLocalFile && !track.image && this.dispatch && this.actions && this.getState) {
         LocalMusicService.enrichMetadata([track as LocalTrack]).then(enriched => {
           if (enriched.length > 0 && enriched[0].image) {
             const enrichedTrack = enriched[0];
-            this.dispatch(this.actions.updateTracks([enrichedTrack]));
+            this.dispatch!(this.actions!.updateTracks!([enrichedTrack]));
             
-            // Also update current track in player if it's still the same one
             if (this.getState().player.currentTrack?.id === enrichedTrack.id) {
-              this.dispatch(this.actions.setCurrentTrack(enrichedTrack));
-              try {
-                this.player?.updateLockScreenMetadata(this.sanitizeMetadata({
-                  title: enrichedTrack.name,
-                  artist: enrichedTrack.artist,
-                  albumTitle: enrichedTrack.album || "GiG Player",
-                  artworkUrl: enrichedTrack.image,
-                }));
-              } catch (e) {
-                console.warn("Failed to update enriched metadata on lockscreen:", e);
-              }
+              this.dispatch!(this.actions!.setCurrentTrack(enrichedTrack));
+              TrackPlayer.updateMetadataForTrack(0, {
+                artwork: enrichedTrack.image,
+              });
             }
           }
         }).catch(() => {});
       }
 
-      // expo-audio 55 AudioLockScreenOptions only supports showSeekForward and showSeekBackward.
-      const options = {
-        showSeekForward: true,
-        showSeekBackward: true,
-      };
+      await TrackPlayer.reset();
+      await TrackPlayer.add({
+        id: track.id,
+        url: sourceUri!,
+        title: track.name,
+        artist: track.artist,
+        album: track.album || "GiG Player",
+        artwork: track.image || undefined,
+        headers: !sourceUri?.startsWith('file://') ? headers : undefined,
+      });
 
-      if (this.player) {
-        // Seamlessly replace the audio source, keeping the foreground service & listener alive!
-        // This is crucial for Android 12+ where re-creating foreground services from background is banned.
-        this.player.replace(playerSource);
-        try {
-          this.player.updateLockScreenMetadata(metadata);
-        } catch (e) {
-          console.warn("Failed to update lockscreen metadata:", e);
-        }
-        
-        if (this.currentLoadingTrackId !== track.id) {
-          return;
-        }
-        
-        this.player.play();
-        this.dispatch?.(this.actions?.setIsPlaying(true));
-      } else {
-        const player = createAudioPlayer(playerSource);
-        try {
-          player.setActiveForLockScreen(true, metadata, options);
-        } catch (e) {
-          console.warn("Failed to activate lockscreen metadata:", e);
-        }
-
-        if (this.currentLoadingTrackId !== track.id) {
-          player.release();
-          return;
-        }
-
-        this.player = player;
-
-        this.subscriptions.push(this.player.addListener('playbackStatusUpdate', (status) => {
-          if (status.playing !== undefined) {
-            this.dispatch?.(this.actions?.setIsPlaying(status.playing));
-            
-            // Check latest track directly from state
-            const state = this.getState?.().player;
-            const activeTrack = state.currentTrack;
-            const previewFallbackMs = activeTrack 
-              ? Math.min((activeTrack.duration || 30000), 30000) 
-              : 30000;
-
-            const now = Date.now();
-
-            if (state.sleepTimerEndAt && now >= state.sleepTimerEndAt) {
-              this.player?.pause();
-              this.dispatch?.(this.actions?.setIsPlaying(false));
-              this.dispatch?.(this.actions?.setSleepTimer(null));
-            }
-
-            if (now - this.lastProgressDispatch >= 500 || status.didJustFinish) {
-              this.dispatch?.(this.actions?.setProgress({
-                position: (status.currentTime || 0) * 1000,
-                duration: (status.duration && status.duration > 1)
-                  ? status.duration * 1000
-                  : previewFallbackMs,
-              }));
-              this.lastProgressDispatch = now;
-            }
-          }
-
-          if (status.didJustFinish) {
-            this.playNext();
-          }
-        }));
-
-        if (Platform.OS === 'android') {
-          // expo-audio can race play() immediately after load on Android; keep the delay
-          // until the upstream playback-start issue is resolved in the SDK/runtime.
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-        
-        if (this.currentLoadingTrackId === track.id && this.player) {
-          this.player.play();
-          this.dispatch?.(this.actions?.setIsPlaying(true));
-        }
-      }
-
-      if (playerSource.uri && !playerSource.uri.startsWith('file://')) {
+      await TrackPlayer.play();
+      
+      if (sourceUri && !sourceUri.startsWith('file://')) {
         LibraryService.logPlay(track.id).catch(e => console.warn("Failed to log play:", e));
       }
 
@@ -263,23 +243,13 @@ class AudioPlayerService {
     }
   }
 
-  private async handleRemoteFavorite(track: Track) {
-    try {
-      await LibraryService.toggleLike(track.id);
-    } catch (e) {
-      console.warn("Failed to like song from remote:", e);
-    }
-  }
-
   public async playPause() {
-    if (!this.player) return;
-    const state = this.getState?.().player;
-    if (state.isPlaying) {
-      this.player.pause();
-      this.dispatch?.(this.actions?.setIsPlaying(false));
+    if (!this.isInitialized) return;
+    const state = await TrackPlayer.getPlaybackState();
+    if (state.state === PlayerState.Playing) {
+      await TrackPlayer.pause();
     } else {
-      this.player.play();
-      this.dispatch?.(this.actions?.setIsPlaying(true));
+      await TrackPlayer.play();
     }
   }
 
@@ -287,20 +257,14 @@ class AudioPlayerService {
     const state = this.getState?.().player;
     if (!state.currentTrack || state.queue.length === 0) return;
 
-    if (state.repeatMode === 'track') {
-      await this.loadPlayTrack(state.currentTrack);
-      return;
-    }
-
-    const currentIndex = state.queue.findIndex(t => t.id === state.currentTrack?.id);
+    const currentIndex = state.queue.findIndex((t: Track) => t.id === state.currentTrack?.id);
     let nextIndex = currentIndex + 1;
 
     if (nextIndex >= state.queue.length) {
       if (state.repeatMode === 'queue') {
         nextIndex = 0;
       } else {
-        this.player?.pause();
-        this.dispatch?.(this.actions?.setIsPlaying(false));
+        await TrackPlayer.pause();
         return;
       }
     }
@@ -321,12 +285,13 @@ class AudioPlayerService {
     const state = this.getState?.().player;
     if (!state.currentTrack || state.queue.length === 0) return;
 
-    if (state.positionMillis > 3000) {
-      await this.seek(0);
+    const progress = await TrackPlayer.getProgress();
+    if (progress.position > 3) {
+      await TrackPlayer.seekTo(0);
       return;
     }
 
-    const currentIndex = state.queue.findIndex(t => t.id === state.currentTrack?.id);
+    const currentIndex = state.queue.findIndex((t: Track) => t.id === state.currentTrack?.id);
     let prevIndex = currentIndex - 1;
 
     if (prevIndex < 0) {
@@ -337,28 +302,19 @@ class AudioPlayerService {
   }
 
   public async seek(positionMillis: number) {
-    if (!this.player) return;
-    this.player.seekTo(positionMillis / 1000); 
+    if (!this.isInitialized) return;
+    await TrackPlayer.seekTo(positionMillis / 1000); 
   }
 
-  public setVolume(volume: number) {
-    if (!this.player) return;
-    this.player.volume = Math.max(0, Math.min(1, volume));
+  public async setVolume(volume: number) {
+    if (!this.isInitialized) return;
+    await TrackPlayer.setVolume(Math.max(0, Math.min(1, volume)));
   }
 
-  /**
-   * Sanitizes metadata for native lockscreen consumption.
-   * Android MediaSession can reject metadata if base64 artwork is too large.
-   */
-  private sanitizeMetadata(metadata: any) {
-    // If artwork is a data URI, check its size. 
-    // Android MediaMetadata has a limit on the total bundle size (often ~100KB-500KB).
-    // Large base64 strings will cause the native call to be rejected.
-    if (metadata.artworkUrl?.startsWith('data:') && metadata.artworkUrl.length > 100000) {
-      console.log("⚠️ Metadata artwork too large for lockscreen (>100KB), omitting base64 data to prevent crash");
-      return { ...metadata, artworkUrl: undefined };
-    }
-    return metadata;
+  public async setRepeatMode(mode: 'none' | 'queue' | 'track') {
+    if (!this.isInitialized) return;
+    const tpMode = mode === 'track' ? TrackPlayerRepeatMode.Track : mode === 'queue' ? TrackPlayerRepeatMode.Queue : TrackPlayerRepeatMode.Off;
+    await TrackPlayer.setRepeatMode(tpMode);
   }
 }
 

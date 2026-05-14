@@ -378,8 +378,6 @@ export default function NowPlayingScreen() {
 
         {/* 3. Progress Bar */}
         <ProgressBar 
-          positionMillis={positionMillis}
-          durationMillis={durationMillis}
           onSeek={handleSeek}
           textColor={textColor}
         />
