@@ -9,6 +9,7 @@ export interface Track {
   previewUrl: string;
   lastPlayedAt?: number;
   playCount?: number;
+  lyrics?: string;
 }
 
 export interface Playlist {

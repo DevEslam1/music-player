@@ -29,6 +29,7 @@ import { PlaybackControls } from "../../components/NowPlaying/PlaybackControls";
 import { DownloadButton } from "../../components/DownloadButton";
 import { SleepTimerModal } from "../../components/settings/SleepTimerModal";
 import { setShowLyrics, showBanner } from "../../redux/store/ui/uiSlice";
+import { LyricsService, LyricsLine } from "../../services/api/lyricsService";
 
 
 
@@ -48,6 +49,8 @@ export default function NowPlayingScreen() {
   const [isPickerVisible, setIsPickerVisible] = React.useState(false);
   const [isSleepTimerVisible, setIsSleepTimerVisible] = React.useState(false);
   const showLyrics = useSelector((state: RootState) => state.ui.showLyrics);
+  const [lyrics, setLyrics] = React.useState<LyricsLine[]>([]);
+  const [isLyricsLoading, setIsLyricsLoading] = React.useState(false);
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   
@@ -56,6 +59,46 @@ export default function NowPlayingScreen() {
   const accentColor = useAccentColor();
 
   const lyricsScrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const fetchLyrics = async () => {
+      if (!currentTrack) return;
+      setIsLyricsLoading(true);
+      try {
+        const result = await LyricsService.getLyrics(currentTrack);
+        setLyrics(result);
+      } catch (e) {
+        setLyrics([]);
+      } finally {
+        setIsLyricsLoading(false);
+      }
+    };
+
+    fetchLyrics();
+  }, [currentTrack?.id]);
+
+  // Find the active line based on current playback position
+  const activeLineIndex = React.useMemo(() => {
+    if (!lyrics.length) return -1;
+    let index = -1;
+    for (let i = 0; i < lyrics.length; i++) {
+      if (positionMillis >= lyrics[i].time) {
+        index = i;
+      } else {
+        break;
+      }
+    }
+    return index;
+  }, [lyrics, positionMillis]);
+
+  // Auto-scroll to active line
+  useEffect(() => {
+    if (showLyrics && activeLineIndex !== -1 && lyricsScrollRef.current) {
+      // Approximate height per line (40 for padding/text)
+      const scrollY = Math.max(0, activeLineIndex * 60 - 150); 
+      lyricsScrollRef.current.scrollTo({ y: scrollY, animated: true });
+    }
+  }, [activeLineIndex, showLyrics]);
 
   const currentIndex = currentTrack && queue.length > 0 
     ? queue.findIndex(t => t.id === currentTrack?.id) 
@@ -241,12 +284,44 @@ export default function NowPlayingScreen() {
               ref={lyricsScrollRef}
               showsVerticalScrollIndicator={false}
             >
-              <Text style={[styles.lyricsText, { color: textColor }]}>
-                {currentTrack.name} by {currentTrack.artist}{"\n\n"}
-                Lyrics coming soon!{"\n\n"}
-                We are working on bringing real-time synchronized lyrics to GiG Player.{"\n\n"}
-                Stay tuned for the next update.
-              </Text>
+              {isLyricsLoading ? (
+                <View style={styles.lyricsLoadingArea}>
+                   <Text style={[styles.lyricsText, { color: textColor, opacity: 0.5 }]}>
+                     Loading synchronized lyrics... ✨
+                   </Text>
+                </View>
+              ) : lyrics.length > 0 ? (
+                <View style={{ paddingBottom: 300 }}>
+                  {lyrics.map((line, index) => {
+                    const isActive = index === activeLineIndex;
+                    return (
+                      <TouchableOpacity 
+                        key={index} 
+                        onPress={() => audioPlayer.seek(line.time)}
+                        activeOpacity={0.7}
+                      >
+                        <Text 
+                          style={[
+                            styles.lyricsText, 
+                            { 
+                              color: isActive ? accentColor : textColor,
+                              opacity: isActive ? 1 : 0.4,
+                              transform: [{ scale: isActive ? 1.05 : 1 }],
+                              marginVertical: 12,
+                            }
+                          ]}
+                        >
+                          {line.text}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              ) : (
+                <Text style={[styles.lyricsText, { color: textColor }]}>
+                  No lyrics found for "{currentTrack?.name}" 💿
+                </Text>
+              )}
             </ScrollView>
           </View>
         )}
@@ -397,11 +472,16 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   lyricsText: {
-    fontSize: 20,
-    lineHeight: 32,
+    fontSize: 24,
+    lineHeight: 38,
     textAlign: 'center',
-    opacity: 0.9,
-    fontWeight: '600',
+    fontWeight: '800',
+  },
+  lyricsLoadingArea: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 300,
   },
   trackInfoArea: {
     paddingHorizontal: 24,

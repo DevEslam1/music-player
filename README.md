@@ -16,6 +16,8 @@ A full-featured music streaming and offline playback app built with React Native
 - **Advanced Blur Control**: Toggle "Advanced Blur" effects and customize the intensity (10% to 100%) globally via app settings.
 - **Color Ghosting**: Dynamic visual projection of song artwork behind the MiniPlayer and Drawer for an immersive, color-reactive experience.
 - **Floating Curved Drawer**: Modern floating "side sheet" design with `32px` rounded corners and optimized `82%` width.
+- **Native Sharing**: Instant sharing of tracks, artists, and links via the system share sheet (iOS/Android) for seamless social integration.
+- **Persistent Preferences**: Global UI settings (like Lyrics visibility) are persisted across app restarts using `AsyncStorage`.
 
 ### 🎧 Audio Playback
 
@@ -55,7 +57,8 @@ A full-featured music streaming and offline playback app built with React Native
 - Play / Pause / Next / Previous controls
 - Like / Unlike track
 - Add to playlist
-- Animated "peek" carousel for queue context
+- Animated "peek" carousel: Visual context of the playback queue with smooth transitions between track artwork.
+- **Synchronized Lyrics**: Real-time line highlighting with auto-scroll and emoji support. Users can tap any line to instantly seek the audio to that position.
 
 ### 🗂 Search & Library
 
@@ -296,6 +299,13 @@ To prevent Metro bundler `Require cycle` loops that cause sporadic `undefined` e
 ---
 
 ## Changelog
+
+### v2.6.0 (May 2026)
+
+- **🎤 Synchronized Lyrics**: Full real-time lyrics tracking with auto-scroll, active line highlighting, and interactive "tap-to-seek" functionality.
+- **📤 Native Sharing**: Integrated system-level share sheet for easy track and artist sharing.
+- **🧠 UI Preference Memory**: The app now remembers if you left the lyrics view open and restores it automatically on app restart.
+- **🎨 Refined Now Playing UI**: Streamlined playback controls with bottom-fixed utility actions for a cleaner, more spacious interface.
 
 ### v2.5.0 (May 2026)
 
