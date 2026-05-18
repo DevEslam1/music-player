@@ -25,8 +25,7 @@ export default function LocalArtistDetailScreen() {
 
   const { artistName } = route.params;
 
-  const allTracks = useSelector((state: RootState) => state.localLibrary.tracks);
-  const tracks = selectTracksByArtist(allTracks, artistName);
+  const tracks = useSelector((state: RootState) => selectTracksByArtist(state, artistName));
   const coverImage = tracks.find(t => t.image)?.image ?? "";
 
   const textColor = useThemeColor({}, "text");

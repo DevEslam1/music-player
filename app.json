@@ -15,7 +15,9 @@
       "supportsTablet": true,
       "buildNumber": "2.5.0",
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       },
       "bundleIdentifier": "com.eslamm2500.musicplayer"
     },
@@ -50,13 +52,16 @@
           "photosPermission": false,
           "savePhotosPermission": false,
           "isAccessMediaLocationEnabled": false,
-          "granularPermissions": ["audio"]
+          "granularPermissions": [
+            "audio"
+          ]
         }
       ],
       "expo-font",
       "expo-asset",
       "expo-image",
-      "expo-system-ui"
+      "expo-system-ui",
+      "expo-sharing"
     ],
     "extra": {
       "eas": {

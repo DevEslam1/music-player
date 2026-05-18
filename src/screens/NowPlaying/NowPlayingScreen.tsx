@@ -5,12 +5,14 @@ import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import * as Sharing from 'expo-sharing';
 import { useThemeColor, useColorScheme, useAccentColor } from "../../hooks/use-theme-color";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../redux/store/store";
 import { toggleLikeSongAction, addTrackToPlaylistAction } from "../../redux/store/library/librarySlice";
 import { toggleShuffle, toggleRepeat, setSleepTimer } from "../../redux/store/player/playerSlice";
 import { audioPlayer } from "../../services/audio/AudioPlayerService";
+import { DownloadService } from "../../services/api/downloadService";
 import PlaylistPicker from "../../components/PlaylistPicker";
 import Animated, { 
   useSharedValue, 
@@ -188,6 +190,26 @@ export default function NowPlayingScreen() {
     if (!currentTrack) return;
     
     try {
+      // Check if track is local (from local library) or downloaded
+      let localUriToShare: string | null = null;
+      if (currentTrack.uri.startsWith('file://')) {
+        localUriToShare = currentTrack.uri;
+      } else {
+        // Might be a downloaded remote track
+        localUriToShare = await DownloadService.getLocalUri(currentTrack.id);
+      }
+      
+      if (localUriToShare) {
+        const canShare = await Sharing.isAvailableAsync();
+        if (canShare) {
+          await Sharing.shareAsync(localUriToShare, {
+            dialogTitle: `Share ${currentTrack.name}`,
+            mimeType: 'audio/*', 
+          });
+          return;
+        }
+      }
+
       const message = `Check out "${currentTrack.name}" by ${currentTrack.artist} on GiG Player!\n\nListen here: ${currentTrack.previewUrl || currentTrack.uri}`;
       
       const result = await Share.share({

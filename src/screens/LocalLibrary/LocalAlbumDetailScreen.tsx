@@ -30,9 +30,8 @@ export default function LocalAlbumDetailScreen() {
   const { albumName } = route.params;
   const albumId = albumName.toLowerCase().replace(/\s+/g, "-");
 
-  const allTracks = useSelector((state: RootState) => state.localLibrary.tracks);
   const enrichedAlbumIds = useSelector((state: RootState) => state.localLibrary.enrichedAlbumIds);
-  const tracks = selectTracksByAlbum(allTracks, albumName);
+  const tracks = useSelector((state: RootState) => selectTracksByAlbum(state, albumName));
   const coverImage = tracks.find(t => t.image)?.image ?? "";
   const artist = tracks[0]?.artist ?? "Unknown Artist";
 
@@ -42,12 +41,12 @@ export default function LocalAlbumDetailScreen() {
 
   // Lazy metadata enrichment for this album on first view
   useEffect(() => {
-    if (!enrichedAlbumIds.includes(albumId) && tracks.length > 0) {
+    if (albumName !== "Unknown Album" && !enrichedAlbumIds.includes(albumId) && tracks.length > 0) {
       LocalMusicService.enrichMetadata(tracks).then(enriched => {
         dispatch(updateEnrichedTracks({ albumId, tracks: enriched }));
       }).catch(() => {/* Silently ignore enrichment failures */});
     }
-  }, [albumId]);
+  }, [albumId, albumName, enrichedAlbumIds, tracks, dispatch]);
 
   const handlePlay = useCallback(async (track: LocalTrack, queue: LocalTrack[]) => {
     dispatch(setQueue(queue as any[]));

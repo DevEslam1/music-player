@@ -163,6 +163,8 @@ const MiniPlayerInner = () => {
   if (!currentTrack) return null;
 
   const swipeGesture = Gesture.Pan()
+    .activeOffsetX([-5, 5])
+    .activeOffsetY([-5, 5])
     .onStart(() => {
       hapticFired.value = false;
       startCompactProgress.value = compactProgress.value;
@@ -172,7 +174,7 @@ const MiniPlayerInner = () => {
     .onUpdate((e) => {
       if (!isScrubbing.value) {
         if (gestureDirection.value === null) {
-          if (Math.abs(e.translationX) > 10 || Math.abs(e.translationY) > 10) {
+          if (Math.abs(e.translationX) > 5 || Math.abs(e.translationY) > 5) {
             gestureDirection.value = Math.abs(e.translationY) > Math.abs(e.translationX) ? 'vertical' : 'horizontal';
           }
         }
@@ -206,7 +208,8 @@ const MiniPlayerInner = () => {
     .onEnd((e) => {
       if (!isScrubbing.value) {
         if (gestureDirection.value === 'vertical') {
-          if (compactProgress.value > 0.5) {
+          const shouldCompact = (compactProgress.value > 0.5 && e.velocityY > -300) || e.velocityY > 500;
+          if (shouldCompact) {
             if (compactProgress.value < 1) runOnJS(triggerHapticLight)();
             compactProgress.value = withSpring(1, { damping: 20, stiffness: 200 });
           } else {
@@ -217,12 +220,12 @@ const MiniPlayerInner = () => {
           showVolumeIndicator.value = withTiming(0, { duration: 500 });
         } else if (gestureDirection.value === 'horizontal') {
           if (startCompactProgress.value < 0.5) {
-            if (e.translationX < -SWIPE_THRESHOLD) {
+            if (e.translationX < -SWIPE_THRESHOLD || e.velocityX < -800) {
               translateX.value = withTiming(-300, { duration: 200 }, () => {
                 translateX.value = 0;
               });
               runOnJS(triggerNext)();
-            } else if (e.translationX > SWIPE_THRESHOLD) {
+            } else if (e.translationX > SWIPE_THRESHOLD || e.velocityX > 800) {
               translateX.value = withTiming(300, { duration: 200 }, () => {
                 translateX.value = 0;
               });

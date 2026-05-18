@@ -25,8 +25,7 @@ export default function LocalFolderDetailScreen() {
 
   const { folderPath, folderName } = route.params;
 
-  const allTracks = useSelector((state: RootState) => state.localLibrary.tracks);
-  const tracks = selectTracksByFolder(allTracks, folderPath);
+  const tracks = useSelector((state: RootState) => selectTracksByFolder(state, folderPath));
 
   const textColor = useThemeColor({}, "text");
   const accentColor = useAccentColor();

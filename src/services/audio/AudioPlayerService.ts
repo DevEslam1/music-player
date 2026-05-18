@@ -221,18 +221,36 @@ class AudioPlayerService {
         if (sourceUri) sourceUri = sourceUri.replace(/^http:\/\//i, 'https://');
       }
 
-      // If local track and no image, enrich it on the fly!
-      if (isLocalFile && !track.image && this.dispatch && this.actions && this.getState) {
+      // If local track and has missing metadata or image, enrich it on the fly!
+      const needsEnrichment = isLocalFile && (
+        !track.image || 
+        track.name === "Unknown Title" || track.name === track.id ||
+        track.artist === "Unknown Artist" || 
+        track.album === "Unknown Album"
+      );
+
+      if (needsEnrichment && this.dispatch && this.actions && this.getState) {
         LocalMusicService.enrichMetadata([track as LocalTrack]).then(enriched => {
-          if (enriched.length > 0 && enriched[0].image) {
+          if (enriched.length > 0) {
             const enrichedTrack = enriched[0];
-            this.dispatch!(this.actions!.updateTracks!([enrichedTrack]));
-            
-            if (this.getState().player.currentTrack?.id === enrichedTrack.id) {
-              this.dispatch!(this.actions!.setCurrentTrack(enrichedTrack));
-              TrackPlayer.updateMetadataForTrack(0, {
-                artwork: enrichedTrack.image,
-              }).catch(() => {});
+            // Only dispatch if something actually changed
+            if (
+              enrichedTrack.image !== track.image ||
+              enrichedTrack.name !== track.name ||
+              enrichedTrack.artist !== track.artist ||
+              enrichedTrack.album !== track.album
+            ) {
+              this.dispatch!(this.actions!.updateTracks!([enrichedTrack]));
+              
+              if (this.getState().player.currentTrack?.id === enrichedTrack.id) {
+                this.dispatch!(this.actions!.setCurrentTrack(enrichedTrack));
+                TrackPlayer.updateMetadataForTrack(0, {
+                  title: enrichedTrack.name,
+                  artist: enrichedTrack.artist,
+                  album: enrichedTrack.album,
+                  artwork: enrichedTrack.image || undefined,
+                }).catch(() => {});
+              }
             }
           }
         }).catch(() => {});
