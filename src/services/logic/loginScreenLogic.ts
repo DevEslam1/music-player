@@ -1,5 +1,4 @@
-import { useNavigation } from "@react-navigation/native";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchProfile,
@@ -12,7 +11,6 @@ import { AuthService } from "../api/authService";
 import { AppDispatch } from "../../redux/store/store";
 import { clearAuthTokens, saveAuthTokens } from "../auth/session";
 import { showAppBanner } from "../../components/OfflineBanner";
-import { navigate } from "../../navigation/navigationUtils";
 
 /**
  * Professional Junior Logic Note:
@@ -21,41 +19,45 @@ import { navigate } from "../../navigation/navigationUtils";
  */
 
 export function useLoginScreenLogic() {
-  const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const isLoading = useSelector(selectAuthLoading);
+  const isSubmitting = useRef(false);
 
   const isFormValid = email.trim().length > 0 && password.length >= 8;
 
   const handleLogin = useCallback(async () => {
-    const emailError = validateEmail(email);
-    if (emailError !== null) {
-      showAppBanner(emailError, "warning");
-      return;
-    }
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
 
-    const passwordError = validatePassword(password);
-    if (passwordError !== null) {
-      showAppBanner(passwordError, "warning");
-      return;
-    }
-
-    dispatch(loginStart());
     try {
+      const emailError = validateEmail(email);
+      if (emailError !== null) {
+        showAppBanner(emailError, "warning");
+        return;
+      }
+
+      const passwordError = validatePassword(password);
+      if (passwordError !== null) {
+        showAppBanner(passwordError, "warning");
+        return;
+      }
+
+      dispatch(loginStart());
       await clearAuthTokens();
       const data = await AuthService.login({ email, password });
       const { access, refresh } = data;
       await saveAuthTokens({ access, refresh });
       await dispatch(fetchProfile()).unwrap();
-      navigate("Drawer");
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.detail ||
         "Login failed. Please check your credentials.";
       dispatch(loginFailure(errorMessage));
       showAppBanner(errorMessage, "error");
+    } finally {
+      isSubmitting.current = false;
     }
   }, [email, password, dispatch]);
 

@@ -9,6 +9,9 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MainStack } from "../../navigation/AppNavigator";
 import { drawerType } from "../../navigation/DrawerNavigator";
 import { ScreenHeader } from "../../components/ScreenHeader";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../redux/store/store";
+import { showBanner } from "../../redux/store/ui/uiSlice";
 
 interface SupportItemProps {
   icon: React.ComponentProps<typeof Ionicons>["name"];
@@ -42,6 +45,7 @@ const SupportItem = ({ icon, title, subtitle, onPress }: SupportItemProps) => {
 
 
 export default function SupportScreen() {
+  const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<
     CompositeNavigationProp<
       DrawerNavigationProp<drawerType>,
@@ -55,6 +59,14 @@ export default function SupportScreen() {
 
   const handleContactSupport = () => {
     Linking.openURL('mailto:support@musicplayer.com');
+  };
+
+  const handleCommunity = () => {
+    dispatch(showBanner({ message: "Community features (Discord & Forums) are coming soon! Keep tuned.", type: "info" }));
+  };
+
+  const handleLiveChat = () => {
+    dispatch(showBanner({ message: "Live Support is currently offline. Please send us an email!", type: "warning" }));
   };
 
   return (
@@ -90,7 +102,7 @@ export default function SupportScreen() {
             icon="people-outline" 
             title="Community" 
             subtitle="Join our user community"
-            onPress={() => {}}
+            onPress={handleCommunity}
           />
           <SupportItem 
             icon="document-text-outline" 
@@ -100,7 +112,10 @@ export default function SupportScreen() {
           />
         </View>
 
-        <TouchableOpacity style={[styles.liveChatButton, { backgroundColor: accentColor, shadowColor: accentColor }]}>
+        <TouchableOpacity 
+          style={[styles.liveChatButton, { backgroundColor: accentColor, shadowColor: accentColor }]}
+          onPress={handleLiveChat}
+        >
           <Ionicons name="chatbubbles" size={20} color="#fff" />
           <Text style={styles.liveChatText}>Start Live Chat</Text>
         </TouchableOpacity>

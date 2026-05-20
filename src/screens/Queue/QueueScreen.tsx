@@ -55,10 +55,16 @@ export default function QueueScreen() {
             ]}
           >
             <View style={styles.leftContent}>
-              <Image 
-                source={{ uri: item.image || "https://via.placeholder.com/150" }} 
-                style={styles.artwork} 
-              />
+              {item.image ? (
+                <Image 
+                  source={{ uri: item.image }} 
+                  style={styles.artwork} 
+                />
+              ) : (
+                <View style={[styles.artwork, styles.artworkPlaceholder, { backgroundColor: surfaceColor }]}>
+                  <Ionicons name="musical-notes" size={24} color={accentColor} />
+                </View>
+              )}
               <View style={styles.textContainer}>
                 <Text 
                   style={[
@@ -165,6 +171,10 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 8,
     marginRight: 12,
+  },
+  artworkPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   textContainer: {
     flex: 1,

@@ -24,7 +24,7 @@ import {
 } from "../../redux/store/library/librarySlice";
 import { PlaylistSummary } from "../../types";
 import { ScreenHeader } from "../../components/ScreenHeader";
-import { setAutoDownloadEnabled } from "../../redux/store/downloads/downloadsSlice";
+import { setAutoDownloadEnabled, batchDownloadTracksAction } from "../../redux/store/downloads/downloadsSlice";
 
 export default function PlaylistScreen() {
   const navigation = useNavigation<any>();
@@ -107,8 +107,16 @@ export default function PlaylistScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity 
               onPress={() => {
-                dispatch(setAutoDownloadEnabled(true));
-                // TODO: Batch download all playlist tracks if possible?
+                const newValue = !autoDownloadEnabled;
+                dispatch(setAutoDownloadEnabled(newValue));
+                if (newValue) {
+                  const allTracks = playlists
+                    .flatMap(p => (p as any).tracks || [])
+                    .filter((t: any, i: number, arr: any[]) => arr.findIndex((x: any) => x.id === t.id) === i);
+                  if (allTracks.length > 0) {
+                    dispatch(batchDownloadTracksAction(allTracks));
+                  }
+                }
               }}
               style={{ marginRight: 15, padding: 4 }}
             >

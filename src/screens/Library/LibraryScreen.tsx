@@ -250,6 +250,7 @@ export default function LibraryScreen() {
         isVisible={isPickerVisible}
         onClose={() => setIsPickerVisible(false)}
         onSelect={handleAddToPlaylist}
+        track={selectedTrack}
       />
     </View>
   </View>

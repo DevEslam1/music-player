@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,14 +8,16 @@ import {
   FlatList,
   Dimensions,
   Pressable,
-  ActivityIndicator
+  ActivityIndicator,
+  TextInput
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store/store';
-import { fetchPlaylists } from '../redux/store/library/librarySlice';
+import { fetchPlaylists, createPlaylistAction, addTrackToPlaylistAction } from '../redux/store/library/librarySlice';
 import { useThemeColor, useAccentColor } from '../hooks/use-theme-color';
-import { PlaylistSummary } from '../types';
+import { PlaylistSummary, Track } from '../types';
+import { showBanner } from '../redux/store/ui/uiSlice';
 
 const { height } = Dimensions.get('window');
 
@@ -23,9 +25,10 @@ interface PlaylistPickerProps {
   isVisible: boolean;
   onClose: () => void;
   onSelect: (playlistId: string) => void;
+  track?: Track | null;
 }
 
-export default function PlaylistPicker({ isVisible, onClose, onSelect }: PlaylistPickerProps) {
+export default function PlaylistPicker({ isVisible, onClose, onSelect, track }: PlaylistPickerProps) {
   const dispatch = useDispatch<AppDispatch>();
   const playlists = useSelector((state: RootState) => state.library.playlists);
   const playlistsLastFetchedAt = useSelector((state: RootState) => state.library.playlistsLastFetchedAt);
@@ -35,6 +38,8 @@ export default function PlaylistPicker({ isVisible, onClose, onSelect }: Playlis
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode);
 
   const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newPlaylistName, setNewPlaylistName] = useState('');
 
   const onRefresh = async () => {
     setIsRefreshing(true);
@@ -44,6 +49,20 @@ export default function PlaylistPicker({ isVisible, onClose, onSelect }: Playlis
       console.error("Failed to refresh playlists in picker:", e);
     } finally {
       setIsRefreshing(false);
+    }
+  };
+
+  const handleCreateAndAdd = async () => {
+    if (!newPlaylistName.trim() || !track) return;
+    try {
+      const result = await dispatch(createPlaylistAction(newPlaylistName.trim())).unwrap();
+      await dispatch(addTrackToPlaylistAction({ playlistId: result.id, track })).unwrap();
+      dispatch(showBanner({ message: `"${track.name}" added to "${result.name}"`, type: "success" }));
+      setNewPlaylistName('');
+      setIsCreating(false);
+      onClose();
+    } catch (e) {
+      dispatch(showBanner({ message: "Failed to create playlist", type: "error" }));
     }
   };
 
@@ -89,22 +108,39 @@ export default function PlaylistPicker({ isVisible, onClose, onSelect }: Playlis
           <View style={styles.header}>
             <Text style={[styles.title, { color: textColor }]}>Add to Playlist</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <TouchableOpacity onPress={onRefresh} style={{ marginRight: 20 }} disabled={isRefreshing}>
-                {isRefreshing ? (
-                   <ActivityIndicator size="small" color={accentColor} />
-                ) : (
-                  <Ionicons 
-                    name="refresh-outline" 
-                    size={22} 
-                    color={textColor} 
-                  />
-                )}
+              <TouchableOpacity onPress={() => setIsCreating(!isCreating)} style={{ marginRight: 20 }}>
+                <Ionicons 
+                  name={isCreating ? "close" : "add-circle-outline"} 
+                  size={24} 
+                  color={textColor} 
+                />
               </TouchableOpacity>
               <TouchableOpacity onPress={onClose}>
                 <Ionicons name="close" size={24} color={textColor} />
               </TouchableOpacity>
             </View>
           </View>
+
+          {isCreating && (
+            <View style={[styles.createForm, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#F1F5F9' }]}>
+              <TextInput
+                style={[styles.input, { color: textColor, borderBottomColor: accentColor }]}
+                placeholder="New playlist name..."
+                placeholderTextColor="#94A3B8"
+                value={newPlaylistName}
+                onChangeText={setNewPlaylistName}
+                autoFocus
+                selectionColor={accentColor}
+              />
+              <TouchableOpacity 
+                style={[styles.createBtn, { backgroundColor: accentColor }]}
+                onPress={handleCreateAndAdd}
+                disabled={!newPlaylistName.trim() || !track}
+              >
+                <Text style={styles.createBtnText}>Create & Add</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {playlists.length > 0 ? (
             <FlatList
@@ -193,5 +229,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#94A3B8',
     textAlign: 'center',
+  },
+  createForm: {
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 16,
+  },
+  input: {
+    borderBottomWidth: 1,
+    paddingBottom: 10,
+    marginBottom: 12,
+    fontSize: 16,
+  },
+  createBtn: {
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  createBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 });

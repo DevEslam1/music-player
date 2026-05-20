@@ -71,7 +71,7 @@ export default function FAQScreen() {
     },
     {
       question: "Can I use GiG Player offline?",
-      answer: "Currently, GiG Player requires an active internet connection to stream music from our cloud library. Offline mode is a featured planned for future updates!"
+      answer: "Yes! GiG Player supports offline playback. You can download any track by tapping the cloud icon on playlists or song details. You can also enable 'Auto-Download' in settings to automatically download liked tracks."
     },
     {
       question: "How do I contacted support?",
@@ -103,7 +103,10 @@ export default function FAQScreen() {
 
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: textColor + '99' }]}>Still need help?</Text>
-          <TouchableOpacity style={[styles.contactButton, { borderColor: accentColor }]}>
+          <TouchableOpacity 
+            style={[styles.contactButton, { borderColor: accentColor }]}
+            onPress={() => navigation.navigate("Contact")}
+          >
             <Text style={[styles.contactButtonText, { color: accentColor }]}>Contact Support</Text>
           </TouchableOpacity>
         </View>

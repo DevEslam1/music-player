@@ -475,6 +475,7 @@ export default function NowPlayingScreen() {
           isVisible={isPickerVisible} 
           onClose={() => setIsPickerVisible(false)}
           onSelect={handleAddToPlaylist}
+          track={currentTrack}
         />
 
         <SleepTimerModal

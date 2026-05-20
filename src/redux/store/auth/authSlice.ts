@@ -60,14 +60,7 @@ const authSlice = createSlice({
       state.loading = true;
       state.failed = null;
     },
-    loginSuccess: (state, action: PayloadAction<User>) => {
-      state.loading = false;
-      state.isLoggedIn = true;
-      state.isGuestMode = false;
-      state.currentUser = action.payload;
-      // Persist user to storage
-      AsyncStorage.setItem('current_user', JSON.stringify(action.payload)).catch(e => console.warn('Failed to persist user:', e));
-    },
+
     loginFailure: (state, action: PayloadAction<string>) => {
       state.loading = false;
       state.failed = action.payload;
@@ -125,7 +118,6 @@ const authSlice = createSlice({
 
 export const {
   loginStart,
-  loginSuccess,
   loginFailure,
   logoutCompleted,
   setGuestMode,
