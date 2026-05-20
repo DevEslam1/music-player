@@ -34,6 +34,14 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ visible, onClose
   const [minMax, setMinMax] = useState({ min: -1500, max: 1500 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [localLevels, setLocalLevels] = useState<number[]>([]);
+
+  // Sync local levels when Redux bandLevels change (e.g. from preset selection or restoration)
+  useEffect(() => {
+    if (bandLevels && bandLevels.length > 0) {
+      setLocalLevels(bandLevels);
+    }
+  }, [bandLevels]);
 
   const loadData = useCallback(async () => {
     if (Platform.OS !== 'android') return;
@@ -65,7 +73,7 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ visible, onClose
       setError(err.message || "Failed to load equalizer settings");
       setLoading(false);
     }
-  }, []);
+  }, [bandLevels, dispatch]);
 
   useEffect(() => {
     if (visible) {
@@ -88,12 +96,6 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ visible, onClose
   const handlePresetSelect = async (index: number, name: string) => {
     await audioPlayer.applyEqualizerPreset(index, name);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
-    // Refresh band levels after preset change
-    const bandData = await audioPlayer.getEqualizerBands();
-    // Note: We don't have getBandLevel in our current native patch, 
-    // so the sliders might not update visually until we add it or manually map presets.
-    // For now, we'll just show the preset name.
   };
 
   if (Platform.OS !== 'android') return null;
@@ -169,30 +171,45 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ visible, onClose
                 </TouchableOpacity>
               </View>
             ) : (
-              <View style={styles.bandsWrapper}>
-                {bands.length > 0 ? bands.map((band, i) => (
-                  <View key={i} style={styles.bandColumn}>
-                    <Text style={styles.freqText}>
-                      {band.freq >= 1000 ? `${(band.freq/1000).toFixed(1)}k` : band.freq}
-                    </Text>
-                    <View style={styles.sliderWrapper}>
-                      <Slider
-                        style={styles.slider}
-                        minimumValue={minMax.min}
-                        maximumValue={minMax.max}
-                        value={bandLevels[i] || 0}
-                        onValueChange={(val) => handleBandChange(i, Math.round(val))}
-                        step={100}
-                        minimumTrackTintColor={accentColor}
-                        maximumTrackTintColor={isDark ? '#2D3748' : '#CBD5E0'}
-                        thumbTintColor={accentColor}
-                      />
-                    </View>
-                    <Text style={styles.levelText}>
-                      {Math.round((bandLevels[i] || 0) / 100)}dB
-                    </Text>
-                  </View>
-                )) : (
+              <View style={{ flex: 1 }}>
+                {bands.length > 0 ? (
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={[styles.bandsWrapper, { minWidth: '100%' }]}
+                  >
+                    {bands.map((band, i) => (
+                      <View key={i} style={styles.bandColumn}>
+                        <Text style={styles.freqText}>
+                          {band.freq >= 1000 ? `${(band.freq/1000).toFixed(1)}k` : band.freq}
+                        </Text>
+                        <View style={styles.sliderWrapper}>
+                          <Slider
+                            style={styles.slider}
+                            minimumValue={minMax.min}
+                            maximumValue={minMax.max}
+                            value={localLevels[i] ?? bandLevels[i] ?? 0}
+                            onValueChange={(val) => {
+                              const updated = [...localLevels];
+                              updated[i] = Math.round(val);
+                              setLocalLevels(updated);
+                            }}
+                            onSlidingComplete={(val) => {
+                              handleBandChange(i, Math.round(val));
+                            }}
+                            step={100}
+                            minimumTrackTintColor={accentColor}
+                            maximumTrackTintColor={isDark ? '#2D3748' : '#CBD5E0'}
+                            thumbTintColor={accentColor}
+                          />
+                        </View>
+                        <Text style={styles.levelText}>
+                          {Math.round((localLevels[i] ?? bandLevels[i] ?? 0) / 100)}dB
+                        </Text>
+                      </View>
+                    ))}
+                  </ScrollView>
+                ) : (
                   <View style={styles.placeholder}>
                     <Text style={{ color: muted }}>No equalizer bands found.</Text>
                   </View>
@@ -298,15 +315,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   bandsWrapper: {
-    flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
+    paddingHorizontal: 12,
   },
   bandColumn: {
     alignItems: 'center',
     height: '100%',
-    width: (width - 48) / 5,
+    width: 68,
   },
   sliderWrapper: {
     height: 160,

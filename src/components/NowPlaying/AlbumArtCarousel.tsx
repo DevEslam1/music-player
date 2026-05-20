@@ -133,8 +133,9 @@ export const AlbumArtCarousel = React.memo(({
   animatedImageStyle,
   glowIntensity
 }: AlbumArtCarouselProps) => {
-  const { width } = useWindowDimensions();
-  const itemWidth = width * 0.72;
+  const { width, height } = useWindowDimensions();
+  const isShortScreen = height < 750;
+  const itemWidth = isShortScreen ? Math.min(width * 0.6, height * 0.28) : width * 0.72;
   const itemSpacing = (width - itemWidth) / 2;
   const coverSize = itemWidth;
   const scrollX = useSharedValue(0);

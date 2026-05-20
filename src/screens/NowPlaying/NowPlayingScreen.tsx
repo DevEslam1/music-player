@@ -1,10 +1,10 @@
 import { Image } from "expo-image";
 import React, { useRef, useEffect, useCallback } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Platform, ScrollView, Share } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Platform, ScrollView, Share, BackHandler, useWindowDimensions } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import * as Sharing from 'expo-sharing';
 import { useThemeColor, useColorScheme, useAccentColor } from "../../hooks/use-theme-color";
 import { useSelector, useDispatch } from "react-redux";
@@ -38,6 +38,26 @@ import { EqualizerModal } from "../../components/player/EqualizerModal";
 
 export default function NowPlayingScreen() {
   const navigation = useNavigation<any>();
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 750;
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          navigation.navigate('Drawer');
+        }
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => subscription.remove();
+    }, [navigation])
+  );
+
   const dispatch = useDispatch<AppDispatch>();
   const currentTrack = useSelector((state: RootState) => state.player.currentTrack);
   const queue = useSelector((state: RootState) => state.player.queue);
@@ -190,42 +210,30 @@ export default function NowPlayingScreen() {
     if (!currentTrack) return;
     
     try {
-      // Check if track is local (from local library) or downloaded
-      let localUriToShare: string | null = null;
-      if (currentTrack.uri.startsWith('file://')) {
-        localUriToShare = currentTrack.uri;
-      } else {
-        // Might be a downloaded remote track
-        localUriToShare = await DownloadService.getLocalUri(currentTrack.id);
-      }
+      const isLocal = currentTrack.uri.startsWith('file://') || 
+                      currentTrack.uri.startsWith('content://') || 
+                      (!currentTrack.uri.startsWith('http://') && !currentTrack.uri.startsWith('https://'));
       
-      if (localUriToShare) {
+      if (isLocal) {
         const canShare = await Sharing.isAvailableAsync();
         if (canShare) {
-          await Sharing.shareAsync(localUriToShare, {
+          await Sharing.shareAsync(currentTrack.uri, {
             dialogTitle: `Share ${currentTrack.name}`,
-            mimeType: 'audio/*', 
+            mimeType: 'audio/mpeg', 
           });
           return;
-        }
-      }
-
-      const message = `Check out "${currentTrack.name}" by ${currentTrack.artist} on GiG Player!\n\nListen here: ${currentTrack.previewUrl || currentTrack.uri}`;
-      
-      const result = await Share.share({
-        message,
-        title: `Share ${currentTrack.name}`,
-        url: currentTrack.previewUrl || currentTrack.uri, // iOS only
-      });
-
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          // shared with activity type of result.activityType
         } else {
-          // shared
+          throw new Error("Sharing is not available on this device.");
         }
-      } else if (result.action === Share.dismissedAction) {
-        // dismissed
+      } else {
+        const shareUrl = currentTrack.previewUrl || currentTrack.uri;
+        const message = `Check out "${currentTrack.name}" by ${currentTrack.artist} on GiG Player!\n\nListen here: ${shareUrl}`;
+        
+        await Share.share({
+          message,
+          title: `Share ${currentTrack.name}`,
+          url: shareUrl, // iOS only
+        });
       }
     } catch (error: any) {
       dispatch(showBanner({ message: error.message, type: "error" }));
@@ -374,7 +382,7 @@ export default function NowPlayingScreen() {
         )}
 
         {/* 2. Track Info: Title + Artist (single source of truth) */}
-        <View style={styles.trackInfoArea}>
+        <View style={[styles.trackInfoArea, isShortScreen && { marginTop: 8, marginBottom: 4 }]}>
           <View style={styles.trackInfoRow}>
             <DownloadButton track={currentTrack} size={24} color={textColor} />
             <View style={styles.trackInfoCenter}>
@@ -405,7 +413,7 @@ export default function NowPlayingScreen() {
                   >
                     <Ionicons
                       name={isLiked ? 'heart' : 'heart-outline'}
-                      size={24}
+                      size={26}
                       color={isLiked ? accentColor : textColor}
                     />
                   </TouchableOpacity>
@@ -437,7 +445,7 @@ export default function NowPlayingScreen() {
         />
 
         {/* 5. Bottom Fixed Actions (End of Screen) */}
-        <View style={styles.bottomFixedActions}>
+        <View style={[styles.bottomFixedActions, isShortScreen && { paddingTop: 10, marginBottom: 4 }]}>
           <TouchableOpacity
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -501,9 +509,11 @@ const styles = StyleSheet.create({
     marginBottom: 10, 
   },
   headerButton: {
-    padding: 4,
-    width: 40,
-    alignItems: 'center'
+    padding: 8,
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 18,

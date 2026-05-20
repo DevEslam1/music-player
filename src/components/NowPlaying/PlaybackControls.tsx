@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useAccentColor } from '../../hooks/use-theme-color';
@@ -40,13 +40,21 @@ export const PlaybackControls = React.memo(({
   textColor
 }: PlaybackControlsProps) => {
   const accentColor = useAccentColor();
+  const { height } = useWindowDimensions();
+  const isShortScreen = height < 750;
+
+  const playPauseSize = isShortScreen ? 68 : 80;
+  const playIconSize = isShortScreen ? 38 : 48;
+  const skipIconSize = isShortScreen ? 28 : 36;
+
   // Repeat-queue/track overrides edge disabling — shuffle always allows next
   const prevEnabled = canGoPrevious || repeatMode === 'queue' || isShuffled;
   const nextEnabled = canGoNext || repeatMode === 'queue' || repeatMode === 'track' || isShuffled;
+
   return (
     <View>
       {/* Secondary Controls (Shuffle/Repeat) */}
-      <View style={styles.secondaryControls}>
+      <View style={[styles.secondaryControls, isShortScreen && { marginBottom: 8 }]}>
         <TouchableOpacity
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -95,18 +103,22 @@ export const PlaybackControls = React.memo(({
       </View>
 
       {/* Main Playback Controls */}
-      <View style={styles.mainControls}>
+      <View style={[styles.mainControls, isShortScreen && { marginTop: 8 }]}>
         <TouchableOpacity
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             onPrevious();
           }}
-          style={[styles.controlBtn, !prevEnabled && styles.disabledBtn]}
+          style={[
+            styles.controlBtn, 
+            isShortScreen && { padding: 12 },
+            !prevEnabled && styles.disabledBtn
+          ]}
           disabled={!prevEnabled}
         >
           <Ionicons
             name="play-skip-back-outline"
-            size={36}
+            size={skipIconSize}
             color={prevEnabled ? textColor : `${textColor}44`}
           />
         </TouchableOpacity>
@@ -116,9 +128,19 @@ export const PlaybackControls = React.memo(({
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
             onPlayPause();
           }}
-          style={[styles.playPauseBtn, { backgroundColor: accentColor, shadowColor: accentColor }]}
+          style={[
+            styles.playPauseBtn, 
+            { 
+              backgroundColor: accentColor, 
+              shadowColor: accentColor,
+              width: playPauseSize,
+              height: playPauseSize,
+              borderRadius: playPauseSize / 2,
+              marginHorizontal: isShortScreen ? 20 : 32
+            }
+          ]}
         >
-          <Ionicons name={isPlaying ? 'pause' : 'play'} size={48} color="#FFF" />
+          <Ionicons name={isPlaying ? 'pause' : 'play'} size={playIconSize} color="#FFF" />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -126,12 +148,16 @@ export const PlaybackControls = React.memo(({
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             onNext();
           }}
-          style={[styles.controlBtn, !nextEnabled && styles.disabledBtn]}
+          style={[
+            styles.controlBtn, 
+            isShortScreen && { padding: 12 },
+            !nextEnabled && styles.disabledBtn
+          ]}
           disabled={!nextEnabled}
         >
           <Ionicons
             name="play-skip-forward-outline"
-            size={36}
+            size={skipIconSize}
             color={nextEnabled ? textColor : `${textColor}44`}
           />
         </TouchableOpacity>

@@ -696,10 +696,10 @@ index b2409a0..a844341 100644
      }
  }
 diff --git a/node_modules/react-native-track-player/android/src/main/java/com/doublesymmetry/trackplayer/service/MusicService.kt b/node_modules/react-native-track-player/android/src/main/java/com/doublesymmetry/trackplayer/service/MusicService.kt
-index afa6b0f..c5a0f81 100644
+index afa6b0f..49617bb 100644
 --- a/node_modules/react-native-track-player/android/src/main/java/com/doublesymmetry/trackplayer/service/MusicService.kt
 +++ b/node_modules/react-native-track-player/android/src/main/java/com/doublesymmetry/trackplayer/service/MusicService.kt
-@@ -31,9 +31,12 @@ import com.doublesymmetry.trackplayer.utils.BundleUtils
+@@ -31,9 +31,13 @@ import com.doublesymmetry.trackplayer.utils.BundleUtils
  import com.doublesymmetry.trackplayer.utils.BundleUtils.setRating
  import com.facebook.react.HeadlessJsTaskService
  import com.facebook.react.bridge.Arguments
@@ -708,19 +708,34 @@ index afa6b0f..c5a0f81 100644
  import com.facebook.react.modules.core.DeviceEventManagerModule
 +import com.facebook.react.ReactApplication
  import com.google.android.exoplayer2.ui.R as ExoPlayerR
++import com.google.android.exoplayer2.ExoPlayer
 +import android.media.audiofx.Equalizer
  import kotlinx.coroutines.*
  import kotlinx.coroutines.flow.flow
  import java.util.concurrent.TimeUnit
-@@ -46,6 +49,7 @@ class MusicService : HeadlessJsTaskService() {
-     private val binder = MusicBinder()
-     private val scope = MainScope()
-     private var progressUpdateJob: Job? = null
-+    private var equalizer: Equalizer? = null
+@@ -609,6 +613,10 @@ class MusicService : HeadlessJsTaskService() {
+                 if (it == AudioPlayerState.ENDED && player.nextItem == null) {
+                     emitQueueEndedEvent()
+                 }
++
++                if (isEqEnabled && (it == AudioPlayerState.READY || it == AudioPlayerState.BUFFERING)) {
++                    ensureEqualizer()
++                }
+             }
+         }
  
-     /**
-      * Use [appKilledPlaybackBehavior] instead.
-@@ -739,9 +743,27 @@ class MusicService : HeadlessJsTaskService() {
+@@ -621,6 +629,10 @@ class MusicService : HeadlessJsTaskService() {
+                         (it?.oldPosition ?: 0).toSeconds()
+                     )
+                 }
++
++                if (isEqEnabled) {
++                    ensureEqualizer()
++                }
+             }
+         }
+ 
+@@ -739,9 +751,27 @@ class MusicService : HeadlessJsTaskService() {
          return bundle
      }
  
@@ -749,7 +764,7 @@ index afa6b0f..c5a0f81 100644
              ?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
              ?.emit(event, data?.let { Arguments.fromBundle(it) })
      }
-@@ -751,7 +773,7 @@ class MusicService : HeadlessJsTaskService() {
+@@ -751,7 +781,7 @@ class MusicService : HeadlessJsTaskService() {
          val payload = Arguments.createArray()
          data.forEach { payload.pushMap(Arguments.fromBundle(it)) }
  
@@ -758,24 +773,86 @@ index afa6b0f..c5a0f81 100644
              ?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
              ?.emit(event, payload)
      }
-@@ -851,4 +873,89 @@ class MusicService : HeadlessJsTaskService() {
+@@ -851,4 +881,175 @@ class MusicService : HeadlessJsTaskService() {
          const val DEFAULT_JUMP_INTERVAL = 15.0
          const val DEFAULT_STOP_FOREGROUND_GRACE_PERIOD = 5
      }
 +
 +    // ─── Equalizer Support ───────────────────────────────────────────────────────
 +
++    private var equalizer: Equalizer? = null
++    private var currentSessionId: Int = -1
++    private var isEqEnabled: Boolean = false
++    private val eqLevels = HashMap<Short, Short>()
++    private var currentPresetIndex: Short = -1
++
++    private fun getExoPlayer(): ExoPlayer? {
++        if (!::player.isInitialized) return null
++        var clazz: Class<*>? = player.javaClass
++        while (clazz != null) {
++            try {
++                val field = clazz.getDeclaredField("exoPlayer")
++                field.isAccessible = true
++                return field.get(player) as? ExoPlayer
++            } catch (e: NoSuchFieldException) {
++                clazz = clazz.superclass
++            }
++        }
++        return null
++    }
++
 +    private fun ensureEqualizer(): Equalizer? {
-+        if (equalizer != null) return equalizer
++        val exo = getExoPlayer()
++        val sessionId = exo?.audioSessionId ?: 0
 +        
++        // If equalizer already exists for this session, return it
++        if (equalizer != null && currentSessionId == sessionId) {
++            return equalizer
++        }
++        
++        // Session ID changed or equalizer is null. Re-create.
 +        try {
-+            // Session ID 0 = output mix equalizer (affects all app audio)
-+            // This is more reliable across different ExoPlayer/kotlinaudio versions
-+            equalizer = Equalizer(0, 0)
-+            Timber.d("Equalizer initialized with session ID 0 (global)")
++            equalizer?.release()
++            equalizer = null
++            
++            // Note: If sessionId is 0 or ExoPlayer.AUDIO_SESSION_ID_UNSET, we fallback to session 0 (global)
++            val idToUse = if (sessionId > 0) sessionId else 0
++            equalizer = Equalizer(0, idToUse)
++            currentSessionId = sessionId
++            Timber.d("Equalizer initialized with audioSessionId $idToUse (requested $sessionId)")
++            
++            // Apply isEqEnabled state
++            equalizer?.enabled = isEqEnabled
++            
++            if (isEqEnabled) {
++                // Apply preset or custom levels
++                val eq = equalizer
++                if (eq != null) {
++                    if (currentPresetIndex >= 0) {
++                        try {
++                            eq.usePreset(currentPresetIndex)
++                            // Retrieve and update cache with preset levels
++                            val bands = eq.numberOfBands
++                            for (b in 0 until bands) {
++                                eqLevels[b.toShort()] = eq.getBandLevel(b.toShort())
++                            }
++                        } catch (e: Exception) {
++                            Timber.e("Failed to apply cached preset $currentPresetIndex: ${e.message}")
++                        }
++                    } else if (eqLevels.isNotEmpty()) {
++                        for ((band, level) in eqLevels) {
++                            try {
++                                eq.setBandLevel(band, level)
++                            } catch (e: Exception) {
++                                Timber.e("Failed to apply cached band $band level $level: ${e.message}")
++                            }
++                        }
++                    }
++                }
++            }
 +            return equalizer
 +        } catch (e: Exception) {
-+            Timber.e("Equalizer init failed: ${e.message}")
++            Timber.e("Equalizer init failed for session $sessionId: ${e.message}")
 +            return null
 +        }
 +    }
@@ -783,10 +860,12 @@ index afa6b0f..c5a0f81 100644
 +    @MainThread
 +    fun setEqualizerEnabled(enabled: Boolean): Boolean {
 +        try {
++            isEqEnabled = enabled
 +            if (!enabled) {
 +                equalizer?.enabled = false
 +                equalizer?.release()
 +                equalizer = null
++                currentSessionId = -1
 +                return true
 +            }
 +            
@@ -810,7 +889,14 @@ index afa6b0f..c5a0f81 100644
 +        for (i in 0 until bands) {
 +            val centerFreq = eq.getCenterFreq(i.toShort()) / 1000 // Convert to Hz
 +            bundle.putInt("band_$i", centerFreq)
-+            bundle.putInt("level_$i", eq.getBandLevel(i.toShort()).toInt())
++            val currentLevel = if (eqLevels.containsKey(i.toShort())) {
++                eqLevels[i.toShort()]?.toInt() ?: eq.getBandLevel(i.toShort()).toInt()
++            } else {
++                val lvl = eq.getBandLevel(i.toShort()).toInt()
++                eqLevels[i.toShort()] = lvl.toShort()
++                lvl
++            }
++            bundle.putInt("level_$i", currentLevel)
 +        }
 +        
 +        val range = eq.bandLevelRange
@@ -823,7 +909,11 @@ index afa6b0f..c5a0f81 100644
 +    @MainThread
 +    fun setEqualizerBandLevel(band: Int, level: Int) {
 +        try {
-+            ensureEqualizer()?.setBandLevel(band.toShort(), level.toShort())
++            val b = band.toShort()
++            val l = level.toShort()
++            eqLevels[b] = l
++            currentPresetIndex = -1
++            ensureEqualizer()?.setBandLevel(b, l)
 +        } catch (e: Exception) {
 +            Timber.e("Failed to set EQ band: ${e.message}")
 +        }
@@ -842,7 +932,18 @@ index afa6b0f..c5a0f81 100644
 +    @MainThread
 +    fun applyEqualizerPreset(index: Int) {
 +        try {
-+            ensureEqualizer()?.usePreset(index.toShort())
++            val idx = index.toShort()
++            currentPresetIndex = idx
++            eqLevels.clear()
++            val eq = ensureEqualizer()
++            if (eq != null) {
++                eq.usePreset(idx)
++                // Cache the preset's levels
++                val bands = eq.numberOfBands
++                for (i in 0 until bands) {
++                    eqLevels[i.toShort()] = eq.getBandLevel(i.toShort())
++                }
++            }
 +        } catch (e: Exception) {
 +            Timber.e("Failed to apply EQ preset: ${e.message}")
 +        }
